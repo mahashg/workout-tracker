@@ -317,7 +317,7 @@ class SessionActivity : AppCompatActivity() {
         if (!completed) {
             ab(makeSmallButton("Finish Workout") {
                 AlertDialog.Builder(this).setTitle("Finish workout?").setMessage("Mark as completed? Unchecked sets stay as-is in history/CSV.")
-                    .setPositiveButton("Finish") { _, _ -> val fresh = db.getSession(sessionId); if (fresh != null) WorkoutTimer.finish(this, db, fresh); db.setSessionCompleted(sessionId, true); startActivity(android.content.Intent(this, SummaryActivity::class.java).apply { putExtra("sessionId", sessionId); putExtra("celebrate", true) }); finish() }.setNegativeButton("Cancel", null).show()
+                    .setPositiveButton("Finish") { _, _ -> val fresh = db.getSession(sessionId); if (fresh != null) WorkoutTimer.finish(this, db, fresh); db.setSessionCompleted(sessionId, true); DriveBackup.backupSilently(this, db); startActivity(android.content.Intent(this, SummaryActivity::class.java).apply { putExtra("sessionId", sessionId); putExtra("celebrate", true) }); finish() }.setNegativeButton("Cancel", null).show()
             })
         } else {
             ab(makeSmallButton("Re-open") { db.setSessionCompleted(sessionId, false); render() })
