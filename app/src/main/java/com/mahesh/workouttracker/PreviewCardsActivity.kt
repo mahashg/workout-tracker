@@ -13,7 +13,6 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.abs
@@ -109,17 +108,18 @@ class PreviewCardsActivity : AppCompatActivity() {
 
     private fun render() {
         val routine = db.getRoutine(routineId) ?: run { finish(); return }
-        val root = rootLayout(); setContentView(ScrollView(this).apply { addView(root) })
+        val root = fitRoot(); setContentView(root)
         val st = sectionType
         root.addView(topBar(routine.name, if (st.isNullOrBlank()) "Preview cards" else "${sectionLabel(st)} preview"))
 
         // Unmistakable preview-mode banner (no session is running here).
         val banner = cardLayout("#2563EB")
+        banner.setPadding(dp(12), dp(6), dp(12), dp(6))
         val bRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         bRow.addView(iconView(R.drawable.ic_eye, 22, Theme.primary))
         bRow.addView(makeText("  Preview — Start Workout to log", 15f, true, Theme.primary))
         banner.addView(bRow)
-        banner.addView(caption("Browsing only. Swipe or use Previous / Next to look through the cards — nothing is recorded until you start the workout."))
+        banner.addView(caption("Browsing only — nothing is recorded until you start the workout."))
         root.addView(banner)
 
         if (deck.isEmpty()) {
@@ -132,13 +132,14 @@ class PreviewCardsActivity : AppCompatActivity() {
 
         // Progress header
         val top = cardLayout(when (ex.type.lowercase()) { "warmup" -> "#D97706"; "stretch" -> "#0D9488"; else -> "#2563EB" })
+        top.setPadding(dp(12), dp(6), dp(12), dp(6))
         top.addView(makeText("${sectionLabel(ex.type)}  •  Card ${index + 1} of ${deck.size}", 14f, true))
         top.addView(hProgress(deck.size, index, sectionColor(ex.type)))
         root.addView(top)
 
         // ---- Card deck: ONE moving card over two static peek cards (same feel as card mode) ----
         val deckBox = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, dp(8)) }
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { setMargins(0, dp(8), 0, dp(6)) }
             clipChildren = false; clipToPadding = false
         }
         peekFar = View(this).apply {
@@ -152,29 +153,29 @@ class PreviewCardsActivity : AppCompatActivity() {
         deckBox.addView(peekFar); deckBox.addView(peekNear)
 
         val wrap = FrameLayout(this).apply {
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             clipChildren = false; clipToPadding = false
         }
         val dragCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(18))
+            setPadding(dp(14), dp(10), dp(14), dp(10))
             background = deckCardDrawable()
             elevation = dp(8).toFloat()
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
         cardSurface = dragCard
         dragCard.addView(View(this).apply { setBackgroundColor(sectionColor(ex.type)); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { setMargins(0, 0, 0, dp(12)) } })
 
         val muscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
         val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(104), dp(130)) })
-        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(12), 0, 0, 0) }
+        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(76), dp(94)) })
+        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
         essInfo.addView(equipmentBadge(ex.equipment))
-        essInfo.addView(makeText(ex.name, 24f, true))
+        essInfo.addView(makeText(ex.name, 20f, true))
         if (ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation, 12f, false, Theme.textSecondary))
-        essInfo.addView(makeText("Do it: ${doItLine(ex)}", 16f, true, Color.parseColor("#92400E")))
+        essInfo.addView(makeText("Do it: ${doItLine(ex)}", 14f, true, Color.parseColor("#92400E")))
         // Plan dots: neutral/hollow (no progress in preview)
-        essInfo.addView(makeText((1..planSets(ex)).joinToString("  ") { "○" }, 22f, true, Theme.textSecondary))
+        essInfo.addView(makeText((1..planSets(ex)).joinToString("  ") { "○" }, 18f, true, Theme.textSecondary))
         essInfo.addView(makeText("Planned sets — preview only", 12f, false, Theme.textSecondary))
         essRow.addView(essInfo)
         dragCard.addView(essRow)
@@ -195,27 +196,48 @@ class PreviewCardsActivity : AppCompatActivity() {
             if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
             render()
         }
+        (howToggle.layoutParams as LinearLayout.LayoutParams).height = dp(48)
         dragCard.addView(howToggle)
         if (howExpanded) {
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(6), dp(4), 0) }
-            if (ex.youtubeUrl.isNotBlank()) how.addView(primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) })
-            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}", 13f, false, Color.parseColor("#0369A1")))
+            // Compact how-to: fits INSIDE the fixed-height card (no page scroll).
+            // Posture bullets capped at 4, cues at 3; any remainder fades to "…".
+            val compact = isCompactScreen()
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(4), dp(4), 0) }
+            if (ex.youtubeUrl.isNotBlank()) {
+                val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
+                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+                how.addView(vid)
+            }
+            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}", 12f, false, Color.parseColor("#0369A1")))
+            var truncated = false
             if (Beginner.beginnerMode(this)) {
                 val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
                 if (posture.isNotBlank()) {
-                    how.addView(makeText("Check your posture:", 15f, true, Color.parseColor("#15803D")))
-                    for (c in posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }) how.addView(makeText("☐  $c", 13f, false))
+                    val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                    how.addView(makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")))
+                    for (c in items.take(4)) how.addView(makeText("☐  $c", 12f, false).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > 4) truncated = true
                 }
                 val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
                 if (cues.isNotBlank()) {
-                    how.addView(makeText("Form cues:", 14f, true, Color.parseColor("#0369A1")))
-                    for (c in cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }) how.addView(makeText("•  $c", 13f, false, Theme.textSecondary))
+                    val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                    val cap = if (compact) 2 else 3
+                    how.addView(makeText("Form cues:", 12f, true, Color.parseColor("#0369A1")))
+                    for (c in items.take(cap)) how.addView(makeText("•  $c", 12f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > cap) truncated = true
                 }
-                if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.", 12f, false, Color.parseColor("#92400E")))
+                if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.", 11f, false, Color.parseColor("#92400E")))
             } else {
                 val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
-                if (cues.isNotBlank()) { how.addView(makeText("Form cues:", 14f, true, Color.parseColor("#0369A1"))); for (c in cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }) how.addView(makeText("•  $c", 13f, false, Theme.textSecondary)) }
+                if (cues.isNotBlank()) {
+                    val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                    val cap = if (compact) 2 else 3
+                    how.addView(makeText("Form cues:", 12f, true, Color.parseColor("#0369A1")))
+                    for (c in items.take(cap)) how.addView(makeText("•  $c", 12f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > cap) truncated = true
+                }
             }
+            if (truncated) how.addView(makeText("…", 12f, true, Theme.textTertiary))
             dragCard.addView(how)
         }
         dragCard.addView(makeText("Swipe:  ‹ Prev  •  Next ›   (or use buttons below)", 11f, false, Theme.textSecondary))
@@ -291,17 +313,21 @@ class PreviewCardsActivity : AppCompatActivity() {
         val wrapRef = wrap
         val navRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val prevBtn = makeSecondaryButton("‹ Previous") { if (index > 0) animateExitThen(wrapRef, 1) { step(-1) } }
-        (prevBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
+        (prevBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
         val nextBtn = makeSecondaryButton("Next ›") { if (index < deck.size - 1) animateExitThen(wrapRef, -1) { step(1) } }
-        (nextBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
+        (nextBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
         navRow.addView(prevBtn); navRow.addView(nextBtn)
         root.addView(navRow)
-        deck.getOrNull(index + 1)?.let { root.addView(makeText("Next up: ${it.name}", 13f, false, Color.parseColor("#0369A1"))) }
-        deck.getOrNull(index - 1)?.let { root.addView(makeText("Previous: ${it.name}", 13f, false, Theme.textSecondary)) }
+        deck.getOrNull(index + 1)?.let { root.addView(makeText("Next up: ${it.name}", 12f, false, Color.parseColor("#0369A1"))) }
+        deck.getOrNull(index - 1)?.let { root.addView(makeText("Previous: ${it.name}", 12f, false, Theme.textSecondary)) }
 
         // Start from preview - the only place a session can be created from here.
-        root.addView(primaryButtonWithIcon(startButtonLabel(), R.drawable.ic_play) { startWorkout() })
-        root.addView(makeSecondaryButton("Back") { finish() })
+        val startBtn = primaryButtonWithIcon(startButtonLabel(), R.drawable.ic_play) { startWorkout() }
+        (startBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        root.addView(startBtn)
+        val backBtn = makeSecondaryButton("Back") { finish() }
+        (backBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        root.addView(backBtn)
     }
 
     private fun step(dir: Int) {
