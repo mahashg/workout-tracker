@@ -6,9 +6,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -16,8 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 class RoutineEditActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var routineId: Long = -1
+    private var exercisePage: Int = 0
+    // Form state preserved across re-renders (pagination must not lose typing)
+    private var formLoaded = false
+    private var nameVal = ""; private var focusVal = ""; private var notesVal = ""; private var dayPos = 7
+
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db = DbHelper(this); routineId = intent.getLongExtra("routineId", -1); render() }
     override fun onResume() { super.onResume(); if (::db.isInitialized && routineId > 0) render() }
+
     private fun pickFromLibrary(existing: Routine) {
         val labels = Library.entries.map { "${it.group} • ${it.name} (${it.equipment})" }.toTypedArray()
         AlertDialog.Builder(this).setTitle("Pick from Library")
@@ -29,76 +35,150 @@ class RoutineEditActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null).show()
     }
+
+    private fun tinyBtn(text: String, w: Int, onClick: () -> Unit): Button {
+        val b = makeSmallButton(text, onClick)
+        b.minWidth = 0; b.minHeight = 0; b.setPadding(0, 0, 0, 0); b.textSize = 11f
+        (b.layoutParams as LinearLayout.LayoutParams).apply { width = dp(w); height = dp(40) }
+        return b
+    }
+
     private fun render() {
         val existing = if (routineId > 0) db.getRoutine(routineId) else null
-        val root = rootLayout(); setContentView(ScrollView(this).apply { addView(root) })
-        root.addView(topBar(if (existing==null) "Add Workout" else "Edit Workout", existing?.name ?: ""))
+        if (!formLoaded) {
+            nameVal = existing?.name ?: ""; focusVal = existing?.focus ?: ""; notesVal = existing?.notes ?: ""
+            dayPos = when (existing?.weekday) { null -> 7; -1 -> 7; else -> existing.weekday }
+            formLoaded = true
+        }
+        val root = fitRoot(); setContentView(root)
+        root.addView(topBar(if (existing == null) "Add Workout" else "Edit Workout", existing?.name ?: ""))
+
         if (existing != null) {
             val header = cardLayout("#2563EB")
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            header.setPadding(dp(12), dp(6), dp(12), dp(6))
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
             val muscles = db.routineMuscles(existing.id)
-            row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(110), dp(138)) })
-            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
-            info.addView(makeText(existing.name, 18f, true))
-            info.addView(makeText("Targets: ${musclesLabel(muscles)}\n${existing.focus} • ${DateUtil.dayName(existing.weekday)}", 12f, false, Theme.textSecondary))
+            row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(36), dp(44)) })
+            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
+            info.addView(makeText(existing.name, 16f, true))
+            info.addView(caption("${existing.focus} • ${DateUtil.dayName(existing.weekday)} • Targets: ${musclesLabel(muscles)}"))
             row.addView(info); header.addView(row); root.addView(header)
         }
-        val nameEt = EditText(this).apply { setText(existing?.name ?: ""); hint="Workout name"; styleEditText(this) }
-        val focusEt = EditText(this).apply { setText(existing?.focus ?: ""); hint="Muscle focus (e.g. Chest, Triceps)"; styleEditText(this) }
-        val notesEt = EditText(this).apply { setText(existing?.notes ?: ""); hint="Notes"; styleEditText(this) }
+
+        // Compact two-half form (fits one screen with the keyboard closed)
+        // Build into holders first so we can lay them out in rows
+        val formBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        root.addView(formBox)
+        val rowA = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val nameCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(3), 0, dp(3), 0) }
+        nameCol.addView(makeText("Name", 11f, false, Theme.textSecondary))
+        val nameEt = EditText(this).apply { setText(nameVal); hint = "Workout name"; styleEditText(this); textSize = 13f; minHeight = dp(40); setPadding(dp(8), dp(4), dp(8), dp(4)) }
+        nameCol.addView(nameEt)
+        val focusCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(3), 0, dp(3), 0) }
+        focusCol.addView(makeText("Muscle focus", 11f, false, Theme.textSecondary))
+        val focusEt = EditText(this).apply { setText(focusVal); hint = "Chest, Triceps"; styleEditText(this); textSize = 13f; minHeight = dp(40); setPadding(dp(8), dp(4), dp(8), dp(4)) }
+        focusCol.addView(focusEt)
+        rowA.addView(nameCol); rowA.addView(focusCol)
+        formBox.addView(rowA)
+        val rowB = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val dayCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(3), 0, dp(3), 0) }
+        dayCol.addView(makeText("Assigned day", 11f, false, Theme.textSecondary))
         val daySpinner = Spinner(this).apply {
-            adapter = ArrayAdapter(this@RoutineEditActivity, android.R.layout.simple_spinner_dropdown_item, listOf("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Unassigned"))
-            setSelection(when(existing?.weekday){ null->7; -1->7; else->existing.weekday })
+            adapter = ArrayAdapter(this@RoutineEditActivity, android.R.layout.simple_spinner_dropdown_item, listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Unassigned"))
+            setSelection(dayPos)
         }
-        root.addView(makeText("Name", 13f, false, Theme.textSecondary)); root.addView(nameEt)
-        root.addView(makeText("Muscle focus", 13f, false, Theme.textSecondary)); root.addView(focusEt)
-        root.addView(makeText("Assigned day", 13f, false, Theme.textSecondary)); root.addView(daySpinner)
-        root.addView(makeText("Notes", 13f, false, Theme.textSecondary)); root.addView(notesEt)
-        root.addView(makeText("Form videos are per exercise below (Watch Form), not per workout.", 12f, false, Theme.textSecondary))
-        root.addView(makeButton("Save Workout") {
-            val name = nameEt.text.toString().trim(); if (name.isEmpty()) { Toast.makeText(this,"Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
-            val wd = if (daySpinner.selectedItemPosition==7) -1 else daySpinner.selectedItemPosition
-            if (existing==null) {
-                routineId = db.insertRoutine(Routine(0,name,focusEt.text.toString(),wd,"",notesEt.text.toString()))
-                Toast.makeText(this,"Saved", Toast.LENGTH_SHORT).show(); render()
+        dayCol.addView(daySpinner)
+        val notesCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(3), 0, dp(3), 0) }
+        notesCol.addView(makeText("Notes", 11f, false, Theme.textSecondary))
+        val notesEt = EditText(this).apply { setText(notesVal); hint = "Notes"; styleEditText(this); textSize = 13f; minHeight = dp(40); setPadding(dp(8), dp(4), dp(8), dp(4)) }
+        notesCol.addView(notesEt)
+        rowB.addView(dayCol); rowB.addView(notesCol)
+        formBox.addView(rowB)
+
+        fun capture() {
+            nameVal = nameEt.text.toString(); focusVal = focusEt.text.toString(); notesVal = notesEt.text.toString(); dayPos = daySpinner.selectedItemPosition
+        }
+
+        val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val saveBtn = makeButton("Save Workout") {
+            capture()
+            val name = nameVal.trim(); if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
+            val wd = if (dayPos == 7) -1 else dayPos
+            if (existing == null) {
+                routineId = db.insertRoutine(Routine(0, name, focusVal, wd, "", notesVal))
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show(); render()
             } else {
                 // preserve deprecated routines.youtubeUrl column, unused in v2 UI
-                db.updateRoutine(Routine(existing.id,name,focusEt.text.toString(),wd,existing.youtubeUrl,notesEt.text.toString()))
-                Toast.makeText(this,"Saved", Toast.LENGTH_SHORT).show()
+                db.updateRoutine(Routine(existing.id, name, focusVal, wd, existing.youtubeUrl, notesVal))
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             }
-        })
-        if (existing != null) {
-            root.addView(makeText("Exercises", 18f, true))
-            val exs = db.getExercises(existing.id)
-            var lastSection = ""
-            for ((idx, e) in exs.withIndex()) {
-                val section = when(e.type.lowercase()){ "warmup"->"Warm-up"; "stretch"->"Stretching"; else->"Main" }
-                if (section!=lastSection) { root.addView(sectionHeader(section)); lastSection=section }
-                val card = cardLayout()
-                val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                val mus = DbHelper.parseMuscles(e.targetMuscles, e.name)
-                if (mus.isNotEmpty()) top.addView(BodyMapView(this, mus).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(66)) })
-                val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8),0,0,0) }
-                info.addView(makeText("${idx+1}. ${e.name}", 15f, true))
-                val brow = LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL; gravity=Gravity.CENTER_VERTICAL }
-                brow.addView(equipmentBadge(e.equipment)); info.addView(brow)
-                info.addView(makeText("${e.type} • ${e.defaultSets} sets • ${e.targetReps}${if(mus.isNotEmpty()) "\nTargets: ${musclesLabel(mus)}" else ""}", 12f, false, Theme.textSecondary))
-                top.addView(info); card.addView(top)
-                if (e.youtubeUrl.isNotBlank()) card.addView(smallButtonWithIcon("Watch Form", R.drawable.ic_play) { openUrl(this, e.youtubeUrl) })
-                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                if (idx>0) row.addView(makeSmallButton("↑") { db.swapExerciseOrder(e, exs[idx-1]); render() })
-                if (idx<exs.size-1) row.addView(makeSmallButton("↓") { db.swapExerciseOrder(e, exs[idx+1]); render() })
-                row.addView(makeSmallButton("Edit") { startActivity(Intent(this, ExerciseEditActivity::class.java).apply{ putExtra("exerciseId", e.id); putExtra("routineId", existing.id) }) })
-                row.addView(makeSmallButton("Delete") { AlertDialog.Builder(this).setTitle("Delete exercise?").setPositiveButton("Delete"){_,_-> db.deleteExercise(e.id); render()}.setNegativeButton("Cancel",null).show() })
-                card.addView(row); root.addView(card)
-            }
-            root.addView(makeButton("Add Exercise") { startActivity(Intent(this, ExerciseEditActivity::class.java).apply{ putExtra("exerciseId", -1L); putExtra("routineId", existing.id) }) })
-            root.addView(makeSecondaryButton("Pick from Library") { pickFromLibrary(existing) })
-            root.addView(makeButton("Delete This Workout") {
-                AlertDialog.Builder(this).setTitle("Delete workout?").setMessage("Exercises will be deleted. History sessions stay.")
-                    .setPositiveButton("Delete"){_,_-> db.deleteRoutine(existing.id); finish()}.setNegativeButton("Cancel",null).show()
-            })
         }
-        root.addView(makeButton("Back") { finish() })
+        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        saveRow.addView(saveBtn)
+        saveRow.addView(makeText("  Form videos are per exercise below.", 11f, false, Theme.textSecondary))
+        formBox.addView(saveRow)
+
+        if (existing != null) {
+            val exs = db.getExercises(existing.id)
+            val pageSize = (((screenHeightDp() - 470) / 54).coerceIn(3, 5))
+            val pageCount = ((exs.size + pageSize - 1) / pageSize).coerceAtLeast(1)
+            if (exercisePage !in 0 until pageCount) exercisePage = pageCount - 1
+            root.addView(makeText("Exercises (${exs.size})", 15f, true))
+            val box = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+            }
+            var lastSection = ""
+            for (idx in (exercisePage * pageSize) until minOf(exs.size, (exercisePage + 1) * pageSize)) {
+                val e = exs[idx]
+                val section = when (e.type.lowercase()) { "warmup" -> "Warm-up"; "stretch" -> "Stretching"; else -> "Main" }
+                if (section != lastSection) { box.addView(makeText(section, 12f, true, Color.parseColor("#92400E"))); lastSection = section }
+                val card = cardLayout()
+                (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(3), 0, dp(3)) }
+                card.setPadding(dp(10), dp(4), dp(10), dp(4))
+                val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
+                val mus = DbHelper.parseMuscles(e.targetMuscles, e.name)
+                if (mus.isNotEmpty()) top.addView(BodyMapView(this, mus).apply { layoutParams = LinearLayout.LayoutParams(dp(28), dp(34)) })
+                val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(6), 0, 0, 0) }
+                val nm = makeText("${idx + 1}. ${e.name}", 13f, true)
+                nm.maxLines = 1; nm.ellipsize = android.text.TextUtils.TruncateAt.END
+                info.addView(nm)
+                info.addView(caption("${e.equipment} • ${e.defaultSets} sets • ${e.targetReps}"))
+                top.addView(info)
+                if (e.youtubeUrl.isNotBlank()) top.addView(tinyBtn("▶", 34) { openUrl(this, e.youtubeUrl) })
+                if (idx > 0) top.addView(tinyBtn("↑", 34) { capture(); db.swapExerciseOrder(e, exs[idx - 1]); render() })
+                if (idx < exs.size - 1) top.addView(tinyBtn("↓", 34) { capture(); db.swapExerciseOrder(e, exs[idx + 1]); render() })
+                top.addView(tinyBtn("Edit", 46) { capture(); startActivity(Intent(this, ExerciseEditActivity::class.java).apply { putExtra("exerciseId", e.id); putExtra("routineId", existing.id) }) })
+                top.addView(tinyBtn("Del", 40) { capture(); AlertDialog.Builder(this).setTitle("Delete exercise?").setPositiveButton("Delete") { _, _ -> db.deleteExercise(e.id); render() }.setNegativeButton("Cancel", null).show() })
+                card.addView(top)
+                box.addView(card)
+            }
+            if (exs.isEmpty()) box.addView(caption("No exercises yet — add one below."))
+            root.addView(box)
+            if (pageCount > 1) root.addView(pagerBar(exercisePage, pageCount, { capture(); exercisePage--; render() }, { capture(); exercisePage++; render() }))
+
+            // Fixed action bars
+            val actRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            val addEx = makeButton("Add Exercise") { capture(); startActivity(Intent(this, ExerciseEditActivity::class.java).apply { putExtra("exerciseId", -1L); putExtra("routineId", existing.id) }) }
+            (addEx.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            val pick = makeSecondaryButton("Pick from Library") { capture(); pickFromLibrary(existing) }
+            (pick.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            actRow.addView(addEx); actRow.addView(pick)
+            root.addView(actRow)
+            val actRow2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            val del = makeSmallButton("Delete This Workout") {
+                AlertDialog.Builder(this).setTitle("Delete workout?").setMessage("Exercises will be deleted. History sessions stay.")
+                    .setPositiveButton("Delete") { _, _ -> db.deleteRoutine(existing.id); finish() }.setNegativeButton("Cancel", null).show()
+            }
+            (del.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            val back = makeSmallButton("Back") { finish() }
+            (back.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            actRow2.addView(del); actRow2.addView(back)
+            root.addView(actRow2)
+        } else {
+            val back = makeButton("Back") { finish() }
+            (back.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+            root.addView(back)
+        }
     }
 }
