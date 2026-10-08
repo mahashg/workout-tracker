@@ -117,3 +117,28 @@ Mahesh request: "Without starting the workout also I should be able to click the
 - **Edge cases:** a routine with 0 exercises shows "No exercises yet — add some in Routines." Back behaves normally; rotation simply re-renders like the other activities.
 
 No DB changes (still v3); installs over v2.3 with history preserved. Build: same offline invocation; APK `WorkoutTracker-v2.4.apk` (versionCode 6, versionName 2.4).
+
+## V2.5 (2026-10-07) - every screen fits one page, no scrolling (versionCode 7, versionName 2.5)
+
+Mahesh request: "it would be great if each page on the app comes in the entire page and no vertical scrolling is required."
+
+**Approach:** presentation-only rework. `grep -rn ScrollView app/src/main/java` returns **zero** — every activity's root is a fixed-height container (`fitRoot()` / the non-scrolling `tabScaffold()`), and fit is achieved by (a) compact adaptive density and (b) pagination/tabs for inherently long content. Text floors kept: body ≥12sp, secondary ≥11sp, primary actions ≥48dp tall. Shared helpers in Ui.kt: `fitRoot()`, `pagerBar(page, pageCount, onPrev, onNext)` (‹ Prev • 2/5 • Next ›), `isCompactScreen()` (screen height <700dp → card padding 14dp vs 18dp, tighter gaps) and `screenHeightDp()` for page-size math.
+
+**Per-screen fit map:**
+- **Home:** compact week hero (muscles-trained folded into it) → Today hero → optional one-row resume strip → This Week as flexible ~52dp rows (weight=1 region), bottom nav always visible.
+- **Workout Detail:** top bar, Start/Preview card, compact hero, then exactly three compact section rows (tap → per-section preview; exercise names live in the preview cards, counts/progress on the rows). Progress state shows the same three rows with progress bars + an Open Sections bar.
+- **Workout Sections:** compact header (body map + timer chip + beginner note inline), three section cards sharing the remaining height, fixed View-as-list / Finish bar.
+- **Card mode + Preview:** fixed root; the deck fills the flexible middle (weight=1) and the action rows are pinned below. The expanded Show-me-how block is compacted to live *inside* the card: 76dp body map, posture bullets capped at 4, cues at 3 (2 on compact screens), tighter line spacing, 48dp video button. If an exercise has more bullets/cues than the cap, the remainder is shown as a single "…" line — the one deliberate truncation (how-to tail on very content-heavy cards).
+- **Session list:** exercises are paginated by estimated height (roughly 1-3 per page depending on set count, Show-me-how state, and screen height; expanded cards take a whole page). Set rows are compact 48dp chip rows (weight/reps steppers, BW, Done), section header + pager bar, and a fixed bottom action bar (Save Order / Finish / Save & Exit / Discard).
+- **Routines:** 4 compact cards per page + pager; Library/Add buttons pinned on top.
+- **Routine Edit:** compact two-half form (name/focus, day/notes) + paginated exercise rows (5/page on tall screens, fewer on short ones) + fixed Add/Pick and Delete/Back bars. Form text is kept across re-renders so paging never loses typing.
+- **Exercise Edit:** one fixed two-half form — all 10 fields + 2 spinners + Save visible with the keyboard closed. (When the keyboard opens it may overlay the lower fields; that is OS behavior, not app scrolling.)
+- **Library:** one muscle group per page — wrapping group chips on top, compact group body-map header, the group's 3 exercises sharing the remaining height.
+- **History:** 5 compact session rows per page + pager (full set detail remains in the session view/CSV).
+- **Settings:** four compact grouped cards (training-week rule folded into About) — fits with the bottom nav visible.
+- **Summary:** compact celebration hero, body map + stat rows (exercises/sets/skipped/time), per-section lines, buttons pinned at the bottom.
+
+**Truncation flags:** only the how-to caps above (posture ≤4 bullets, cues ≤3, surplus shown as "…") plus normal single-line ellipsizing of long names/labels in the compact rows. No features, data, DB, timer, preview, library, or swipe-threshold behavior changed.
+
+Build: same offline invocation; APK `WorkoutTracker-v2.5.apk` (versionCode 7, versionName 2.5) installs over v2.4 with history preserved. Not device-tested.
+
