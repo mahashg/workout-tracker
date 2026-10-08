@@ -241,6 +241,27 @@ fun Context.heroCard(): LinearLayout {
         elevation = dp(4).toFloat()
     }
 }
+/**
+ * Cute segmented week progress (v2.6): one rounded segment per routine,
+ * filled green as workouts complete. Replaces the giant "0 / 5 done" text.
+ * Height 12dp; empty segments are white at ~35% alpha for hero gradients.
+ */
+fun Context.segmentedWeekProgress(doneFlags: List<Boolean>): LinearLayout {
+    val row = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(12))
+    }
+    for ((i, done) in doneFlags.withIndex()) {
+        row.addView(View(this).apply {
+            background = roundedBg(if (done) "#4ADE80" else "#59FFFFFF", 6)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).apply {
+                setMargins(if (i > 0) dp(3) else 0, 0, if (i < doneFlags.size - 1) dp(3) else 0, 0)
+            }
+        })
+    }
+    return row
+}
+
 /** Thin horizontal progress bar (track + fill) in the design system. */
 fun Context.hProgress(max: Int, progress: Int, fillColor: Int): LinearLayout {
     val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; background = rounded(Theme.pendingBg, 8); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(10)).apply { setMargins(0, dp(8), 0, dp(6)) } }
@@ -259,7 +280,8 @@ fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout
     }
     val back = android.widget.ImageButton(this).apply {
         setImageResource(R.drawable.ic_back); setColorFilter(Theme.primary)
-        background = rounded(Theme.surface, 14, Theme.stroke, 1)
+        // v2.6: small circular corner control (40dp), subtle surface + stroke.
+        background = rounded(Theme.surface, 20, Theme.stroke, 1)
         setPadding(dp(10), dp(10), dp(10), dp(10))
         layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
         setOnClickListener { finish() }
