@@ -23,7 +23,6 @@ class SessionActivity : AppCompatActivity() {
     private var timerChip: TimerChipView? = null
     private val howToExpanded = mutableSetOf<Long>()
     private var howToDefaultApplied = false
-    private var page: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,44 +35,6 @@ class SessionActivity : AppCompatActivity() {
     override fun onDestroy() { super.onDestroy(); timer?.cancel(); timerDialog?.dismiss(); timerChip?.stopTicking() }
 
     private fun sectionOf(type: String): String = when (type.lowercase()) { "warmup" -> "Warm Up"; "stretch" -> "Cool Down"; else -> "Exercise" }
-
-    /** Rough height (dp) of one exercise block, used to size pages so nothing scrolls. */
-    private fun estimateHeight(ex: SessionExercise): Int {
-        val sets = db.getSets(ex.id).size
-        var h = 104 + sets * 50
-        if (ex.variation.isNotBlank()) h += 14
-        if (howToExpanded.contains(ex.id)) {
-            h += if (Beginner.beginnerMode(this)) 168 else 52
-        }
-        return h
-    }
-
-    /** Greedy pagination: fill each page up to the available height, 1-3 exercises. */
-    private fun computePages(exs: List<SessionExercise>): List<IntRange> {
-        if (exs.isEmpty()) return listOf(0..-1)
-        val avail = (screenHeightDp() - if (isCompactScreen()) 348 else 372).coerceAtLeast(180)
-        val pages = mutableListOf<IntRange>()
-        var start = 0
-        while (start < exs.size) {
-            var end = start
-            var used = estimateHeight(exs[start])
-            while (end + 1 < exs.size && end - start < 2) {
-                val nextH = estimateHeight(exs[end + 1]) + 8
-                if (used + nextH > avail) break
-                used += nextH; end++
-            }
-            pages.add(start..end)
-            start = end + 1
-        }
-        return pages
-    }
-
-    private fun pageContaining(exId: Long, exs: List<SessionExercise>): Int {
-        val pages = computePages(exs)
-        val idx = exs.indexOfFirst { it.id == exId }
-        if (idx < 0) return page.coerceIn(0, (pages.size - 1).coerceAtLeast(0))
-        return pages.indexOfFirst { idx in it }.coerceAtLeast(0)
-    }
 
     private fun smallBtn(text: String, w: Int, h: Int = 40, onClick: () -> Unit): Button {
         val b = makeSmallButton(text, onClick)
@@ -89,39 +50,48 @@ class SessionActivity : AppCompatActivity() {
         root.addView(topBar(session.routineName, "${DateUtil.display(session.date)} • Week ${session.weekNumber}"))
 
         val exs = db.getSessionExercises(sessionId)
-        if (anchorExId > 0) page = pageContaining(anchorExId, exs)
-        val pages = computePages(exs)
-        if (page !in pages.indices) page = (pages.size - 1).coerceAtLeast(0)
-        val range = pages.getOrElse(page) { 0..-1 }
+        // anchorExId is accepted for call-site compatibility; the one-page list
+        // needs no re-anchoring because every exercise is always visible.
 
-        // Compact header
+        // Compact fixed header (explicit 92dp): body map + name/focus + timer chip inline.
         val header = cardLayout("#2563EB")
-        header.setPadding(dp(12), dp(8), dp(12), dp(8))
-        val hRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        header.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(76)).apply { setMargins(0, 0, 0, 0) }
+        header.setPadding(dp(10), dp(6), dp(10), dp(6))
+        val hRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
         val allMuscles = linkedSetOf<String>()
         for (e in exs) allMuscles.addAll(DbHelper.parseMuscles(e.targetMuscles, e.name))
-        hRow.addView(BodyMapView(this, allMuscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(44), dp(54)) })
-        val hInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
-        hInfo.addView(makeText(if (session.completed) "Workout (Completed)" else "Workout of the Day", 11f, false, Theme.textSecondary))
-        hInfo.addView(makeText(session.routineName, 18f, true))
-        hInfo.addView(caption("${session.focus} • Targets: ${musclesLabel(allMuscles)}"))
-        if (session.startedAt > 0) {
-            val durTxt = if (session.completed) WorkoutTimer.formatDuration(session.elapsedSec) else WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, session)) + " so far"
-            hInfo.addView(makeText("Time: $durTxt", 12f, true, Theme.primary))
+        hRow.addView(BodyMapView(this, allMuscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(40), dp(50)) })
+        val hInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
+        val hTitle = makeText(session.routineName, 16f, true)
+        hTitle.maxLines = 1; hTitle.ellipsize = android.text.TextUtils.TruncateAt.END
+        (hTitle.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        hInfo.addView(hTitle)
+        val hSub = makeText("${session.focus} • ${musclesLabel(allMuscles)}", 11f, false, Theme.textSecondary)
+        hSub.maxLines = 1; hSub.ellipsize = android.text.TextUtils.TruncateAt.END
+        (hSub.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        hInfo.addView(hSub)
+        if (session.startedAt > 0 && session.completed) {
+            val t = makeText("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}", 11f, true, Theme.primary)
+            (t.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            hInfo.addView(t)
         }
-        hRow.addView(hInfo); header.addView(hRow)
+        hRow.addView(hInfo)
         if (!session.completed) {
             db.ensureSessionStarted(sessionId)
             val chip = TimerChipView(this)
-            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(34))
             chip.bind(this, db, db.getSession(sessionId) ?: session) {}
             chip.startTicking()
             timerChip = chip
-            header.addView(chip)
+            hRow.addView(chip)
         }
+        header.addView(hRow)
         root.addView(header)
 
-        // Paginated exercise region (flexes to fill the screen)
+        // ONE PAGE exercise region (v2.5.1, Mahesh: "On doing exercise page it
+        // should be one page"): ALL exercises visible, each row an equal
+        // weight share of the flexing region; an expanded (accordion) row
+        // takes a larger share while the rest compress to their floor.
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
@@ -129,142 +99,210 @@ class SessionActivity : AppCompatActivity() {
         if (exs.isEmpty()) {
             content.addView(makeText("No exercises in this session.", 14f))
         } else {
-            val firstSec = sectionOf(exs[range.first].type)
-            val rangeLabel = if (range.first == range.last) "Exercise ${range.first + 1} of ${exs.size}" else "Exercises ${range.first + 1}–${range.last + 1} of ${exs.size}"
-            content.addView(makeText("$firstSec • $rangeLabel", 13f, true, sectionColor(exs[range.first].type)))
-            var lastSection = ""
-            for (idx in range) {
-                val ex = exs[idx]
-                val section = sectionOf(ex.type)
-                if (section != lastSection && idx != range.first) {
-                    content.addView(makeText(section, 13f, true, sectionColor(ex.type)))
-                    lastSection = section
-                } else if (idx == range.first) lastSection = section
-                content.addView(exerciseCard(ex, idx, exs, unit))
-            }
+            // Section markers folded into each row's tag (no separate header rows,
+            // they would steal height from the 13 rows).
+            for (idx in exs.indices) content.addView(exerciseCard(exs[idx], idx, exs, unit))
         }
         root.addView(content)
-
-        if (pages.size > 1) root.addView(pagerBar(page, pages.size, { page--; render() }, { page++; render() }))
 
         // Fixed bottom action bar
         addActionBar(root, session.completed)
     }
 
+    /**
+     * One-page list row (v2.5.1): equal weight share of the exercise region.
+     * Collapsed: one compact line — name, section/status, set chips (tap a chip
+     * to log/edit that set), reorder chevrons, +/− set, how-to toggle.
+     * Expanded (accordion): takes a larger weight share and shows last-done,
+     * set summary, video, posture (<=4) and cues (<=3) under the same line.
+     * Logging writes exactly the same SessionSet rows as the old full rows.
+     */
     private fun exerciseCard(ex: SessionExercise, idx: Int, exs: List<SessionExercise>, unit: String): LinearLayout {
+        if (!howToDefaultApplied) { howToDefaultApplied = true; /* no auto-expand on the one-page list */ }
+        val expanded = howToExpanded.contains(ex.id) && Beginner.beginnerMode(this)
         val card = cardLayout()
-        card.setPadding(dp(10), dp(8), dp(10), dp(8))
-        (card.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, dp(4))
-        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val exMuscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-        if (exMuscles.isNotEmpty()) top.addView(BodyMapView(this, exMuscles).apply { layoutParams = LinearLayout.LayoutParams(dp(36), dp(44)) })
-        val tInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
-        val titleTv = makeText("${idx + 1}. ${ex.name}", 15f, true)
-        titleTv.maxLines = 1; titleTv.ellipsize = android.text.TextUtils.TruncateAt.END
-        tInfo.addView(titleTv)
-        val badgeRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        badgeRow.addView(equipmentBadge(ex.equipment))
-        val sets0 = db.getSets(ex.id)
-        badgeRow.addView(makeText("${ex.type} • ${doItLine(sets0)}", 11f, true, Color.parseColor("#92400E")))
-        tInfo.addView(badgeRow)
-        val last = db.lastPerformedForExercise(ex.name, sessionId)
-        if (last != null) {
-            val summary = last.sets.joinToString(", ") { s -> if (s.isBodyweight) "BW x${s.reps.ifBlank { "?" }}" else "${s.weight.ifBlank { "?" }} $unit x${s.reps.ifBlank { "?" }}" }
-            val eff = if (last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort, unit)}" else ""
-            val lt = makeText("Last: ${DateUtil.display(last.date)} • $summary$eff", 11f, false, Color.parseColor("#15803D"))
-            lt.maxLines = 1; lt.ellipsize = android.text.TextUtils.TruncateAt.END
-            tInfo.addView(lt)
-        } else {
-            tInfo.addView(makeText("First time", 11f, false, Theme.textSecondary))
+        card.setPadding(dp(6), dp(2), dp(6), dp(2))
+        (card.layoutParams as LinearLayout.LayoutParams).apply {
+            height = 0; weight = if (expanded) 3.2f else 1f; setMargins(0, dp(1), 0, dp(1))
         }
-        top.addView(tInfo); card.addView(top)
-        if (db.effectiveStatus(ex) == "skipped") card.addView(makeText("Skipped", 12f, true, Color.parseColor("#92400E")))
+        val sets = db.getSets(ex.id)
+        val status = db.effectiveStatus(ex)
+        val allDone = sets.isNotEmpty() && sets.all { it.isDone }
 
-        // "Show me how" toggle (Beginner Mode): video + feel + posture + cues
+        // ---- Compact main line ----
+        val top = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        // Section color dot + status glyph
+        val dot = TextView(this).apply {
+            text = when (status) { "done" -> "✓"; "skipped" -> "↷"; else -> "●" }
+            textSize = 11f
+            setTextColor(if (status == "pending") sectionColor(ex.type) else Color.parseColor("#15803D"))
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(dp(16), LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        top.addView(dot)
+        val titleTv = makeText("${idx + 1}. ${ex.name}", 12f, true)
+        titleTv.maxLines = 1; titleTv.ellipsize = android.text.TextUtils.TruncateAt.END
+        (titleTv.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, 0, 0) }
+        strike(titleTv, allDone)
+        if (status == "skipped") titleTv.setTextColor(Color.parseColor("#92400E"))
+        top.addView(titleTv)
+        // Set chips: one small chip per set; tap = log/edit that set.
+        val chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        for (set in sets) {
+            val chip = TextView(this).apply {
+                text = if (set.isDone) "${set.setNumber}✓" else "${set.setNumber}"
+                textSize = 11f
+                setTextColor(if (set.isDone) Color.WHITE else Theme.textPrimary)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                gravity = Gravity.CENTER
+                background = roundedBg(if (set.isDone) "#15803D" else "#EDF2F7", 10)
+                setPadding(0, 0, 0, 0)
+                layoutParams = LinearLayout.LayoutParams(dp(26), dp(22)).apply { setMargins(dp(1), 0, dp(1), 0) }
+                isClickable = true
+                setOnClickListener { editSetDialog(ex, set, unit) }
+            }
+            chipRow.addView(chip)
+        }
+        top.addView(chipRow)
+        // Compact controls: reorder, add/remove set, how-to accordion toggle.
+        if (idx > 0) top.addView(smallBtn("↑", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx - 1]); render(ex.id) })
+        if (idx < exs.size - 1) top.addView(smallBtn("↓", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx + 1]); render(ex.id) })
+        top.addView(smallBtn("+", 22, 22) { db.addSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
+        top.addView(smallBtn("−", 22, 22) { db.removeLastSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
         if (Beginner.beginnerMode(this)) {
-            if (!howToDefaultApplied) { howToDefaultApplied = true; howToExpanded.add(ex.id) }
-            val expanded = howToExpanded.contains(ex.id)
-            val toggle = makeSecondaryButton(if (expanded) "Hide how-to  ▴" else "Show me how  ▾") {
-                if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
+            top.addView(smallBtn(if (expanded) "▴" else "▾", 22, 22) {
+                if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else { howToExpanded.clear(); howToExpanded.add(ex.id) }
                 render(ex.id)
+            })
+        }
+        card.addView(top)
+
+        // One-line meta under the name line only when there is height for it is
+        // folded into the expanded block; collapsed rows stay a single line so
+        // 13 of them fit the region (target ~40dp on a 640dp viewport).
+
+        // ---- Accordion expansion: larger weight share, others compress ----
+        if (expanded) {
+            val exMuscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
+            val meta = makeText("${sectionOf(ex.type)} • ${ex.equipment} • ${doItLine(sets)}${if (status == "skipped") " • Skipped" else ""}", 11f, true, Color.parseColor("#92400E"))
+            meta.maxLines = 1; meta.ellipsize = android.text.TextUtils.TruncateAt.END
+            (meta.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            card.addView(meta)
+            val last = db.lastPerformedForExercise(ex.name, sessionId)
+            if (last != null) {
+                val summary = last.sets.joinToString(", ") { s -> if (s.isBodyweight) "BW x${s.reps.ifBlank { "?" }}" else "${s.weight.ifBlank { "?" }} $unit x${s.reps.ifBlank { "?" }}" }
+                val eff = if (last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort, unit)}" else ""
+                val lt = makeText("Last: ${DateUtil.display(last.date)} • $summary$eff", 11f, false, Color.parseColor("#15803D"))
+                lt.maxLines = 1; lt.ellipsize = android.text.TextUtils.TruncateAt.END
+                (lt.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(lt)
+            } else {
+                val ft = makeText("First time", 11f, false, Theme.textSecondary)
+                (ft.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(ft)
             }
-            (toggle.layoutParams as LinearLayout.LayoutParams).height = dp(40)
-            card.addView(toggle)
-            if (expanded) {
-                if (ex.youtubeUrl.isNotBlank()) {
-                    val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
-                    (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
-                    card.addView(vid)
-                }
-                card.addView(makeText("What you'll feel: ${musclesLabel(exMuscles)}", 12f, false, Color.parseColor("#0369A1")))
-                val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
-                var truncated = false
-                if (posture.isNotBlank()) {
-                    val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                    card.addView(makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")))
-                    for (c in items.take(4)) card.addView(makeText("☐  $c", 12f, false))
-                    if (items.size > 4) truncated = true
-                }
-                val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
-                if (cues.isNotBlank()) {
-                    val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                    for (c in items.take(3)) card.addView(makeText("•  $c", 12f, false, Theme.textSecondary))
-                    if (items.size > 3) truncated = true
-                }
-                if (truncated) card.addView(makeText("…", 12f, true, Theme.textTertiary))
-                if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell") card.addView(makeText("Start light: use the lightest weight that feels easy first.", 11f, false, Color.parseColor("#92400E")))
+            if (sets.isNotEmpty()) {
+                val sum = makeText("Sets: " + sets.joinToString(", ") { s -> (if (s.isBodyweight) "BW" else s.weight.ifBlank { "?" }) + "×" + s.reps.ifBlank { "?" } + if (s.isDone) "✓" else "" } + "  (tap a number chip to log)", 11f, false, Theme.textSecondary)
+                sum.maxLines = 1; sum.ellipsize = android.text.TextUtils.TruncateAt.END
+                (sum.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(sum)
             }
-        } else {
             if (ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
-                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+                (vid.layoutParams as LinearLayout.LayoutParams).apply { height = dp(36); setMargins(0, dp(2), 0, dp(2)) }
+                vid.textSize = 12f
                 card.addView(vid)
             }
+            val feel = makeText("What you'll feel: ${musclesLabel(exMuscles)}", 11f, false, Color.parseColor("#0369A1"))
+            (feel.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            card.addView(feel)
+            val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
+            var truncated = false
+            if (posture.isNotBlank()) {
+                val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                val ph = makeText("Check your posture:", 12f, true, Color.parseColor("#15803D"))
+                (ph.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(ph)
+                for (c in items.take(4)) {
+                    val b = makeText("☐  $c", 11f, false)
+                    b.maxLines = 1; b.ellipsize = android.text.TextUtils.TruncateAt.END
+                    (b.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                    card.addView(b)
+                }
+                if (items.size > 4) truncated = true
+            }
+            val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
+            if (cues.isNotBlank()) {
+                val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                for (c in items.take(3)) {
+                    val b = makeText("•  $c", 11f, false, Theme.textSecondary)
+                    b.maxLines = 1; b.ellipsize = android.text.TextUtils.TruncateAt.END
+                    (b.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                    card.addView(b)
+                }
+                if (items.size > 3) truncated = true
+            }
+            if (truncated) {
+                val dots = makeText("…", 11f, true, Theme.textTertiary)
+                (dots.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(dots)
+            }
+            if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell") {
+                val sl = makeText("Start light: use the lightest weight that feels easy first.", 11f, false, Color.parseColor("#92400E"))
+                (sl.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                card.addView(sl)
+            }
         }
+        return card
+    }
 
-        val sets = db.getSets(ex.id)
-        strike(titleTv, sets.isNotEmpty() && sets.all { it.isDone })
+    /** Tap-a-set-chip editor: same fields/writes as the old per-set row
+     *  (weight, reps, BW, Done + steppers), in a dialog so the one-page list
+     *  rows can stay ~40dp. Checking Done starts the 60s rest timer. */
+    private fun editSetDialog(ex: SessionExercise, set: SessionSet, unit: String) {
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(4)) }
         val wStep = if (unit == "kg") 2.5 else 5.0
-        for (set in sets) {
-            val sRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(4), dp(3), dp(4), dp(3)); background = roundedBg("#EDF2F7", 12); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)).apply { setMargins(0, dp(3), 0, dp(3)) } }
-            sRow.addView(TextView(this).apply { text = "S${set.setNumber}"; setTextColor(Theme.textPrimary); textSize = 12f; layoutParams = LinearLayout.LayoutParams(dp(26), LinearLayout.LayoutParams.WRAP_CONTENT) })
-            val wEt = EditText(this).apply { setText(set.weight); hint = "wt"; styleEditText(this); textSize = 12f; minHeight = dp(40); setPadding(dp(4), 0, dp(4), 0); isEnabled = !set.isBodyweight; layoutParams = LinearLayout.LayoutParams(dp(44), dp(40)) }
-            val rEt = EditText(this).apply { setText(set.reps); hint = "reps"; styleEditText(this); textSize = 12f; minHeight = dp(40); setPadding(dp(4), 0, dp(4), 0); layoutParams = LinearLayout.LayoutParams(dp(40), dp(40)) }
-            val bwCb = CheckBox(this).apply { text = "BW"; setTextColor(Theme.textSecondary); textSize = 11f; isChecked = set.isBodyweight; setPadding(0, 0, 0, 0); layoutParams = LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT) }
-            val doneCb = CheckBox(this).apply { text = "Done"; setTextColor(Theme.textPrimary); textSize = 12f; isChecked = set.isDone; setPadding(0, 0, 0, 0); layoutParams = LinearLayout.LayoutParams(dp(60), LinearLayout.LayoutParams.WRAP_CONTENT) }
-            wEt.addTextChangedListener(simpleWatcher { db.updateSet(set.copy(weight = it, isBodyweight = bwCb.isChecked, isDone = doneCb.isChecked)) })
-            rEt.addTextChangedListener(simpleWatcher { db.updateSet(set.copy(weight = wEt.text.toString(), reps = it, isBodyweight = bwCb.isChecked, isDone = doneCb.isChecked)) })
-            bwCb.setOnCheckedChangeListener { _, checked -> wEt.isEnabled = !checked; db.updateSet(set.copy(weight = wEt.text.toString(), reps = rEt.text.toString(), isBodyweight = checked, isDone = doneCb.isChecked)) }
-            doneCb.setOnCheckedChangeListener { _, checked ->
-                db.updateSet(set.copy(weight = wEt.text.toString(), reps = rEt.text.toString(), isBodyweight = bwCb.isChecked, isDone = checked))
+        val wEt = EditText(this).apply { setText(set.weight); hint = "weight"; styleEditText(this); textSize = 13f; isEnabled = !set.isBodyweight }
+        val rEt = EditText(this).apply { setText(set.reps); hint = "reps"; styleEditText(this); textSize = 13f }
+        val bwCb = CheckBox(this).apply { text = "Bodyweight (BW)"; setTextColor(Theme.textPrimary); textSize = 12f; isChecked = set.isBodyweight }
+        val doneCb = CheckBox(this).apply { text = "Done"; setTextColor(Theme.textPrimary); textSize = 13f; isChecked = set.isDone }
+        bwCb.setOnCheckedChangeListener { _, checked -> wEt.isEnabled = !checked }
+        fun stepperRow(label: String, et: EditText, minus: () -> Unit, plus: () -> Unit): LinearLayout {
+            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            r.addView(TextView(this).apply { text = label; textSize = 12f; setTextColor(Theme.textSecondary); layoutParams = LinearLayout.LayoutParams(dp(52), LinearLayout.LayoutParams.WRAP_CONTENT) })
+            r.addView(smallBtn("−", 36, 36) { minus() })
+            et.layoutParams = LinearLayout.LayoutParams(0, dp(40), 1f)
+            r.addView(et)
+            r.addView(smallBtn("+", 36, 36) { plus() })
+            return r
+        }
+        box.addView(stepperRow("Weight", wEt,
+            { val v = ((wEt.text.toString().toDoubleOrNull() ?: 0.0) - wStep).coerceAtLeast(0.0); wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) },
+            { val v = (wEt.text.toString().toDoubleOrNull() ?: 0.0) + wStep; wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) }))
+        box.addView(stepperRow("Reps", rEt,
+            { val v = ((rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) - 1).coerceAtLeast(0); rEt.setText(v.toString()) },
+            { val v = (rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) + 1; rEt.setText(v.toString()) }))
+        box.addView(bwCb); box.addView(doneCb)
+        AlertDialog.Builder(this)
+            .setTitle("${ex.name} — Set ${set.setNumber}")
+            .setView(box)
+            .setPositiveButton("Save") { _, _ ->
+                db.updateSet(set.copy(weight = wEt.text.toString(), reps = rEt.text.toString(), isBodyweight = bwCb.isChecked, isDone = doneCb.isChecked))
                 db.syncExerciseStatus(ex.id)
-                if (checked) startRestTimer()
+                if (doneCb.isChecked && !set.isDone) startRestTimer()
                 render(ex.id)
             }
-            sRow.addView(smallBtn("−", 28) { val v = ((wEt.text.toString().toDoubleOrNull() ?: 0.0) - wStep).coerceAtLeast(0.0); wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) })
-            sRow.addView(wEt)
-            sRow.addView(smallBtn("+", 28) { val v = (wEt.text.toString().toDoubleOrNull() ?: 0.0) + wStep; wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) })
-            sRow.addView(TextView(this).apply { text = "$unit×"; setTextColor(Theme.textSecondary); textSize = 11f; layoutParams = LinearLayout.LayoutParams(dp(26), LinearLayout.LayoutParams.WRAP_CONTENT) })
-            sRow.addView(smallBtn("−", 28) { val v = ((rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) - 1).coerceAtLeast(0); rEt.setText(v.toString()) })
-            sRow.addView(rEt)
-            sRow.addView(smallBtn("+", 28) { val v = (rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) + 1; rEt.setText(v.toString()) })
-            sRow.addView(bwCb); sRow.addView(doneCb)
-            card.addView(sRow)
-        }
-        val setBtnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        fun sb(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(40) }; setBtnRow.addView(b) }
-        if (idx > 0) sb(makeSmallButton("↑ Up") { db.swapSessionExerciseOrder(ex, exs[idx - 1]); render(ex.id) })
-        if (idx < exs.size - 1) sb(makeSmallButton("↓ Down") { db.swapSessionExerciseOrder(ex, exs[idx + 1]); render(ex.id) })
-        sb(makeSmallButton("+ Set") { db.addSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
-        sb(makeSmallButton("− Set") { db.removeLastSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
-        card.addView(setBtnRow)
-        return card
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun addActionBar(root: LinearLayout, completed: Boolean) {
         val session = db.getSession(sessionId) ?: return
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        fun ab(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }; row.addView(b) }
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)) }
+        fun ab(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(44); setMargins(dp(2), 0, dp(2), 0) }; b.textSize = 12f; row.addView(b) }
         ab(makeSmallButton("Save Order") {
             db.saveSessionOrderAsDefault(sessionId, session.routineId); Toast.makeText(this, "Saved as default order", Toast.LENGTH_SHORT).show()
         })
@@ -282,7 +320,8 @@ class SessionActivity : AppCompatActivity() {
             AlertDialog.Builder(this).setTitle("Discard session?").setMessage("Delete this session and its sets?")
                 .setPositiveButton("Discard") { _, _ -> WorkoutTimer.clear(this, sessionId); db.deleteSession(sessionId); finish() }.setNegativeButton("Cancel", null).show()
         }
-        (discard.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        (discard.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(dp(2), dp(4), dp(2), 0) }
+        discard.textSize = 12f
         root.addView(discard)
     }
 
