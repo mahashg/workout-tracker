@@ -54,9 +54,9 @@ class MainActivity : AppCompatActivity() {
             wr.addView(wi); wc.addView(wr); root.addView(wc)
         }
 
-        // ---- Suggested today (featured card) ----
+        // ---- TODAY hero (daily loop: one primary action) ----
         val suggested = routines.firstOrNull { it.weekday == todayIdx }
-        root.addView(overline("Suggested today"))
+        root.addView(overline("Today"))
         if (suggested != null) {
             val st = statusFor(suggested, sessionsThisWeek)
             val progS = sessionsThisWeek.firstOrNull { it.routineId==suggested.id && !it.completed }
@@ -67,14 +67,23 @@ class MainActivity : AppCompatActivity() {
             val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(12),0,0,0) }
             info.addView(makeText("${DateUtil.dayName(todayIdx)}", 12f, true, Color.parseColor("#92400E")))
             info.addView(makeText(suggested.name, 20f, true))
-            info.addView(caption("${suggested.focus}\n${db.routineExerciseCount(suggested.id)} exercises • ${musclesLabel(muscles)}"))
+            val exsToday = db.getExercises(suggested.id)
+            val wu = exsToday.count { it.type.equals("Warmup", true) }
+            val main = exsToday.count { it.type.equals("Main", true) }
+            val cd = exsToday.count { it.type.equals("Stretch", true) }
+            info.addView(caption("${suggested.focus}\n$wu Warm Up • $main Exercise • $cd Cool Down\n${musclesLabel(muscles)}"))
+            if (progS != null) {
+                val live = WorkoutTimer.liveElapsedSec(this, progS)
+                if (progS.startedAt > 0) info.addView(caption("In progress • ${WorkoutTimer.formatDuration(live)} so far"))
+            }
             info.addView(statusPill(st))
             row.addView(info); sugCard.addView(row)
-            sugCard.addView(makeButton(if (progS!=null) "▶  Resume Workout" else if (st=="Done") "↻  Do Again" else "▶  View Workout") { openDetail(suggested.id) })
+            sugCard.addView(primaryButtonWithIcon(if (progS!=null) "Resume Workout" else if (st=="Done") "Do Again" else "Start Workout", R.drawable.ic_play) { openDetail(suggested.id) })
             root.addView(sugCard)
         } else {
             val restCard = cardLayout("#F59E0B")
-            restCard.addView(cardTitle("🌙 Rest day"))
+            restCard.addView(overline("Today"))
+            restCard.addView(cardTitle("Rest day"))
             restCard.addView(caption("No workout assigned for ${DateUtil.dayName(todayIdx)}. Pick any pending workout below if you want to train."))
             root.addView(restCard)
         }
@@ -85,8 +94,9 @@ class MainActivity : AppCompatActivity() {
             val card = cardLayout("#F59E0B", tappable = true) { openSections(inProg.id) }
             card.addView(makeText("● IN PROGRESS", 11f, true, Color.parseColor("#92400E")))
             card.addView(cardTitle(inProg.routineName))
-            card.addView(caption("Started ${DateUtil.display(inProg.date)} • Week ${inProg.weekNumber}"))
-            card.addView(makeButton("Resume Workout") { openSections(inProg.id) })
+            val liveResume = WorkoutTimer.liveElapsedSec(this, inProg)
+            card.addView(caption("Started ${DateUtil.display(inProg.date)} • Week ${inProg.weekNumber}${if (inProg.startedAt > 0) " • ${WorkoutTimer.formatDuration(liveResume)} so far" else ""}"))
+            card.addView(primaryButtonWithIcon("Resume Workout", R.drawable.ic_play) { openSections(inProg.id) })
             root.addView(card)
         }
 
@@ -105,21 +115,16 @@ class MainActivity : AppCompatActivity() {
             val title = makeText("${if(done) "✓ " else ""}${r.name}", 17f, true)
             if (done) strike(title, true)
             info.addView(title)
-            info.addView(caption("${r.focus}\n${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)}"))
+            info.addView(caption("${r.focus} • ${DateUtil.dayName(r.weekday)}\n${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)}"))
             info.addView(statusPill(status))
             row.addView(info)
-            val chev = makeText("›", 26f, true, Theme.textTertiary).apply { layoutParams = LinearLayout.LayoutParams(dp(24), LinearLayout.LayoutParams.WRAP_CONTENT) }
-            row.addView(chev)
+            row.addView(iconView(R.drawable.ic_chevron, 22, Theme.textTertiary).apply { layoutParams = LinearLayout.LayoutParams(dp(22), dp(22)) })
             card.addView(row)
-            val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            when {
-                prog != null -> btnRow.addView(makeSmallButton("▶ Resume ▸") { openDetail(r.id) })
-                done -> btnRow.addView(makeSmallButton("↻ Do Again ▸") { openDetail(r.id) })
-                else -> btnRow.addView(makeSmallButton("▶ View ▸") { openDetail(r.id) })
+            if (done) {
+                val logRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                logRow.addView(makeSmallButton("View Log") { openSession(sessionsThisWeek.first { it.routineId == r.id && it.completed }.id) })
+                card.addView(logRow)
             }
-            btnRow.addView(makeText("  ${DateUtil.dayName(r.weekday)}", 12f, true, Theme.textSecondary))
-            if (done) btnRow.addView(makeSmallButton("View Log") { openSession(sessionsThisWeek.first { it.routineId == r.id && it.completed }.id) })
-            card.addView(btnRow)
             root.addView(card)
         }
     }

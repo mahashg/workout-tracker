@@ -25,16 +25,16 @@ fun Context.dp(v: Int): Int = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_
 
 // ---------- Design tokens (v2.1, light theme for bright gym light) ----------
 object Theme {
-    val bg = Color.parseColor("#F3F5F9")
-    val surface = Color.parseColor("#FFFFFF")
-    val surfaceVariant = Color.parseColor("#EEF2F7")
-    val stroke = Color.parseColor("#D8E0EA")
-    val shadow = Color.parseColor("#C9D6E4")
+    val bg = Color.parseColor("#EAF0F5") // soft mist background (Mahesh color change, v2.3)
+    val surface = Color.parseColor("#F7F9FB") // soft off-white cards - never pure #FFFFFF
+    val surfaceVariant = Color.parseColor("#EDF2F7")
+    val stroke = Color.parseColor("#D6DEE8")
+    val shadow = Color.parseColor("#C3D0DE")
     val primary = Color.parseColor("#2563EB")
     val primaryDark = Color.parseColor("#1D4ED8")
     val onPrimary = Color.WHITE
-    val textPrimary = Color.parseColor("#111827")
-    val textSecondary = Color.parseColor("#5B6B7F")
+    val textPrimary = Color.parseColor("#132033")
+    val textSecondary = Color.parseColor("#5A6B80")
     val textTertiary = Color.parseColor("#8494A7")
     val success = Color.parseColor("#15803D")
     val successBg = Color.parseColor("#DCFCE7")
@@ -137,7 +137,7 @@ fun Context.makeSmallButton(text: String, onClick: () -> Unit): Button {
     return Button(this).apply {
         this.text = text; textSize = 13f; setTextColor(Theme.textPrimary); typeface = medium(); isAllCaps = false
         background = RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surfaceVariant, 12, Theme.stroke, 1), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(12).toFloat() })
-        minHeight = dp(44); setPadding(dp(12), dp(4), dp(12), dp(4))
+        minHeight = dp(48); minWidth = dp(48); setPadding(dp(12), dp(4), dp(12), dp(4))
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(4), dp(2), dp(4), dp(2)) }
         setOnClickListener { onClick() }
     }
@@ -150,17 +150,38 @@ fun Context.styleEditText(et: EditText) {
     }
 }
 
+fun Context.iconView(resId: Int, sizeDp: Int = 22, tint: Int = Theme.textSecondary): android.widget.ImageView {
+    return android.widget.ImageView(this).apply {
+        setImageResource(resId); setColorFilter(tint)
+        layoutParams = LinearLayout.LayoutParams(dp(sizeDp), dp(sizeDp))
+    }
+}
+fun Context.primaryButtonWithIcon(text: String, iconRes: Int, onClick: () -> Unit): Button {
+    val b = makeButton(text, onClick)
+    b.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0)
+    b.compoundDrawablePadding = dp(8)
+    try { b.compoundDrawables[0]?.setTint(Theme.onPrimary) } catch (e: Exception) {}
+    return b
+}
+fun Context.smallButtonWithIcon(text: String, iconRes: Int, tint: Int = Theme.textPrimary, onClick: () -> Unit): Button {
+    val b = makeSmallButton(text, onClick)
+    b.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0)
+    b.compoundDrawablePadding = dp(6)
+    try { b.compoundDrawables[0]?.setTint(tint) } catch (e: Exception) {}
+    return b
+}
+
 // ---------- Layout scaffolding ----------
 fun Context.rootLayout(): LinearLayout {
     return LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(16), dp(16), dp(24)); setBackgroundColor(Theme.bg)
+        orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(20), dp(20), dp(28)); setBackgroundColor(Theme.bg)
     }
 }
 fun Context.cardLayout(stroke: String? = null, tappable: Boolean = false, onClick: (() -> Unit)? = null): LinearLayout {
     return LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(18), dp(18), dp(18))
+        orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(20), dp(20), dp(20))
         background = cardDrawable(stroke, tappable || onClick != null)
-        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(7), 0, dp(7)) }
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, dp(8)) }
         elevation = dp(3).toFloat()
         if (onClick != null) setOnClickListener { onClick() }
     }
@@ -185,9 +206,10 @@ fun Context.hProgress(max: Int, progress: Int, fillColor: Int): LinearLayout {
 /** Top app bar for secondary screens: back arrow + title. */
 fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout {
     val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(2), 0, dp(10)) }
-    val back = TextView(this).apply {
-        text = "‹"; textSize = 30f; setTextColor(Theme.primary); gravity = Gravity.CENTER
+    val back = android.widget.ImageButton(this).apply {
+        setImageResource(R.drawable.ic_back); setColorFilter(Theme.primary)
         background = rounded(Theme.surface, 14, Theme.stroke, 1)
+        setPadding(dp(12), dp(12), dp(12), dp(12))
         layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
         setOnClickListener { finish() }
     }
@@ -216,16 +238,16 @@ fun AppCompatActivity.bottomNav(selected: String): LinearLayout {
     wrap.addView(View(this).apply { setBackgroundColor(Theme.stroke); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)) })
     val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(4), dp(4), dp(4), dp(8)) }
     val tabs = listOf(
-        Triple("Home", "🏠", MainActivity::class.java),
-        Triple("Routines", "📋", RoutinesActivity::class.java),
-        Triple("History", "🕓", HistoryActivity::class.java),
-        Triple("Settings", "⚙️", SettingsActivity::class.java)
+        Triple("Home", R.drawable.ic_home, MainActivity::class.java),
+        Triple("Routines", R.drawable.ic_list, RoutinesActivity::class.java),
+        Triple("History", R.drawable.ic_history, HistoryActivity::class.java),
+        Triple("Settings", R.drawable.ic_settings, SettingsActivity::class.java)
     )
-    for ((label, glyph, cls) in tabs) {
+    for ((label, iconRes, cls) in tabs) {
         val isSel = label == selected
         val item = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(0, dp(2), 0, dp(2)); isClickable = true }
         item.addView(View(this).apply { setBackgroundColor(if (isSel) Theme.primary else Color.TRANSPARENT); layoutParams = LinearLayout.LayoutParams(dp(28), dp(3)).apply { gravity = Gravity.CENTER_HORIZONTAL } })
-        item.addView(TextView(this).apply { text = glyph; textSize = 21f; gravity = Gravity.CENTER; setPadding(0, dp(3), 0, 0) })
+        item.addView(iconView(iconRes, 23, if (isSel) Theme.primary else Theme.textSecondary).apply { setPadding(0, dp(4), 0, 0) })
         item.addView(TextView(this).apply { text = label; textSize = 11f; gravity = Gravity.CENTER; setTextColor(if (isSel) Theme.primary else Theme.textSecondary); if (isSel) typeface = medium() })
         if (!isSel) item.setOnClickListener {
             startActivity(Intent(this@bottomNav, cls).apply { addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP) })
@@ -273,10 +295,10 @@ fun doItLine(sets: List<SessionSet>): String {
     else "Do ${sets.size} sets of $reps"
 }
 fun Context.sectionHeader(title: String, subtitle: String = ""): LinearLayout {
-    val emoji = when(title) { "Warm-up", "Warm Up" -> "🔥"; "Stretching", "Cool Down" -> "🧘"; else -> "🏋️" }
+    val color = when(title) { "Warm-up", "Warm Up" -> Theme.warmAmber; "Stretching", "Cool Down" -> Theme.coolTeal; else -> Theme.primary }
     val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(16), 0, dp(6)) }
-    row.addView(TextView(this).apply { text = emoji; textSize = 18f })
-    row.addView(makeText("  $title${if(subtitle.isNotBlank()) "  •  $subtitle" else ""}", 17f, true, Theme.primary))
+    row.addView(View(this).apply { setBackgroundColor(color); layoutParams = LinearLayout.LayoutParams(dp(10), dp(10)) })
+    row.addView(makeText("  $title${if(subtitle.isNotBlank()) "  •  $subtitle" else ""}", 17f, true, color))
     return row
 }
 fun openUrl(context: Context, url: String) {
@@ -364,15 +386,16 @@ object CsvExporter {
     fun buildCsv(context: Context, db: DbHelper): String {
         val unit = WeekManager.unit(context)
         val sb = StringBuilder()
-        sb.append("date,week_number,week_start,workout,exercise,exercise_order,exercise_type,equipment,set_number,weight,weight_unit,reps,completed,exercise_youtube_url\n")
+        sb.append("date,week_number,week_start,workout,exercise,exercise_order,exercise_type,equipment,set_number,weight,weight_unit,reps,completed,exercise_youtube_url,workout_duration_sec\n")
         for (s in db.getSessions().sortedBy { it.date }) {
+            val dur = if (s.startedAt > 0) s.elapsedSec.toString() else ""
             for ((idx, ex) in db.getSessionExercises(s.id).withIndex()) {
                 val sets = db.getSets(ex.id)
                 if (sets.isEmpty()) {
-                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), "", "", esc(unit), "", if(s.completed)"true" else "false", esc(ex.youtubeUrl)).joinToString(",")).append("\n")
+                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), "", "", esc(unit), "", if(s.completed)"true" else "false", esc(ex.youtubeUrl), dur).joinToString(",")).append("\n")
                 } else for (set in sets) {
                     val w = if (set.isBodyweight) "BW" else set.weight
-                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), set.setNumber.toString(), esc(w), esc(unit), esc(set.reps), if(set.isDone)"true" else "false", esc(ex.youtubeUrl)).joinToString(",")).append("\n")
+                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), set.setNumber.toString(), esc(w), esc(unit), esc(set.reps), if(set.isDone)"true" else "false", esc(ex.youtubeUrl), dur).joinToString(",")).append("\n")
                 }
             }
         }
