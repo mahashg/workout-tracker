@@ -1,52 +1,97 @@
 package com.mahesh.workouttracker
 
-import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-/** Exercise library: 33 extra moves (3 per muscle group) as a pool to add to routines. */
+/** Exercise library: 33 extra moves (3 per muscle group) as a pool to add to routines.
+ *  v2.5: one muscle group per fixed page, switched with the chip rows on top. */
 class LibraryActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
+    private var groupIndex: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); db = DbHelper(this); render()
     }
 
     private fun render() {
-        val root = rootLayout(); setContentView(ScrollView(this).apply { addView(root) })
-        root.addView(topBar("Exercise Library", "33 extra moves • pick & add to a routine"))
-        root.addView(caption("Your 5 daily workouts stay the same. This is a pool of extra exercises grouped by muscle — add any of them to a routine. Form videos open YouTube search results for that exercise."))
-        for (group in Library.groups()) {
-            root.addView(sectionLabelText(group))
-            val entries = Library.byGroup(group)
-            // body-map thumbnail for the group
-            val groupCard = cardLayout()
-            val muscles = entries.flatMap { DbHelper.parseMuscles(it.muscles, it.name) }.toSet()
-            groupCard.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(96), dp(120)) })
-            groupCard.addView(caption("Targets: ${musclesLabel(muscles)}"))
-            root.addView(groupCard)
-            for (entry in entries) {
-                val card = cardLayout()
-                val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                top.addView(BodyMapView(this, DbHelper.parseMuscles(entry.muscles, entry.name)).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(66)) })
-                val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
-                info.addView(makeText(entry.name, 16f, true))
-                info.addView(equipmentBadge(entry.equipment))
-                info.addView(caption("Targets: ${musclesLabel(DbHelper.parseMuscles(entry.muscles, entry.name))}"))
-                info.addView(bodyText("Do ${entry.defaultSets} sets of ${entry.targetReps}"))
-                info.addView(bodyText("Do it: " + entry.cues.replace(";", " • ")))
-                if (entry.postureCheck.isNotBlank()) info.addView(caption("Posture: " + entry.postureCheck.replace(";", " • ")))
-                top.addView(info); card.addView(top)
-                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                row.addView(smallButtonWithIcon("Watch Form", R.drawable.ic_play) { openUrl(this, Library.urlFor(entry)) })
-                row.addView(smallButtonWithIcon("Add to Routine", R.drawable.ic_check) { addToRoutine(entry) })
-                card.addView(row)
-                root.addView(card)
+        val groups = Library.groups()
+        if (groupIndex !in groups.indices) groupIndex = 0
+        val group = groups[groupIndex]
+        val root = fitRoot(); setContentView(root)
+        root.addView(topBar("Exercise Library", "33 extra moves • one muscle group per page"))
+
+        // Group switcher: wrapping chip rows (selected group highlighted)
+        val chipBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        var chipRow: LinearLayout? = null
+        for ((i, g) in groups.withIndex()) {
+            if (i % 4 == 0) {
+                chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                chipBox.addView(chipRow)
             }
+            val selected = i == groupIndex
+            val chip = makeSmallButton(g) { groupIndex = i; render() }
+            chip.textSize = 12f
+            if (selected) { chip.setTextColor(Theme.onPrimary); chip.background = roundedBg("#2563EB", 12) }
+            (chip.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(40); setMargins(dp(2), dp(2), dp(2), dp(2)) }
+            chipRow!!.addView(chip)
         }
+        root.addView(chipBox)
+
+        // Compact group header with body map
+        val entries = Library.byGroup(group)
+        val groupMuscles = entries.flatMap { DbHelper.parseMuscles(it.muscles, it.name) }.toSet()
+        val header = cardLayout()
+        header.setPadding(dp(12), dp(6), dp(12), dp(6))
+        val hRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        hRow.addView(BodyMapView(this, groupMuscles).apply { layoutParams = LinearLayout.LayoutParams(dp(44), dp(54)) })
+        val hInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
+        hInfo.addView(makeText(group, 18f, true))
+        hInfo.addView(caption("Targets: ${musclesLabel(groupMuscles)} • ${entries.size} moves • add any to a routine"))
+        hRow.addView(hInfo); header.addView(hRow)
+        root.addView(header)
+
+        // The group's 3 exercises share the remaining height.
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        }
+        for (entry in entries) {
+            val card = cardLayout()
+            (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(4), 0, dp(4)) }
+            card.setPadding(dp(12), dp(8), dp(12), dp(8))
+            val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            top.addView(BodyMapView(this, DbHelper.parseMuscles(entry.muscles, entry.name)).apply { layoutParams = LinearLayout.LayoutParams(dp(38), dp(46)) })
+            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
+            val name = makeText(entry.name, 15f, true)
+            name.maxLines = 1; name.ellipsize = android.text.TextUtils.TruncateAt.END
+            info.addView(name)
+            val badgeRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            badgeRow.addView(equipmentBadge(entry.equipment))
+            badgeRow.addView(caption("Do ${entry.defaultSets} sets of ${entry.targetReps} • ${musclesLabel(DbHelper.parseMuscles(entry.muscles, entry.name))}"))
+            info.addView(badgeRow)
+            val cues = makeText("Do it: " + entry.cues.replace(";", " • "), 12f, false)
+            cues.maxLines = 2; cues.ellipsize = android.text.TextUtils.TruncateAt.END
+            info.addView(cues)
+            if (entry.postureCheck.isNotBlank()) {
+                val post = caption("Posture: " + entry.postureCheck.replace(";", " • "))
+                post.maxLines = 2; post.ellipsize = android.text.TextUtils.TruncateAt.END
+                info.addView(post)
+            }
+            top.addView(info); card.addView(top)
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            val watch = smallButtonWithIcon("Watch Form", R.drawable.ic_play) { openUrl(this, Library.urlFor(entry)) }
+            (watch.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            val add = smallButtonWithIcon("Add to Routine", R.drawable.ic_check) { addToRoutine(entry) }
+            (add.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            row.addView(watch); row.addView(add)
+            card.addView(row)
+            box.addView(card)
+        }
+        root.addView(box)
+        root.addView(makeText("Group ${groupIndex + 1} of ${groups.size}: $group", 12f, false, Theme.textSecondary).apply { gravity = Gravity.CENTER })
     }
 
     private fun addToRoutine(entry: Library.Entry) {

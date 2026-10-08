@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
@@ -21,9 +22,11 @@ class SettingsActivity : AppCompatActivity() {
         unitCard.addView(overline("Units"))
         unitCard.addView(cardTitle("Weight unit: $unit"))
         unitCard.addView(caption("Applies to labels, steppers and CSV export."))
-        unitCard.addView(makeSecondaryButton("Switch to ${if (unit=="lb") "kg" else "lb"}") {
+        val unitBtn = makeSecondaryButton("Switch to ${if (unit=="lb") "kg" else "lb"}") {
             WeekManager.setUnit(this, if (unit=="lb") "kg" else "lb"); render()
-        })
+        }
+        (unitBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        unitCard.addView(unitBtn)
         root.addView(unitCard)
 
         val beginnerOn = Beginner.beginnerMode(this)
@@ -31,28 +34,30 @@ class SettingsActivity : AppCompatActivity() {
         begCard.addView(overline("Beginner Mode"))
         begCard.addView(cardTitle("Beginner Mode: ${if(beginnerOn) "ON" else "OFF"}"))
         begCard.addView(caption("Shows posture checks, form cues and starter hints on every exercise. Stop if you feel sharp pain. (Default ON)"))
-        begCard.addView(makeSecondaryButton(if(beginnerOn) "Turn Beginner Mode OFF" else "Turn Beginner Mode ON") { Beginner.setBeginnerMode(this, !beginnerOn); render() })
+        val begBtn = makeSecondaryButton(if(beginnerOn) "Turn Beginner Mode OFF" else "Turn Beginner Mode ON") { Beginner.setBeginnerMode(this, !beginnerOn); render() }
+        (begBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        begCard.addView(begBtn)
         root.addView(begCard)
 
-        val weekCard = cardLayout()
-        weekCard.addView(overline("Training Week"))
-        weekCard.addView(bodyText("Week runs Sunday–Saturday."))
-        weekCard.addView(caption("The Week counter only advances if you completed at least 1 workout that week."))
-        root.addView(weekCard)
-
+        // Training-week rule folded into About (keeps this screen one page tall).
         val dataCard = cardLayout()
         dataCard.addView(overline("Your Data"))
-        dataCard.addView(makeButton("Export CSV") { launchExport() })
-        dataCard.addView(makeSecondaryButton("Restore Preloaded Routines") {
+        val dataRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val exportBtn = makeButton("Export CSV") { launchExport() }
+        (exportBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        val restoreBtn = makeSecondaryButton("Restore Preloaded") {
             AlertDialog.Builder(this).setTitle("Restore routines?").setMessage("This replaces current routines/exercises with the preloaded v2 5 (with form links and warm-up/stretch items), but does NOT delete history sessions.")
                 .setPositiveButton("Restore") { _, _ -> Seed.restore(db); Seed.markV2Applied(this); Toast.makeText(this,"Routines restored", Toast.LENGTH_SHORT).show() }
                 .setNegativeButton("Cancel", null).show()
-        })
+        }
+        (restoreBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        dataRow.addView(exportBtn); dataRow.addView(restoreBtn)
+        dataCard.addView(dataRow)
         root.addView(dataCard)
 
         val aboutCard = cardLayout()
         aboutCard.addView(overline("About"))
-        aboutCard.addView(caption("Workout Tracker • Version 2.4 (v2.4)\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it."))
+        aboutCard.addView(caption("Workout Tracker • Version 2.5 (v2.5)\nWeek runs Sunday–Saturday; the Week counter only advances if you completed at least 1 workout that week.\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it. Every screen fits one page — no scrolling."))
         root.addView(aboutCard)
     }
     private fun launchExport() {

@@ -4,46 +4,64 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 
 class SummaryActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
-    private var sessionId: Long=-1
+    private var sessionId: Long = -1
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState); db=DbHelper(this); sessionId=intent.getLongExtra("sessionId",-1); if(sessionId<0){finish();return}
-        val session=db.getSession(sessionId) ?: run{finish();return}
-        val exs=db.getSessionExercises(sessionId)
-        val root=rootLayout(); setContentView(ScrollView(this).apply{addView(root)})
+        super.onCreate(savedInstanceState); db = DbHelper(this); sessionId = intent.getLongExtra("sessionId", -1); if (sessionId < 0) { finish(); return }
+        val session = db.getSession(sessionId) ?: run { finish(); return }
+        val exs = db.getSessionExercises(sessionId)
+        val root = fitRoot(); setContentView(root)
         root.addView(topBar("Workout Summary", "${DateUtil.display(session.date)} • Week ${session.weekNumber}"))
 
-        val celeb=heroCard()
-        celeb.addView(makeText("Workout complete!",26f,true,android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER })
-        celeb.addView(makeText("${session.routineName}\nNice work showing up and getting it done.",13f,false,android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER })
+        val celeb = heroCard()
+        celeb.addView(makeText("Workout complete!", 24f, true, android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER })
+        celeb.addView(makeText("${session.routineName} — nice work showing up and getting it done.", 12f, false, android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER })
         root.addView(celeb)
 
-        val done=exs.count{db.effectiveStatus(it)=="done"}; val skipped=exs.count{db.effectiveStatus(it)=="skipped"}; val setsDone=exs.sumOf{db.getSets(it.id).count{s->s.isDone}}; val setsTotal=exs.sumOf{db.getSets(it.id).size}
-        val muscles=linkedSetOf<String>(); for(ex in exs) if(db.effectiveStatus(ex)=="done") muscles.addAll(DbHelper.parseMuscles(ex.targetMuscles,ex.name))
-        val card=cardLayout("#15803D")
+        val done = exs.count { db.effectiveStatus(it) == "done" }; val skipped = exs.count { db.effectiveStatus(it) == "skipped" }; val setsDone = exs.sumOf { db.getSets(it.id).count { s -> s.isDone } }; val setsTotal = exs.sumOf { db.getSets(it.id).size }
+        val muscles = linkedSetOf<String>(); for (ex in exs) if (db.effectiveStatus(ex) == "done") muscles.addAll(DbHelper.parseMuscles(ex.targetMuscles, ex.name))
+        val card = cardLayout("#15803D")
+        card.setPadding(dp(12), dp(8), dp(12), dp(8))
         card.addView(overline("Today you trained"))
         card.addView(cardTitle(musclesLabel(muscles)))
-        card.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(150),dp(185)).apply{gravity=Gravity.CENTER_HORIZONTAL}})
-        val stats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        fun stat(v:String,l:String): LinearLayout { val c=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; gravity=Gravity.CENTER; layoutParams=LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1f)}; c.addView(makeText(v,22f,true,Theme.success).apply{gravity=Gravity.CENTER}); c.addView(caption(l).apply{gravity=Gravity.CENTER}); return c }
-        stats.addView(stat("$done","exercises done")); stats.addView(stat("$setsDone/$setsTotal","sets done")); stats.addView(stat("$skipped","skipped"))
-        if (session.startedAt > 0) stats.addView(stat(WorkoutTimer.formatDuration(session.elapsedSec),"time"))
-        card.addView(stats)
+        val mid = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        mid.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(84), dp(104)) })
+        val stats = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(12), 0, 0, 0) }
+        fun statRow(v: String, l: String) {
+            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            r.addView(makeText(v, 20f, true, Theme.success).apply { layoutParams = LinearLayout.LayoutParams(dp(110), LinearLayout.LayoutParams.WRAP_CONTENT) })
+            r.addView(caption(l))
+            stats.addView(r)
+        }
+        statRow("$done", "exercises done")
+        statRow("$setsDone/$setsTotal", "sets done")
+        statRow("$skipped", "skipped")
+        if (session.startedAt > 0) statRow(WorkoutTimer.formatDuration(session.elapsedSec), "time")
+        mid.addView(stats)
+        card.addView(mid)
         root.addView(card)
 
-        val perCard=cardLayout()
+        val perCard = cardLayout()
+        perCard.setPadding(dp(12), dp(8), dp(12), dp(8))
         perCard.addView(overline("By section"))
-        for(label in listOf("Warm Up" to "Warmup","Exercise" to "Main","Cool Down" to "Stretch")){
-            val list=exs.filter{it.type.equals(label.second,true)}; if(list.isEmpty()) continue
-            perCard.addView(bodyText("${label.first}: ${list.count{db.effectiveStatus(it)=="done"}} done, ${list.count{db.effectiveStatus(it)=="skipped"}} skipped, ${list.count{db.effectiveStatus(it)=="pending"}} not done"))
+        for (label in listOf("Warm Up" to "Warmup", "Exercise" to "Main", "Cool Down" to "Stretch")) {
+            val list = exs.filter { it.type.equals(label.second, true) }; if (list.isEmpty()) continue
+            perCard.addView(bodyText("${label.first}: ${list.count { db.effectiveStatus(it) == "done" }} done, ${list.count { db.effectiveStatus(it) == "skipped" }} skipped, ${list.count { db.effectiveStatus(it) == "pending" }} not done"))
         }
         root.addView(perCard)
-        root.addView(makeText("Every workout counts — see you next session.",13f,false,Theme.textSecondary))
-        root.addView(makeButton("Done"){ finish() })
-        root.addView(makeSecondaryButton("View as list"){ startActivity(Intent(this,SessionActivity::class.java).apply{putExtra("sessionId",sessionId)}); finish() })
+
+        // Filler keeps the buttons pinned to the bottom of the fixed screen.
+        root.addView(LinearLayout(this).apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) })
+        root.addView(makeText("Every workout counts — see you next session.", 12f, false, Theme.textSecondary))
+        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val doneBtn = makeButton("Done") { finish() }
+        (doneBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        val listBtn = makeSecondaryButton("View as list") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }); finish() }
+        (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        btnRow.addView(doneBtn); btnRow.addView(listBtn)
+        root.addView(btnRow)
     }
 }
