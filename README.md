@@ -239,3 +239,27 @@ Mahesh request: "When all the exercise of a body part is done. Do a party popper
 
 Build: same offline invocation; APK `WorkoutTracker-v2.7.apk` (versionCode 11, versionName 2.7) installs over v2.6.1 with history preserved. Not device-tested — the confetti animation and vibrator cannot be verified in this environment.
 
+## V2.8 (2026-10-07) - Sign in with Google + Drive backup/restore + new app icon (versionCode 12, versionName 2.8)
+
+Mahesh request: "can you update the code to support login via gmail and once integrated ensure that data is backed up in google drive and restored from there", plus "could you also select a new custom icon for the app".
+
+**Sign-in design (no new Gradle dependencies — framework classes only):**
+- OAuth2 Authorization Code flow with PKCE (S256; verifier/challenge via SecureRandom + SHA-256 + Base64URL). Scopes: `openid email profile https://www.googleapis.com/auth/drive.appdata`.
+- The auth page is launched with a plain ACTION_VIEW intent (androidx.browser/Custom Tabs is not available offline); Google redirects to `com.mahesh.workouttracker:/oauth2redirect`, captured by `OauthCallbackActivity` (singleTask, exported, scheme/host intent-filter in the manifest). Code exchange and refresh happen at oauth2.googleapis.com/token; sign-out revokes best-effort.
+- **Default Client ID is baked in** (`GoogleAuth.DEFAULT_CLIENT_ID` = `746141152814-7uc1ov26tuflo5mapc010t4al6134ptf.apps.googleusercontent.com`), so Sign in works out of the box with zero pasting. It is Mahesh's Android OAuth client from his own Google Cloud project, registered for **package `com.mahesh.workouttracker`** and **SHA-1 `7B:82:1B:6B:13:FD:A8:B2:2E:15:7A:EA:0B:84:BC:EE:66:DB:08:CC`**. A Client ID is a public installed-app identifier (no secret), so it is safe in source and in this public repo. **Changing the signing key (new debug/release keystore) requires registering a new Android OAuth client for the new SHA-1 and updating the default or the Settings override.** Settings keeps a "Google Client ID" field as an override: a non-empty saved pref wins over the default, and the field is prefilled with the effective value.
+- Tokens (access + refresh) are AES/GCM-encrypted with a key held in the Android Keystore (alias `wt_google_key`); ciphertext lives in a dedicated `google_auth` SharedPreferences file. Tokens are never logged and never appear in source or repo. Only the display identity (email/name from the id_token) and bookkeeping (last-backup time) are stored plain.
+
+**Backup/restore (Drive REST v3 over HttpURLConnection):**
+- Backup file: `workout-tracker-backup.json` in the app-private **appDataFolder** (invisible in the user's Drive UI, scoped by `drive.appdata`). Existing file is PATCH-updated; first backup creates it via multipart POST.
+- Payload: `{ format: 1, appVersion, exportedAt (epoch ms), tables: { routines, exercises, sessions, session_exercises, session_sets } }` — every row, every column, IDs preserved — plus a prefs subset (unit, beginner mode, WeekManager `weekNumber`/`weekStart`). Seeded exercise content (posture checks, cues) lives in the exercises table, so the snapshot covers it.
+- Restore semantics: **full replace, transactional**. The file is validated (`format == 1`), then in ONE SQLite transaction the 5 tables are deleted and re-inserted with original IDs, and the prefs subset is restored. Any error rolls back — local data is left untouched.
+
+**Triggers:**
+- Settings gains a "Google Backup" section: signed-out shows "Sign in with Google" (Client ID field prefilled — no setup needed); signed-in shows name/email, "Last backup: <date or Never>", and **Backup now** / **Restore from Drive** (with a replace-confirmation dialog) / **Sign out**. Backup/restore run on a background thread with a progress dialog.
+- Auto-backup: after a session is marked completed at either finish site (`WorkoutSectionsActivity.doFinish`, SessionActivity Finish dialog) and the user is signed in, a silent background backup fires (failures ignored, never blocks the UI).
+- Right after a successful sign-in: if a Drive backup exists and the phone has 0 sessions, the app offers the restore once.
+- Manifest adds the INTERNET permission (the app previously had none).
+
+**New app icon:** bold white kettlebell silhouette (arc handle with a visible grip window over a round ball) centered on the theme's deep primary-blue gradient (#2563EB→#1D4ED8), with a small green (#22C55E) check badge tucked at the ball's lower-right. No text; art sits inside the adaptive-icon safe zone. Implemented as `ic_launcher_background.xml` (gradient) + `ic_launcher_foreground.xml` (vector art) + adaptive icons in `mipmap-anydpi-v26`, with PIL-rendered density PNGs (mdpi 48 → xxxhdpi 192) as the pre-API-26 fallback. A 512×512 preview lives at `workout-tracker-icon-v2.8.png` next to the APKs in the goal files folder. Settings About now reads Version 2.8.
+
+Invariants kept: no ScrollView (grep = 0), DB still v3 schema, no-scroll height budgets hold (Settings re-budgeted to fit the new card), timer/preview/library/confetti untouched, no new dependencies. Build: same offline invocation; APK `WorkoutTracker-v2.8.apk` (versionCode 12, versionName 2.8) installs over v2.7 with history preserved. **UNTESTED end-to-end**: no live Google sign-in or Drive round-trip has been run from this environment (compile + code-path review only) — the first real test is signing in on-device.
