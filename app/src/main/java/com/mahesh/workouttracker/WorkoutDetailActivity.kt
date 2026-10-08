@@ -36,15 +36,16 @@ class WorkoutDetailActivity : AppCompatActivity() {
         // its floating button row are gone).
         val exs = db.getExercises(routine.id)
         val mainCount = exs.count { it.type.equals("Main", true) }
-        val wuCount = exs.count { it.type.equals("Warmup", true) }
-        val cdCount = exs.count { it.type.equals("Stretch", true) }
-        // Hero + actions card. Explicit budget (v2.6): body-map row 64 + status
-        // pill row ~22 + 48dp action pair + padding = 172dp.
+        val totalCount = exs.size
+        // Hero + actions card. Explicit budget (v2.6.1): padding 16 + body-map
+        // row 68 + status row 30 (pill has its own 24dp height, no margins) +
+        // 48dp action pair + 6/4 gaps = 176dp. The pill can no longer touch
+        // the card's bottom edge (it was clipped at 172dp with default margins).
         val hero = cardLayout("#F59E0B")
-        hero.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(172)).apply { setMargins(0, 0, 0, 0) }
-        hero.setPadding(dp(10), dp(6), dp(10), dp(6))
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)) }
-        val muscles = db.routineMuscles(routine.id)
+        hero.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(176)).apply { setMargins(0, 0, 0, 0) }
+        hero.setPadding(dp(10), dp(8), dp(10), dp(8))
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(68)) }
+        val muscles = db.routineMuscles(routine.id) // MAIN exercises only (v2.6.1)
         row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(64)) })
         val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
         val statusTxt = when { completed != null -> "Done"; inProg != null -> "In Progress"; else -> "Pending" }
@@ -52,40 +53,50 @@ class WorkoutDetailActivity : AppCompatActivity() {
         hName.maxLines = 1; hName.ellipsize = android.text.TextUtils.TruncateAt.END
         (hName.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         info.addView(hName)
-        val hCap = caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • $mainCount exercises ($wuCount Warm Up • $mainCount Exercise • $cdCount Cool Down) • ${musclesLabel(muscles)}")
-        hCap.maxLines = 3; hCap.ellipsize = android.text.TextUtils.TruncateAt.END
+        // v2.6.1 count line (agreed mockup labeling): main count as "exercises",
+        // total (incl. warm-up & cool-down) separate. Muscles live in the focus
+        // line + body map — not repeated here (and never warm-up muscles).
+        val hCap = caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • $mainCount exercises • $totalCount total with warm-up & cool-down")
+        hCap.maxLines = 2; hCap.ellipsize = android.text.TextUtils.TruncateAt.END
         (hCap.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         info.addView(hCap)
         row.addView(info); hero.addView(row)
 
-        // Status pill row above the action pair.
-        val pillRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(26)) }
-        pillRow.addView(statusPill(statusTxt))
-        pillRow.addView(makeText(if (inProg != null) "  Pick up where you left off" else if (completed != null) "  Done this week — go again anytime" else "  Not started yet", 12f, false, Theme.textSecondary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+        // Status row: pill ONLY (v2.6.1 copy audit — the trailing "Not started
+        // yet / Pick up where you left off" line duplicated the pill; cut).
+        // Explicit 30dp row, pill given its own 24dp height with margins stripped
+        // so it can never clip against the buttons or the card edge.
+        val pillRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(30)) }
+        val pill = statusPill(statusTxt)
+        (pill.layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
+        pill.setPadding(dp(10), 0, dp(10), 0)
+        pillRow.addView(pill)
         hero.addView(pillRow)
 
-        // ONE clean action pair: equal halves, same 48dp height, 8dp gap.
+        // ONE clean action pair: equal halves, 48dp, 15sp text, 20dp icons,
+        // 12dp radius. tightButton strips the factory minHeight (56/52) that
+        // was inflating both buttons past their 48dp budget (screenshot).
         val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val startBtn = primaryButtonWithIcon(if (inProg != null) "Resume Workout" else if (completed != null) "Start Again" else "Start Workout", R.drawable.ic_play) {
             val sid = if (inProg != null) inProg.id else db.createSession(routine, state.weekNumber, state.weekStart)
             startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply { putExtra("sessionId", sid) })
         }
         (startBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
+        tightButton(startBtn, 48, 12, primary = true)
+        startBtn.setPadding(dp(8), 0, dp(8), 0)
         val previewBtn = makeSecondaryButton("Preview") { openPreview(null) }
-        previewBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_eye, 0, 0, 0)
+        previewBtn.setCompoundDrawables(boundedIcon(R.drawable.ic_eye, 20, Theme.primary), null, null, null)
         previewBtn.compoundDrawablePadding = dp(6)
-        try { previewBtn.compoundDrawables[0]?.setTint(Theme.primary) } catch (e: Exception) {}
         (previewBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
+        tightButton(previewBtn, 48, 12, primary = false)
+        previewBtn.setPadding(dp(8), 0, dp(8), 0)
         btnRow.addView(startBtn); btnRow.addView(previewBtn)
         hero.addView(btnRow)
         root.addView(hero)
 
-        // Sections: three compact rows (tap -> per-section preview). Names live
-        // in the preview cards; this page only carries counts/progress.
-        root.addView(makeText(if (sess != null) "Your progress — tap a section to preview its cards" else "What you'll do — tap a section to preview its cards", 13f, true, Theme.textSecondary).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
-            gravity = Gravity.CENTER_VERTICAL
-        })
+        // Sections: three compact rows (tap -> per-section preview). v2.6.1
+        // copy audit: no "What you'll do — tap a section…" explainer header;
+        // the rows carry their own counts and the chevron affordance.
         val sectionBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
@@ -102,10 +113,10 @@ class WorkoutDetailActivity : AppCompatActivity() {
             val line = if (sess != null) {
                 val list = db.getSessionExercises(sess.id).filter { it.type.equals(type, true) }
                 val done = list.count { db.effectiveStatus(it) == "done" }; val skipped = list.count { db.effectiveStatus(it) == "skipped" }
-                "${done + skipped} of ${list.size} done/skipped • tap to preview ›"
+                "${done + skipped} of ${list.size} done/skipped"
             } else {
                 val list = exs.filter { it.type.equals(type, true) }
-                "${list.size} activities • tap to preview ›"
+                "${list.size} activities"
             }
             col.addView(caption(line))
             r.addView(col)

@@ -131,7 +131,6 @@ class RoutineEditActivity : AppCompatActivity() {
         }
         (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, 0, 0) }
         saveRow.addView(saveBtn)
-        saveRow.addView(makeText("  Form videos are per exercise below.", 11f, false, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
         formBox.addView(saveRow)
 
         if (existing != null) {

@@ -37,7 +37,9 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         (sName.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         info.addView(sName)
         val statusTxt = if (session.completed) "Done" else if (exs.any { db.effectiveStatus(it) != "pending" }) "In Progress" else "Pending"
-        val sCap = caption("${session.focus} • ${musclesLabel(muscles)} • $statusTxt${if (Beginner.beginnerMode(this) && !session.completed) " • Beginner Mode ON" else ""}")
+        // v2.6.1 copy audit: no "Beginner Mode ON" suffix (duplicates the
+        // Settings toggle); focus • muscles • status is the one short line.
+        val sCap = caption("${session.focus} • ${musclesLabel(muscles)} • $statusTxt")
         sCap.maxLines = 2; sCap.ellipsize = android.text.TextUtils.TruncateAt.END
         (sCap.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         info.addView(sCap)
@@ -55,12 +57,8 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         }
         root.addView(header)
 
-        // Three section cards share the remaining height.
-        val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
-        root.addView(makeText("Today's sections", 14f, true, Theme.textSecondary).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
-            gravity = Gravity.CENTER_VERTICAL
-        })
+        // Three section cards share the remaining height. (v2.6.1 copy audit:
+        // the "Today's sections" header duplicated the top bar — removed.)
         val sectionBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
@@ -82,12 +80,13 @@ class WorkoutSectionsActivity : AppCompatActivity() {
             titleRow.addView(makeText("  $label", 19f, true, Color.parseColor(colorHex)))
             titleRow.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
             col.addView(titleRow)
-            col.addView(caption("$handled of ${list.size} handled • $done done • $skipped skipped • tap to open"))
+            col.addView(caption("$done done • $skipped skipped"))
             col.addView(hProgress(list.size, handled, Color.parseColor(colorHex)))
             row2.addView(col); card.addView(row2)
             sectionBox.addView(card)
         }
         root.addView(sectionBox)
+        val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
 
         // Fixed finish bar
         val footRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
