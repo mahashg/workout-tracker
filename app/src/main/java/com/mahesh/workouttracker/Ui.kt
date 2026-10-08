@@ -23,6 +23,14 @@ import androidx.appcompat.app.AppCompatActivity
 
 fun Context.dp(v: Int): Int = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics).toInt()
 
+/** True on short screens (<700dp tall): tighter paddings/gaps everywhere (v2.5). */
+fun Context.isCompactScreen(): Boolean =
+    (resources.displayMetrics.heightPixels / resources.displayMetrics.density) < 700f
+
+/** Available screen height in dp (used to compute pagination page sizes). */
+fun Context.screenHeightDp(): Int =
+    (resources.displayMetrics.heightPixels / resources.displayMetrics.density).toInt()
+
 // ---------- Design tokens (v2.1, light theme for bright gym light) ----------
 object Theme {
     val bg = Color.parseColor("#EAF0F5") // soft mist background (Mahesh color change, v2.3)
@@ -173,22 +181,55 @@ fun Context.smallButtonWithIcon(text: String, iconRes: Int, tint: Int = Theme.te
 
 // ---------- Layout scaffolding ----------
 fun Context.rootLayout(): LinearLayout {
+    val compact = isCompactScreen()
     return LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(20), dp(20), dp(28)); setBackgroundColor(Theme.bg)
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(if (compact) 14 else 20), dp(if (compact) 10 else 16), dp(if (compact) 14 else 20), dp(if (compact) 12 else 16))
+        setBackgroundColor(Theme.bg)
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
     }
 }
+
+/**
+ * v2.5 no-scroll page root: a fixed-height vertical container that fills the
+ * screen. Children that need to flex use layout height 0 + weight 1.
+ */
+fun Context.fitRoot(): LinearLayout = rootLayout()
+
+/** Compact pagination bar: ‹ Prev • 2/5 • Next › (v2.5). */
+fun Context.pagerBar(page: Int, pageCount: Int, onPrev: () -> Unit, onNext: () -> Unit): LinearLayout {
+    val row = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)).apply { setMargins(0, dp(4), 0, dp(2)) }
+    }
+    val prev = makeSmallButton("‹ Prev") { if (page > 0) onPrev() }
+    (prev.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+    prev.isEnabled = page > 0; prev.alpha = if (page > 0) 1f else 0.45f
+    val mid = makeText("${page + 1} / ${pageCount.coerceAtLeast(1)}", 13f, true, Theme.textSecondary).apply {
+        gravity = Gravity.CENTER
+        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+    }
+    val next = makeSmallButton("Next ›") { if (page < pageCount - 1) onNext() }
+    (next.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+    next.isEnabled = page < pageCount - 1; next.alpha = if (page < pageCount - 1) 1f else 0.45f
+    row.addView(prev); row.addView(mid); row.addView(next)
+    return row
+}
 fun Context.cardLayout(stroke: String? = null, tappable: Boolean = false, onClick: (() -> Unit)? = null): LinearLayout {
+    val pad = if (isCompactScreen()) 14 else 18
+    val gap = if (isCompactScreen()) 4 else 6
     return LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(20), dp(20), dp(20))
+        orientation = LinearLayout.VERTICAL; setPadding(dp(pad), dp(pad), dp(pad), dp(pad))
         background = cardDrawable(stroke, tappable || onClick != null)
-        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, dp(8)) }
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(gap), 0, dp(gap)) }
         elevation = dp(3).toFloat()
         if (onClick != null) setOnClickListener { onClick() }
     }
 }
 fun Context.heroCard(): LinearLayout {
+    val pad = if (isCompactScreen()) 14 else 18
     return LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(20), dp(20), dp(20))
+        orientation = LinearLayout.VERTICAL; setPadding(dp(pad), dp(pad), dp(pad), dp(pad))
         background = heroDrawable()
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(7), 0, dp(7)) }
         elevation = dp(4).toFloat()
@@ -221,13 +262,11 @@ fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout
     return bar
 }
 
-/** Scaffold for the 4 tab screens: content root inside a ScrollView + persistent bottom nav. */
+/** Scaffold for the 4 tab screens: fixed (non-scrolling) content + persistent bottom nav. */
 fun AppCompatActivity.tabScaffold(selected: String): LinearLayout {
-    val outer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Theme.bg) }
-    val scroll = android.widget.ScrollView(this).apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) }
-    val root = rootLayout()
-    scroll.addView(root)
-    outer.addView(scroll)
+    val outer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Theme.bg); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
+    val root = rootLayout().apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) }
+    outer.addView(root)
     outer.addView(bottomNav(selected))
     setContentView(outer)
     return root
