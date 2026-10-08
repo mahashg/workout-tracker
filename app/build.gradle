@@ -9,8 +9,8 @@ android {
         applicationId = "com.mahesh.workouttracker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "2.8"
+        versionCode = 13
+        versionName = "2.8.1"
     }
     buildTypes { getByName("release") { } }
     compileOptions {

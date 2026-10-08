@@ -95,7 +95,7 @@ class SettingsActivity : AppCompatActivity() {
         val aboutCard = budgetCard(if (compactSet) 56 else 64)
         aboutCard.addView(noMargin(overline("About")))
         // v2.6.1 copy audit: About is two lines (version + week rule).
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.8\nWeek counter advances only after a week with 1+ completed workout."), 2))
+        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.8.1\nWeek counter advances only after a week with 1+ completed workout."), 2))
         root.addView(aboutCard)
     }
 
