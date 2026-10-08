@@ -87,8 +87,8 @@ class CardSessionActivity : AppCompatActivity() {
             root.addView(makeText("${sectionLabel(sectionType)} complete!",26f,true,Color.parseColor("#15803D")))
             val done=deck.count{db.effectiveStatus(it)=="done"}; val skipped=deck.count{db.effectiveStatus(it)=="skipped"}
             root.addView(makeText("You finished this section.\n$done done • $skipped skipped\nGreat job — head back to pick the next section.",15f,false))
-            if(undoStack.isNotEmpty()) root.addView(makeButton("Undo last action"){doUndo(); render()})
-            root.addView(makeButton("Back to Sections"){finish()})
+            if(undoStack.isNotEmpty()) root.addView(makeButton("Undo last action"){doUndo(); render()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
+            root.addView(makeButton("Back to Sections"){finish()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
             Toast.makeText(this,"${sectionLabel(sectionType)} complete!",Toast.LENGTH_SHORT).show()
             return
         }
@@ -98,16 +98,18 @@ class CardSessionActivity : AppCompatActivity() {
         val unit=WeekManager.unit(this)
         val root=fitRoot(); setContentView(root)
         root.addView(topBar(sectionLabel(sectionType), "Card ${index+1} of ${deck.size}"))
-        // Top bar color-coded + workout timer chip
+        // Top bar color-coded + workout timer chip. Explicit 96dp budget (v2.5.1):
+        // progress line + bar + 30dp timer chip; deck (weight 1) absorbs the rest.
         val top=cardLayout(when(sectionType){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"})
+        top.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(96)).apply { setMargins(0, 0, 0, 0) }
         top.setPadding(dp(12), dp(6), dp(12), dp(6))
-        top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true))
-        top.addView(hProgress(deck.size, deck.count{db.effectiveStatus(it)!="pending"}, sectionColor(sectionType)))
+        top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+        top.addView(hProgress(deck.size, deck.count{db.effectiveStatus(it)!="pending"}, sectionColor(sectionType)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
         val sessForTimer = db.getSession(sessionId)
         if (sessForTimer != null && !sessForTimer.completed) {
             db.ensureSessionStarted(sessionId)
             val chip = TimerChipView(this)
-            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30)).apply { setMargins(0, dp(4), 0, 0) }
             chip.bind(this, db, db.getSession(sessionId) ?: sessForTimer) {}
             chip.startTicking()
             timerChip = chip
@@ -306,16 +308,16 @@ class CardSessionActivity : AppCompatActivity() {
             (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) }
             return b
         }
-        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
-        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
-        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
+        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
+        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
+        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
         root.addView(row1)
         // Compact secondary row (all previous actions preserved, one 48dp row)
-        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        fun secBtn(b: android.widget.Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }; row2.addView(b) }
+        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
+        fun secBtn(b: android.widget.Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), dp(4), dp(2), 0) }; row2.addView(b) }
         val swap = SwapMap.forExercise(ex.name)
         if (swap != null && sectionType == "Main") {
-            secBtn(makeSmallButton("Swap → ${swap.first}") {
+            secBtn(makeSmallButton("Swap →") {
                 AlertDialog.Builder(this).setTitle("Swap exercise?").setMessage("Replace ${ex.name} with ${swap.first}? Your logged sets stay.").setPositiveButton("Swap") { _, _ -> snapshot(ex); db.swapSessionExercise(ex.id, swap.first, swap.second); Toast.makeText(this, "Swapped to ${swap.first}", Toast.LENGTH_SHORT).show(); render() }.setNegativeButton("Cancel", null).show()
             })
         }
@@ -324,7 +326,10 @@ class CardSessionActivity : AppCompatActivity() {
         secBtn(makeSmallButton("Sections") { finish() })
         root.addView(row2)
         val next = deck.getOrNull(index + 1)
-        if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")))
+        if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
+            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+        })
     }
 
     // ---- Drag feedback + card animations (v2.2) ----
