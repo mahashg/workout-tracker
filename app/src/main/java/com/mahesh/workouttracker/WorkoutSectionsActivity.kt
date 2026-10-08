@@ -101,5 +101,5 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         footRow.addView(listBtn); footRow.addView(finishBtn)
         root.addView(footRow)
     }
-    private fun doFinish() { val fresh = db.getSession(sessionId); if (fresh != null) WorkoutTimer.finish(this, db, fresh); db.setSessionCompleted(sessionId, true); startActivity(Intent(this, SummaryActivity::class.java).apply { putExtra("sessionId", sessionId) }); finish() }
+    private fun doFinish() { val fresh = db.getSession(sessionId); if (fresh != null) WorkoutTimer.finish(this, db, fresh); db.setSessionCompleted(sessionId, true); startActivity(Intent(this, SummaryActivity::class.java).apply { putExtra("sessionId", sessionId); putExtra("celebrate", true) }); finish() }
 }
