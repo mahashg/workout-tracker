@@ -170,19 +170,40 @@ fun Context.iconView(resId: Int, sizeDp: Int = 22, tint: Int = Theme.textSeconda
         layoutParams = LinearLayout.LayoutParams(dp(sizeDp), dp(sizeDp))
     }
 }
+/** Icon drawable with EXPLICIT bounds (v2.6.1): compound drawables otherwise
+ *  render at the vector's intrinsic size and look oversized next to 15sp text. */
+fun Context.boundedIcon(resId: Int, sizeDp: Int, tint: Int): android.graphics.drawable.Drawable? {
+    val d = try { resources.getDrawable(resId, theme) } catch (e: Exception) { null } ?: return null
+    val m = d.mutate()
+    m.setBounds(0, 0, dp(sizeDp), dp(sizeDp))
+    try { m.setTint(tint) } catch (e: Exception) {}
+    return m
+}
+
 fun Context.primaryButtonWithIcon(text: String, iconRes: Int, onClick: () -> Unit): Button {
     val b = makeButton(text, onClick)
-    b.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0)
+    b.setCompoundDrawables(boundedIcon(iconRes, 20, Theme.onPrimary), null, null, null)
     b.compoundDrawablePadding = dp(8)
-    try { b.compoundDrawables[0]?.setTint(Theme.onPrimary) } catch (e: Exception) {}
     return b
 }
 fun Context.smallButtonWithIcon(text: String, iconRes: Int, tint: Int = Theme.textPrimary, onClick: () -> Unit): Button {
     val b = makeSmallButton(text, onClick)
-    b.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0)
+    b.setCompoundDrawables(boundedIcon(iconRes, 18, tint), null, null, null)
     b.compoundDrawablePadding = dp(6)
-    try { b.compoundDrawables[0]?.setTint(tint) } catch (e: Exception) {}
     return b
+}
+
+/** Restyle a factory button to a 12dp corner radius + an exact height with no
+ *  min-height inflation (v2.6.1: factory minHeight 56/52 was silently overriding
+ *  48dp layout heights in fixed budget rows and clipping neighbours). */
+fun Context.tightButton(b: Button, heightDp: Int, radiusDp: Int = 12, primary: Boolean = false) {
+    b.minHeight = 0; b.minWidth = 0
+    (b.layoutParams as? LinearLayout.LayoutParams)?.height = dp(heightDp)
+    val mask = GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(radiusDp).toFloat() }
+    b.background = if (primary)
+        RippleDrawable(ColorStateList.valueOf(0x55FFFFFF), rounded(Theme.primary, radiusDp), mask)
+    else
+        RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surface, radiusDp, Theme.primary, 1), mask)
 }
 
 // ---------- Layout scaffolding ----------
@@ -347,8 +368,11 @@ fun Context.statusPill(status: String): TextView {
     return TextView(this).apply {
         text = when(status){ "Done"->"✓ Done"; "In Progress"->"● In Progress"; else->"○ Pending" }
         textSize = 11f; setTextColor(fg); typeface = medium()
-        background = rounded(bg, 20); setPadding(dp(10), dp(5), dp(10), dp(5)); gravity = Gravity.CENTER
-        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, dp(2)) }
+        // v2.6.1: no built-in margins — the pill measured larger than fixed
+        // rows budgeted for it and clipped (Detail hero screenshot). Callers
+        // place it inside an explicit-height row instead.
+        background = rounded(bg, 20); setPadding(dp(10), dp(4), dp(10), dp(4)); gravity = Gravity.CENTER
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
     }
 }
 fun Context.equipmentBadge(equipment: String): TextView {
