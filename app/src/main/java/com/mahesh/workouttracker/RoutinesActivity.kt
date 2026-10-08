@@ -13,7 +13,8 @@ class RoutinesActivity : AppCompatActivity() {
         val root = tabScaffold("Routines")
         root.addView(screenTitle("Routines"))
         root.addView(caption("Grouped by assigned day (Sun–Sat). Tap a workout to edit its exercises and form links."))
-        root.addView(makeButton("＋ Add New Workout") { startActivity(Intent(this, RoutineEditActivity::class.java).apply{ putExtra("routineId", -1L) }) })
+        root.addView(primaryButtonWithIcon("Exercise Library (33 extra moves)", R.drawable.ic_list) { startActivity(Intent(this, LibraryActivity::class.java)) })
+        root.addView(makeButton("Add New Workout") { startActivity(Intent(this, RoutineEditActivity::class.java).apply{ putExtra("routineId", -1L) }) })
         val routines = db.getRoutines()
         val grouped = routines.groupBy { it.weekday }
         for (day in listOf(0,1,2,3,4,5,6,-1)) {
@@ -28,7 +29,7 @@ class RoutinesActivity : AppCompatActivity() {
                 info.addView(makeText(r.name, 16f, true))
                 info.addView(caption("${r.focus}\n${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)}"))
                 row.addView(info)
-                row.addView(makeText("✏️ ›", 16f, true, Theme.textTertiary))
+                row.addView(iconView(R.drawable.ic_chevron, 22))
                 card.addView(row)
                 card.addView(makeSecondaryButton("Edit Workout & Exercises") { startActivity(Intent(this, RoutineEditActivity::class.java).apply{ putExtra("routineId", r.id) }) })
                 root.addView(card)

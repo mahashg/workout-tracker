@@ -38,7 +38,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
         // Start/Resume FIRST, prominent at top of content (per Mahesh)
         val startCard = cardLayout("#F59E0B")
         startCard.addView(makeText(if(inProg!=null) "● IN PROGRESS — pick up where you left off" else if(completed!=null) "✓ DONE THIS WEEK" else "○ NOT STARTED YET", 11f, true, Color.parseColor("#92400E")))
-        startCard.addView(makeButton(if(inProg!=null) "▶  Resume Workout" else if(completed!=null) "↻  Start Again (new session)" else "▶  Start Workout"){
+        startCard.addView(primaryButtonWithIcon(if(inProg!=null) "Resume Workout" else if(completed!=null) "Start Again (new session)" else "Start Workout", R.drawable.ic_play){
             val sid = if(inProg!=null) inProg.id else db.createSession(routine, state.weekNumber, state.weekStart)
             startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply{putExtra("sessionId",sid)})
         })
@@ -52,7 +52,9 @@ class WorkoutDetailActivity : AppCompatActivity() {
         row.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(110),dp(138))})
         val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; layoutParams=LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1f); setPadding(dp(12),0,0,0)}
         info.addView(makeText(routine.name,22f,true))
-        info.addView(caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • ${db.routineExerciseCount(routine.id)} activities"))
+        val mainCount = db.getExercises(routine.id).count{it.type.equals("Main",true)}
+        val totalCount = db.routineExerciseCount(routine.id)
+        info.addView(caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • $mainCount exercises ($totalCount total incl. warm-up & cool-down)"))
         info.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",13f,true,Color.parseColor("#0369A1")))
         info.addView(statusPill(when{completed!=null->"Done"; inProg!=null->"In Progress"; else->"Pending"}))
         row.addView(info); hero.addView(row); root.addView(hero)

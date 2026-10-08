@@ -42,7 +42,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val dataCard = cardLayout()
         dataCard.addView(overline("Your Data"))
-        dataCard.addView(makeButton("⬇ Export CSV") { launchExport() })
+        dataCard.addView(makeButton("Export CSV") { launchExport() })
         dataCard.addView(makeSecondaryButton("Restore Preloaded Routines") {
             AlertDialog.Builder(this).setTitle("Restore routines?").setMessage("This replaces current routines/exercises with the preloaded v2 5 (with form links and warm-up/stretch items), but does NOT delete history sessions.")
                 .setPositiveButton("Restore") { _, _ -> Seed.restore(db); Seed.markV2Applied(this); Toast.makeText(this,"Routines restored", Toast.LENGTH_SHORT).show() }
@@ -52,7 +52,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val aboutCard = cardLayout()
         aboutCard.addView(overline("About"))
-        aboutCard.addView(caption("Workout Tracker • Version 2.2 (v2.2)\nForm videos are per exercise."))
+        aboutCard.addView(caption("Workout Tracker • Version 2.3 (v2.3)\nForm videos are per exercise. Workout time is tracked per session."))
         root.addView(aboutCard)
     }
     private fun launchExport() {

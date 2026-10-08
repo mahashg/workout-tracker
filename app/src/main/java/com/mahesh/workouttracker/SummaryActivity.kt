@@ -18,7 +18,6 @@ class SummaryActivity : AppCompatActivity() {
         root.addView(topBar("Workout Summary", "${DateUtil.display(session.date)} • Week ${session.weekNumber}"))
 
         val celeb=heroCard()
-        celeb.addView(makeText("🎉", 34f, true, android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) })
         celeb.addView(makeText("Workout complete!",26f,true,android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER })
         celeb.addView(makeText("${session.routineName}\nNice work showing up and getting it done.",13f,false,android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER })
         root.addView(celeb)
@@ -32,6 +31,7 @@ class SummaryActivity : AppCompatActivity() {
         val stats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         fun stat(v:String,l:String): LinearLayout { val c=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; gravity=Gravity.CENTER; layoutParams=LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1f)}; c.addView(makeText(v,22f,true,Theme.success).apply{gravity=Gravity.CENTER}); c.addView(caption(l).apply{gravity=Gravity.CENTER}); return c }
         stats.addView(stat("$done","exercises done")); stats.addView(stat("$setsDone/$setsTotal","sets done")); stats.addView(stat("$skipped","skipped"))
+        if (session.startedAt > 0) stats.addView(stat(WorkoutTimer.formatDuration(session.elapsedSec),"time"))
         card.addView(stats)
         root.addView(card)
 

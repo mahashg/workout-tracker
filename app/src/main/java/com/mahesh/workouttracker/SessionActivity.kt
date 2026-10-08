@@ -20,6 +20,9 @@ class SessionActivity : AppCompatActivity() {
     private var sessionId: Long = -1
     private var timer: CountDownTimer? = null
     private var timerDialog: AlertDialog? = null
+    private var timerChip: TimerChipView? = null
+    private val howToExpanded = mutableSetOf<Long>()
+    private var howToDefaultApplied = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +31,8 @@ class SessionActivity : AppCompatActivity() {
         if (sessionId < 0) { finish(); return }
         render()
     }
-    override fun onDestroy() { super.onDestroy(); timer?.cancel(); timerDialog?.dismiss() }
+    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow() }
+    override fun onDestroy() { super.onDestroy(); timer?.cancel(); timerDialog?.dismiss(); timerChip?.stopTicking() }
 
     private fun render() {
         val session = db.getSession(sessionId) ?: run { finish(); return }
@@ -48,7 +52,21 @@ class SessionActivity : AppCompatActivity() {
         hInfo.addView(makeText(if (session.completed) "Workout (Completed)" else "Workout of the Day", 12f, false, Theme.textSecondary))
         hInfo.addView(makeText(session.routineName, 21f, true))
         hInfo.addView(makeText("${session.focus}\n${DateUtil.display(session.date)} • Week ${session.weekNumber}\nTargets: ${musclesLabel(allMuscles)}", 12f, false, Theme.textSecondary))
-        hRow.addView(hInfo); header.addView(hRow); root.addView(header)
+        if (session.startedAt > 0) {
+            val durTxt = if (session.completed) WorkoutTimer.formatDuration(session.elapsedSec) else WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, session)) + " so far"
+            hInfo.addView(makeText("Time: $durTxt", 12f, true, Theme.primary))
+        }
+        hRow.addView(hInfo); header.addView(hRow)
+        if (!session.completed) {
+            db.ensureSessionStarted(sessionId)
+            val chip = TimerChipView(this)
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+            chip.bind(this, db, db.getSession(sessionId) ?: session) {}
+            chip.startTicking()
+            timerChip = chip
+            header.addView(chip)
+        }
+        root.addView(header)
 
         // Top actions (reachable without scrolling)
         addActionButtons(root, session.completed)
@@ -86,15 +104,27 @@ class SessionActivity : AppCompatActivity() {
                 tInfo.addView(makeText("First time — no previous record", 12f, false, Theme.textSecondary))
             }
             top.addView(tInfo); card.addView(top)
-            if (ex.youtubeUrl.isNotBlank()) card.addView(makeButton("▶  Watch Form Video") { openUrl(this, ex.youtubeUrl) })
             card.addView(makeText("Do it: ${doItLine(db.getSets(ex.id))}",14f,true,Color.parseColor("#92400E")))
-            card.addView(makeText("What you'll feel: ${musclesLabel(exMuscles)}",12f,false,Color.parseColor("#0369A1")))
-            if (db.effectiveStatus(ex)=="skipped") card.addView(makeText("↷ Skipped",13f,true,Color.parseColor("#92400E")))
+            if (db.effectiveStatus(ex)=="skipped") card.addView(makeText("Skipped",13f,true,Color.parseColor("#92400E")))
+            // "Show me how" toggle (Beginner Mode): video + feel + posture + cues, collapsed by default
             if (Beginner.beginnerMode(this)) {
-                val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
-                if (posture.isNotBlank()) { card.addView(makeText("✓ Check your posture:",14f,true,Color.parseColor("#15803D"))); for(c in posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}) card.addView(makeText("☐  $c",12f,false)) }
-                val cues = ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-                if (cues.isNotBlank()) for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) card.addView(makeText("•  $c",12f,false,Theme.textSecondary))
+                if (!howToDefaultApplied) { howToDefaultApplied = true; howToExpanded.add(ex.id) }
+                val expanded = howToExpanded.contains(ex.id)
+                card.addView(makeSecondaryButton(if (expanded) "Hide how-to  ▴" else "Show me how  ▾") {
+                    if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
+                    render()
+                })
+                if (expanded) {
+                    if (ex.youtubeUrl.isNotBlank()) card.addView(primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) })
+                    card.addView(makeText("What you'll feel: ${musclesLabel(exMuscles)}",12f,false,Color.parseColor("#0369A1")))
+                    val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
+                    if (posture.isNotBlank()) { card.addView(makeText("Check your posture:",14f,true,Color.parseColor("#15803D"))); for(c in posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}) card.addView(makeText("☐  $c",12f,false)) }
+                    val cues = ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
+                    if (cues.isNotBlank()) for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) card.addView(makeText("•  $c",12f,false,Theme.textSecondary))
+                    if (ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") card.addView(makeText("Start light: use the lightest weight that feels easy first.",12f,false,Color.parseColor("#92400E")))
+                }
+            } else {
+                if (ex.youtubeUrl.isNotBlank()) card.addView(primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) })
             }
 
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -105,7 +135,7 @@ class SessionActivity : AppCompatActivity() {
             val sets = db.getSets(ex.id)
             strike(titleTv, sets.isNotEmpty() && sets.all { it.isDone })
             for (set in sets) {
-                val sRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(8), dp(8), dp(8), dp(8)); background = roundedBg("#EEF2F7", 12); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, dp(4)) } }
+                val sRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(8), dp(8), dp(8), dp(8)); background = roundedBg("#EDF2F7", 12); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, dp(4)) } }
                 sRow.addView(TextView(this).apply { text="Set ${set.setNumber}"; setTextColor(Theme.textPrimary); textSize=13f; layoutParams=LinearLayout.LayoutParams(dp(58), LinearLayout.LayoutParams.WRAP_CONTENT) })
                 val wEt = EditText(this).apply { setText(set.weight); hint="wt"; styleEditText(this); textSize=13f; isEnabled=!set.isBodyweight; layoutParams=LinearLayout.LayoutParams(dp(58), LinearLayout.LayoutParams.WRAP_CONTENT) }
                 val rEt = EditText(this).apply { setText(set.reps); hint="reps"; styleEditText(this); textSize=13f; layoutParams=LinearLayout.LayoutParams(dp(62), LinearLayout.LayoutParams.WRAP_CONTENT) }
@@ -142,21 +172,21 @@ class SessionActivity : AppCompatActivity() {
 
     private fun addActionButtons(root: LinearLayout, completed: Boolean, bottom: Boolean = false) {
         val session = db.getSession(sessionId) ?: return
-        root.addView(makeButton("💾 Save Order as Default") {
+        root.addView(makeButton("Save Order as Default") {
             db.saveSessionOrderAsDefault(sessionId, session.routineId); Toast.makeText(this,"Saved as default order",Toast.LENGTH_SHORT).show()
         })
         if (!completed) {
-            root.addView(makeButton("✅ Finish Workout") {
+            root.addView(makeButton("Finish Workout") {
                 AlertDialog.Builder(this).setTitle("Finish workout?").setMessage("Mark as completed? Unchecked sets stay as-is in history/CSV.")
-                    .setPositiveButton("Finish"){_,_-> db.setSessionCompleted(sessionId,true); startActivity(android.content.Intent(this,SummaryActivity::class.java).apply{putExtra("sessionId",sessionId)}); finish()}.setNegativeButton("Cancel",null).show()
+                    .setPositiveButton("Finish"){_,_-> val fresh=db.getSession(sessionId); if(fresh!=null) WorkoutTimer.finish(this,db,fresh); db.setSessionCompleted(sessionId,true); startActivity(android.content.Intent(this,SummaryActivity::class.java).apply{putExtra("sessionId",sessionId)}); finish()}.setNegativeButton("Cancel",null).show()
             })
         } else {
-            root.addView(makeButton("↩ Re-open (mark In Progress)") { db.setSessionCompleted(sessionId,false); render() })
+            root.addView(makeButton("Re-open (mark In Progress)") { db.setSessionCompleted(sessionId,false); render() })
         }
         root.addView(makeButton("Save & Exit") { finish() })
-        if (bottom) root.addView(makeButton("🗑 Discard Session") {
+        if (bottom) root.addView(makeButton("Discard Session") {
             AlertDialog.Builder(this).setTitle("Discard session?").setMessage("Delete this session and its sets?")
-                .setPositiveButton("Discard"){_,_-> db.deleteSession(sessionId); finish()}.setNegativeButton("Cancel",null).show()
+                .setPositiveButton("Discard"){_,_-> WorkoutTimer.clear(this,sessionId); db.deleteSession(sessionId); finish()}.setNegativeButton("Cancel",null).show()
         })
     }
     private fun simpleWatcher(onChange:(String)->Unit): TextWatcher = object: TextWatcher {

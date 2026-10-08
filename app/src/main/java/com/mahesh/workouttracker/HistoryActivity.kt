@@ -21,10 +21,11 @@ class HistoryActivity : AppCompatActivity() {
             val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             info.addView(makeText("${DateUtil.display(s.date)} • Week ${s.weekNumber}", 12f, true, Theme.textSecondary))
             info.addView(makeText(s.routineName, 16f, true))
-            info.addView(caption(s.focus))
+            val dur = if (s.startedAt > 0) " • ${WorkoutTimer.formatDuration(if (s.completed) s.elapsedSec else WorkoutTimer.liveElapsedSec(this, s))}" else ""
+            info.addView(caption(s.focus + dur))
             info.addView(statusPill(if (s.completed) "Done" else "In Progress"))
             row.addView(info)
-            row.addView(makeText("›", 26f, true, Theme.textTertiary))
+            row.addView(iconView(R.drawable.ic_chevron, 24))
             card.addView(row)
             card.addView(makeSecondaryButton("Open") { open() })
             root.addView(card)
