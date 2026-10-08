@@ -23,12 +23,13 @@ class LibraryActivity : AppCompatActivity() {
         val root = fitRoot(); setContentView(root)
         root.addView(topBar("Exercise Library", "33 extra moves • one muscle group per page"))
 
-        // Group switcher: wrapping chip rows (selected group highlighted)
-        val chipBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        // Group switcher: wrapping chip rows (selected group highlighted).
+        // Explicit 126dp (3 rows x 42dp) so the card region budget is known.
+        val chipBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(126)) }
         var chipRow: LinearLayout? = null
         for ((i, g) in groups.withIndex()) {
             if (i % 4 == 0) {
-                chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(42)) }
                 chipBox.addView(chipRow)
             }
             val selected = i == groupIndex
@@ -44,6 +45,7 @@ class LibraryActivity : AppCompatActivity() {
         val entries = Library.byGroup(group)
         val groupMuscles = entries.flatMap { DbHelper.parseMuscles(it.muscles, it.name) }.toSet()
         val header = cardLayout()
+        header.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(76)).apply { setMargins(0, 0, 0, 0) }
         header.setPadding(dp(12), dp(6), dp(12), dp(6))
         val hRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         hRow.addView(BodyMapView(this, groupMuscles).apply { layoutParams = LinearLayout.LayoutParams(dp(44), dp(54)) })
@@ -61,7 +63,7 @@ class LibraryActivity : AppCompatActivity() {
         for (entry in entries) {
             val card = cardLayout()
             (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(4), 0, dp(4)) }
-            card.setPadding(dp(12), dp(8), dp(12), dp(8))
+            card.setPadding(dp(12), dp(6), dp(12), dp(6))
             val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             top.addView(BodyMapView(this, DbHelper.parseMuscles(entry.muscles, entry.name)).apply { layoutParams = LinearLayout.LayoutParams(dp(38), dp(46)) })
             val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
@@ -73,11 +75,11 @@ class LibraryActivity : AppCompatActivity() {
             badgeRow.addView(caption("Do ${entry.defaultSets} sets of ${entry.targetReps} • ${musclesLabel(DbHelper.parseMuscles(entry.muscles, entry.name))}"))
             info.addView(badgeRow)
             val cues = makeText("Do it: " + entry.cues.replace(";", " • "), 12f, false)
-            cues.maxLines = 2; cues.ellipsize = android.text.TextUtils.TruncateAt.END
+            cues.maxLines = 1; cues.ellipsize = android.text.TextUtils.TruncateAt.END
             info.addView(cues)
             if (entry.postureCheck.isNotBlank()) {
                 val post = caption("Posture: " + entry.postureCheck.replace(";", " • "))
-                post.maxLines = 2; post.ellipsize = android.text.TextUtils.TruncateAt.END
+                post.maxLines = 1; post.ellipsize = android.text.TextUtils.TruncateAt.END
                 info.addView(post)
             }
             top.addView(info); card.addView(top)
@@ -91,7 +93,10 @@ class LibraryActivity : AppCompatActivity() {
             box.addView(card)
         }
         root.addView(box)
-        root.addView(makeText("Group ${groupIndex + 1} of ${groups.size}: $group", 12f, false, Theme.textSecondary).apply { gravity = Gravity.CENTER })
+        root.addView(makeText("Group ${groupIndex + 1} of ${groups.size}: $group", 12f, false, Theme.textSecondary).apply {
+            gravity = Gravity.CENTER
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
+        })
     }
 
     private fun addToRoutine(entry: Library.Entry) {

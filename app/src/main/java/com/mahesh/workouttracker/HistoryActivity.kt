@@ -13,7 +13,10 @@ class HistoryActivity : AppCompatActivity() {
     override fun onResume() { super.onResume(); if (::db.isInitialized) render() }
     private fun render() {
         val root = tabScaffold("History")
-        root.addView(screenTitle("History"))
+        root.addView(screenTitle("History").apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(40); setMargins(0, 0, 0, 0) }
+            gravity = Gravity.CENTER_VERTICAL
+        })
         val sessions = db.getSessions()
         val pageSize = 5
         val pageCount = ((sessions.size + pageSize - 1) / pageSize).coerceAtLeast(1)

@@ -16,14 +16,19 @@ class SummaryActivity : AppCompatActivity() {
         val root = fitRoot(); setContentView(root)
         root.addView(topBar("Workout Summary", "${DateUtil.display(session.date)} • Week ${session.weekNumber}"))
 
+        // Explicit budgets (v2.5.1): hero 84 + stats 148 + by-section 92 +
+        // note 18 + buttons 48 (+ fixed top bar 56) leaves a flexible filler.
         val celeb = heroCard()
-        celeb.addView(makeText("Workout complete!", 24f, true, android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER })
-        celeb.addView(makeText("${session.routineName} — nice work showing up and getting it done.", 12f, false, android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER })
+        celeb.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(84)).apply { setMargins(0, 0, 0, 0) }
+        celeb.setPadding(dp(12), dp(8), dp(12), dp(8))
+        celeb.addView(makeText("Workout complete!", 23f, true, android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+        celeb.addView(makeText("${session.routineName} — nice work showing up and getting it done.", 12f, false, android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER; maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
         root.addView(celeb)
 
         val done = exs.count { db.effectiveStatus(it) == "done" }; val skipped = exs.count { db.effectiveStatus(it) == "skipped" }; val setsDone = exs.sumOf { db.getSets(it.id).count { s -> s.isDone } }; val setsTotal = exs.sumOf { db.getSets(it.id).size }
         val muscles = linkedSetOf<String>(); for (ex in exs) if (db.effectiveStatus(ex) == "done") muscles.addAll(DbHelper.parseMuscles(ex.targetMuscles, ex.name))
         val card = cardLayout("#15803D")
+        card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(148)).apply { setMargins(0, 0, 0, 0) }
         card.setPadding(dp(12), dp(8), dp(12), dp(8))
         card.addView(overline("Today you trained"))
         card.addView(cardTitle(musclesLabel(muscles)))
@@ -45,6 +50,7 @@ class SummaryActivity : AppCompatActivity() {
         root.addView(card)
 
         val perCard = cardLayout()
+        perCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(92)).apply { setMargins(0, 0, 0, 0) }
         perCard.setPadding(dp(12), dp(8), dp(12), dp(8))
         perCard.addView(overline("By section"))
         for (label in listOf("Warm Up" to "Warmup", "Exercise" to "Main", "Cool Down" to "Stretch")) {
@@ -58,9 +64,9 @@ class SummaryActivity : AppCompatActivity() {
         root.addView(makeText("Every workout counts — see you next session.", 12f, false, Theme.textSecondary))
         val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val doneBtn = makeButton("Done") { finish() }
-        (doneBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (doneBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, dp(4), dp(4), 0) }
         val listBtn = makeSecondaryButton("View as list") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }); finish() }
-        (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), dp(4), 0, 0) }
         btnRow.addView(doneBtn); btnRow.addView(listBtn)
         root.addView(btnRow)
     }
