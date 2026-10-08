@@ -195,3 +195,35 @@ Mahesh's v2.5.1 feedback, item by item:
 6. **Workout Detail: one clean action pair.** The separate top Start card is deleted. Inside the body-parts hero card (172dp): body-map row, status pill row ("Done / In Progress / Pending" pill + short state line), then two equal halves at 48dp with an 8dp gap — primary "Start Workout / Resume Workout / Start Again" (ic_play) and secondary "Preview" (ic_eye). Per-section rows below unchanged.
 
 Invariants kept: no ScrollView (grep = 0), deterministic per-screen height budgets, DB v3 unchanged, timer/preview/library/swipe behavior intact apart from the items above. Build: same offline invocation; APK `WorkoutTracker-v2.6.apk` (versionCode 9, versionName 2.6) installs over v2.5.1 with history preserved. Not device-tested.
+
+## V2.6.1 (2026-10-07) - screenshot cleanup + copy audit (versionCode 10, versionName 2.6.1)
+
+Mahesh installed v2.6 and sent screenshots; each flagged item plus a full copy audit ("for each tab there are some redundant or useless text — revisit and clean it up").
+
+**Screenshot fixes:**
+- **Workout Detail hero count line:** was "Tuesday • 7 exercises (4 Warm Up • 7 Exercise • 3 Cool Down) • Quads, Calves, Chest, Shoulders, Triceps". Now exactly "Tuesday • 7 exercises • 14 total with warm-up & cool-down" (main count = "exercises", total separate, per the approved mockup).
+- **Wrong muscles on hero/Home/Routines:** `DbHelper.routineMuscles()` now aggregates MAIN exercises only. Warm-up/cool-down moves (bike, incline walk, stretches) no longer leak Quads/Calves/etc. into body maps or "what you'll feel" labels anywhere that helper feeds (Detail hero, Home Today + week rows, Routines rows).
+- **Clipped status pill (Detail hero):** root cause was the pill measured taller than its 26dp row (text 11sp + 5dp padding + the pill's own 6/2dp margins) inside the fixed 172dp hero. Fix: `statusPill()` no longer carries built-in margins and uses 4dp vertical padding app-wide; the Detail status row is an explicit 30dp with the pill given its own 24dp height and margins stripped; hero grew 172→176dp (taken from the flexible section region). Audited the other statusPill sites (Home week rows, History rows) — both sit in CENTER_VERTICAL flex rows and now measure ~24dp.
+- **Oversized Start/Preview buttons:** `makeButton`/`makeSecondaryButton` set minHeight 56/52, which silently overrode the buttons' 48dp layout height and inflated them (huge play/eye in the screenshot). New `Ui.tightButton()` strips min-height/width and reapplies a 12dp-radius background; compound icons are set with explicit bounds (`Ui.boundedIcon`: 20dp primary, 18dp small) instead of intrinsic vector size. Detail action pair: 48dp, 15sp, 20dp icons, equal halves.
+- **Preview headers merged:** the "Preview — browsing only / Nothing is recorded here…" banner card AND the separate "Warm Up • Card 1 of 4" card with an empty bar are now ONE slim header (48dp: circular corner back + "Preview — Warm Up" + right-aligned "1 / 4") with a 6dp progress bar under it (56dp total). Fill is position-based, (index+1)/total — card 1 of 4 shows 25%. `CardSessionActivity` uses the same rule (max of handled count and position), so its bar is never empty on card 1 either.
+- **Preview card body:** top padding 14dp so the name never touches the band (checked in card mode too: 14dp padding + 8dp band gap, name max 2 lines); header row = 46x56dp body map + 18sp name + equipment badge; "Do it:" directly under with set dots INLINE on the same row, only when sets > 1; the redundant "Planned sets — preview only" line is deleted; "First time — no previous record. Start light." no longer shows in preview (still in session mode); posture block normalized to ~8dp gaps (the old look stacked makeText's default margins into dead whitespace).
+- **Previous/Next buttons:** 48dp tall, 15sp, min-height stripped — they were rendering at ~56dp+ with margins, crowding half the bottom.
+
+**Copy audit (per screen — removed/shortened):**
+- Home: "Tap to open ›" (Today card) -> chevron icon; verbose "● IN PROGRESS — name / Week N • … • tap to resume" banner -> "In Progress" pill + name + elapsed. (There is no app-name overline on Home; Week + dates + segments + caption only.)
+- Workout Detail: "Your progress / What you'll do — tap a section to preview its cards" header removed; "Not started yet / Pick up where you left off / Done this week — go again anytime" line removed (pill only); section rows "… activities • tap to preview ›" -> "… activities", "… done/skipped • tap to preview ›" -> "… done/skipped".
+- Sections: "Beginner Mode ON" suffix removed (duplicates Settings toggle); "Today's sections" header removed; section caption "x of y handled • z done • w skipped • tap to open" -> "z done • w skipped".
+- Card mode: "Swipe: Skip • Done • Log Set (or use buttons below)" removed; completion screen text shortened to counts. ("Next up:" kept.)
+- Preview: banner sentence removed with the banner; in-card swipe hint removed; nav buttons shrunk as above.
+- Session list: "Sets: … (tap a number chip to log)" -> "Sets: …".
+- Routines: "… • tap to edit" removed from routine rows.
+- Routines' Library entry unchanged (already "Exercise Library / 33 extra moves").
+- Library: topBar subtitle "33 extra moves • one muscle group per page" -> "33 moves"; group header "Targets: … • 3 moves • add any to a routine" -> "Targets: …"; "Group x of 11" footer removed.
+- History: unchanged (empty state "No sessions yet." kept).
+- Routine Edit: "Form videos are per exercise below." removed.
+- Settings: Units caption -> "Applies to labels and CSV."; Beginner caption -> "Posture checks and form cues on every exercise."; About -> 2 lines (Version 2.6.1 + week-advance rule).
+- Summary: "— nice work showing up and getting it done." subtitle and "Every workout counts — see you next session." filler removed (stats only).
+
+Kept deliberately: exercise names, sets/reps, posture bullets, cues, last-done, status, counts, week/dates, timer, button labels, empty-state one-liners. Beginner posture content untouched by the audit.
+
+Invariants kept: no ScrollView (grep = 0), "Planned sets — preview only" grep = 0, height budgets hold, DB v3 unchanged. APK `WorkoutTracker-v2.6.1.apk` (versionCode 10) installs over v2.6. Not device-tested.
