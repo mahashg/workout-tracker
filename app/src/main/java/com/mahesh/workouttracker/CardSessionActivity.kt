@@ -16,7 +16,6 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -82,8 +81,8 @@ class CardSessionActivity : AppCompatActivity() {
     private fun render(){
         reloadDeck()
         if(index !in deck.indices){
-            // Completion state
-            val root=rootLayout(); setContentView(ScrollView(this).apply{addView(root)})
+            // Completion state (fixed screen, no scrolling)
+            val root=fitRoot(); setContentView(root)
             root.addView(topBar(sectionLabel(sectionType), "Section complete"))
             root.addView(makeText("${sectionLabel(sectionType)} complete!",26f,true,Color.parseColor("#15803D")))
             val done=deck.count{db.effectiveStatus(it)=="done"}; val skipped=deck.count{db.effectiveStatus(it)=="skipped"}
@@ -97,10 +96,11 @@ class CardSessionActivity : AppCompatActivity() {
         val sets=db.getSets(ex.id)
         val doneSets=sets.count{it.isDone}
         val unit=WeekManager.unit(this)
-        val root=rootLayout(); setContentView(ScrollView(this).apply{addView(root)})
+        val root=fitRoot(); setContentView(root)
         root.addView(topBar(sectionLabel(sectionType), "Card ${index+1} of ${deck.size}"))
         // Top bar color-coded + workout timer chip
         val top=cardLayout(when(sectionType){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"})
+        top.setPadding(dp(12), dp(6), dp(12), dp(6))
         top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true))
         top.addView(hProgress(deck.size, deck.count{db.effectiveStatus(it)!="pending"}, sectionColor(sectionType)))
         val sessForTimer = db.getSession(sessionId)
@@ -117,7 +117,7 @@ class CardSessionActivity : AppCompatActivity() {
 
         // ---- Card deck (v2.2): ONE moving card over two static peek cards ----
         val deckBox = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, dp(8)) }
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { setMargins(0, dp(8), 0, dp(6)) }
             clipChildren = false; clipToPadding = false
         }
         // Peek cards behind (far = smaller/lighter, near = closer), purely decorative.
@@ -136,29 +136,29 @@ class CardSessionActivity : AppCompatActivity() {
         // The moving card: wrapper carries card surface + direction tint + faded labels,
         // so shadow, border, band and content all travel together.
         val wrap = FrameLayout(this).apply {
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             clipChildren = false; clipToPadding = false
         }
         val dragCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(18))
+            setPadding(dp(14), dp(10), dp(14), dp(10))
             background = deckCardDrawable()
             elevation = dp(8).toFloat()
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
         cardSurface = dragCard
         dragCardBand(dragCard)
         val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
         // Essentials only up front (approved mockup): name, do-it, dots, badge, map, last done.
         val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(104),dp(130))})
-        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(12),0,0,0) }
+        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(76),dp(94))})
+        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
         essInfo.addView(equipmentBadge(ex.equipment))
-        essInfo.addView(makeText(ex.name,24f,true))
+        essInfo.addView(makeText(ex.name,20f,true))
         if(ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
-        essInfo.addView(makeText("Do it: ${doItLine(sets)}",16f,true,Color.parseColor("#92400E")))
-        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",14f,true))
-        essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),22f,true,Color.parseColor("#15803D")))
+        essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")))
+        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",13f,true))
+        essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")))
         essRow.addView(essInfo)
         dragCard.addView(essRow)
         // Last done
@@ -177,27 +177,48 @@ class CardSessionActivity : AppCompatActivity() {
             if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
             render()
         }
+        (howToggle.layoutParams as LinearLayout.LayoutParams).height = dp(48)
         dragCard.addView(howToggle)
         if (howExpanded) {
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(6), dp(4), 0) }
-            if(ex.youtubeUrl.isNotBlank()) how.addView(primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)})
-            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",13f,false,Color.parseColor("#0369A1")))
+            // Compact how-to: fits INSIDE the fixed-height card (no page scroll).
+            // Posture bullets capped at 4, cues at 3; any remainder fades to "…".
+            val compact = isCompactScreen()
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(4), dp(4), 0) }
+            if(ex.youtubeUrl.isNotBlank()) {
+                val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)}
+                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+                how.addView(vid)
+            }
+            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")))
+            var truncated = false
             if(Beginner.beginnerMode(this)){
                 val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
                 if(posture.isNotBlank()){
-                    how.addView(makeText("Check your posture:",15f,true,Color.parseColor("#15803D")))
-                    for(c in posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("☐  $c",13f,false))
+                    val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
+                    how.addView(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")))
+                    for(c in items.take(4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > 4) truncated = true
                 }
                 val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
                 if(cues.isNotBlank()){
-                    how.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1")))
-                    for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("•  $c",13f,false,Theme.textSecondary))
+                    val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
+                    val cap = if (compact) 2 else 3
+                    how.addView(makeText("Form cues:",12f,true,Color.parseColor("#0369A1")))
+                    for(c in items.take(cap)) how.addView(makeText("•  $c",12f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > cap) truncated = true
                 }
-                if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",12f,false,Color.parseColor("#92400E")))
+                if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
             } else {
                 val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-                if(cues.isNotBlank()){ how.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1"))); for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("•  $c",13f,false,Theme.textSecondary)) }
+                if(cues.isNotBlank()){
+                    val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
+                    val cap = if (compact) 2 else 3
+                    how.addView(makeText("Form cues:",12f,true,Color.parseColor("#0369A1")))
+                    for(c in items.take(cap)) how.addView(makeText("•  $c",12f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
+                    if (items.size > cap) truncated = true
+                }
             }
+            if (truncated) how.addView(makeText("…",12f,true,Theme.textTertiary))
             dragCard.addView(how)
         }
         // Swipe hint
@@ -285,21 +306,25 @@ class CardSessionActivity : AppCompatActivity() {
             (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) }
             return b
         }
-        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
-        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
-        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
+        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
+        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
+        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) } })
         root.addView(row1)
-        val swap=SwapMap.forExercise(ex.name)
-        if(swap!=null && sectionType=="Main"){
-            root.addView(makeButton("Too hard / Busy? Swap → ${swap.first}"){
-                AlertDialog.Builder(this).setTitle("Swap exercise?").setMessage("Replace ${ex.name} with ${swap.first}? Your logged sets stay.").setPositiveButton("Swap"){_,_-> snapshot(ex); db.swapSessionExercise(ex.id,swap.first,swap.second); Toast.makeText(this,"Swapped to ${swap.first}",Toast.LENGTH_SHORT).show(); render()}.setNegativeButton("Cancel",null).show()
+        // Compact secondary row (all previous actions preserved, one 48dp row)
+        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        fun secBtn(b: android.widget.Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }; row2.addView(b) }
+        val swap = SwapMap.forExercise(ex.name)
+        if (swap != null && sectionType == "Main") {
+            secBtn(makeSmallButton("Swap → ${swap.first}") {
+                AlertDialog.Builder(this).setTitle("Swap exercise?").setMessage("Replace ${ex.name} with ${swap.first}? Your logged sets stay.").setPositiveButton("Swap") { _, _ -> snapshot(ex); db.swapSessionExercise(ex.id, swap.first, swap.second); Toast.makeText(this, "Swapped to ${swap.first}", Toast.LENGTH_SHORT).show(); render() }.setNegativeButton("Cancel", null).show()
             })
         }
-        if(undoStack.isNotEmpty()) root.addView(makeButton("Undo"){doUndo(); render()})
-        root.addView(makeButton("View as list / edit sets"){startActivity(Intent(this,SessionActivity::class.java).apply{putExtra("sessionId",sessionId)})})
-        val next=deck.getOrNull(index+1)
-        if(next!=null) root.addView(makeText("Next up: ${next.name}",13f,false,Color.parseColor("#0369A1")))
-        root.addView(makeButton("Back to Sections"){finish()})
+        if (undoStack.isNotEmpty()) secBtn(makeSmallButton("Undo") { doUndo(); render() })
+        secBtn(makeSmallButton("List / sets") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }) })
+        secBtn(makeSmallButton("Sections") { finish() })
+        root.addView(row2)
+        val next = deck.getOrNull(index + 1)
+        if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")))
     }
 
     // ---- Drag feedback + card animations (v2.2) ----
@@ -463,6 +488,12 @@ class CardSessionActivity : AppCompatActivity() {
         box.addView(restRow); box.addView(restTv)
         val typeEt=EditText(this).apply{hint="…or type weight / reps instead (optional)"; styleEditText(this); textSize=12f}
         box.addView(typeEt)
+        // Compress the sheet so it fits a normal phone with no internal scrolling.
+        for (i in 0 until box.childCount) {
+            val v = box.getChildAt(i)
+            (v.layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(1), 0, dp(1))
+            if (v is TextView) v.setPadding(0, dp(1), 0, dp(1))
+        }
         // Bottom sheet (v2.3): anchored dialog, rounded top, drag handle, big steppers.
         val sheet = android.app.Dialog(this)
         val sheetRoot = LinearLayout(this).apply {
@@ -473,7 +504,7 @@ class CardSessionActivity : AppCompatActivity() {
         sheetRoot.addView(View(this).apply { background = roundedBg("#D6DEE8", 4); layoutParams = LinearLayout.LayoutParams(dp(44), dp(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(2), 0, dp(12)) } })
         sheetRoot.addView(makeText("Log this set", 20f, true))
         sheetRoot.addView(makeText("Set done - nice! Log this set", 12f, false, Theme.textSecondary))
-        sheetRoot.addView(ScrollView(this).apply { addView(box) })
+        sheetRoot.addView(box)
         val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val cancelBtn = makeSecondaryButton("Cancel") { sheet.dismiss() }
         (cancelBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
