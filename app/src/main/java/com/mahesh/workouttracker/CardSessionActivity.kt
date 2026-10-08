@@ -33,6 +33,9 @@ class CardSessionActivity : AppCompatActivity() {
     private var deck: List<SessionExercise> = emptyList()
     private var index: Int=0
     private val undoStack = ArrayDeque<UndoSnap>()
+    private val howToExpanded = mutableSetOf<Long>() // exercise ids with "Show me how" open (card mode)
+    private var howToDefaultApplied = false
+    private var timerChip: TimerChipView? = null
     private var downX=0f; private var downY=0f
 
     // --- Swipe-card (v2.2) state: the whole card is one moving view ---
@@ -60,6 +63,9 @@ class CardSessionActivity : AppCompatActivity() {
         if(sessionId<0){finish();return}
         reloadDeck(); moveToPending(); render()
     }
+
+    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow() }
+    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking() }
 
     private fun reloadDeck(){ deck=db.getSessionExercises(sessionId).filter{it.type.equals(sectionType,true)} }
     private fun moveToPending(){
@@ -93,10 +99,20 @@ class CardSessionActivity : AppCompatActivity() {
         val unit=WeekManager.unit(this)
         val root=rootLayout(); setContentView(ScrollView(this).apply{addView(root)})
         root.addView(topBar(sectionLabel(sectionType), "Card ${index+1} of ${deck.size}"))
-        // Top bar color-coded
+        // Top bar color-coded + workout timer chip
         val top=cardLayout(when(sectionType){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"})
         top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true))
         top.addView(hProgress(deck.size, deck.count{db.effectiveStatus(it)!="pending"}, sectionColor(sectionType)))
+        val sessForTimer = db.getSession(sessionId)
+        if (sessForTimer != null && !sessForTimer.completed) {
+            db.ensureSessionStarted(sessionId)
+            val chip = TimerChipView(this)
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+            chip.bind(this, db, db.getSession(sessionId) ?: sessForTimer) {}
+            chip.startTicking()
+            timerChip = chip
+            top.addView(chip)
+        }
         root.addView(top)
 
         // ---- Card deck (v2.2): ONE moving card over two static peek cards ----
@@ -133,34 +149,18 @@ class CardSessionActivity : AppCompatActivity() {
         cardSurface = dragCard
         dragCardBand(dragCard)
         val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-        dragCard.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(128),dp(158)).apply{gravity=Gravity.CENTER_HORIZONTAL}})
-        dragCard.addView(equipmentBadge(ex.equipment))
-        dragCard.addView(makeText(ex.name,24f,true))
-        if(ex.variation.isNotBlank()) dragCard.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
-        dragCard.addView(makeText("Do it: ${doItLine(sets)}",16f,true,Color.parseColor("#92400E")))
-        dragCard.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",13f,false,Color.parseColor("#0369A1")))
-        // Set progress dots big
-        dragCard.addView(makeText("Sets: $doneSets of ${sets.size} done",14f,true))
-        dragCard.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),22f,true,Color.parseColor("#15803D")))
-        // 1. Watch Form FIRST (primary order)
-        if(ex.youtubeUrl.isNotBlank()) dragCard.addView(makeButton("▶ Watch Form Video"){openUrl(this,ex.youtubeUrl)})
-        // Posture checklist (Beginner Mode)
-        if(Beginner.beginnerMode(this)){
-            val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
-            if(posture.isNotBlank()){
-                dragCard.addView(makeText("✓ Check your posture:",15f,true,Color.parseColor("#15803D")))
-                for(c in posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}) dragCard.addView(makeText("☐  $c",13f,false))
-            }
-            val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-            if(cues.isNotBlank()){
-                dragCard.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1")))
-                for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) dragCard.addView(makeText("•  $c",13f,false,Theme.textSecondary))
-            }
-            if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") dragCard.addView(makeText("Start light: use the lightest weight that feels easy first.",12f,false,Color.parseColor("#92400E")))
-        } else {
-            val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-            if(cues.isNotBlank()){ dragCard.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1"))); for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) dragCard.addView(makeText("•  $c",13f,false,Theme.textSecondary)) }
-        }
+        // Essentials only up front (approved mockup): name, do-it, dots, badge, map, last done.
+        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(104),dp(130))})
+        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(12),0,0,0) }
+        essInfo.addView(equipmentBadge(ex.equipment))
+        essInfo.addView(makeText(ex.name,24f,true))
+        if(ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
+        essInfo.addView(makeText("Do it: ${doItLine(sets)}",16f,true,Color.parseColor("#92400E")))
+        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",14f,true))
+        essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),22f,true,Color.parseColor("#15803D")))
+        essRow.addView(essInfo)
+        dragCard.addView(essRow)
         // Last done
         val last=db.lastPerformedForExercise(ex.name, sessionId)
         if(last!=null){
@@ -168,8 +168,40 @@ class CardSessionActivity : AppCompatActivity() {
             val effortBit=if(last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort,unit)}" else ""
             dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit",12f,false,Theme.textSecondary))
         } else dragCard.addView(makeText("First time — no previous record. Start light.",12f,false,Theme.textSecondary))
+
+        // "Show me how" — educational content, collapsible. First card of the section
+        // defaults to expanded, the rest collapsed; remembered per exercise in this visit.
+        if (!howToDefaultApplied) { howToDefaultApplied = true; howToExpanded.add(ex.id) }
+        val howExpanded = howToExpanded.contains(ex.id)
+        val howToggle = makeSecondaryButton(if (howExpanded) "Hide how-to  ▴" else "Show me how  ▾") {
+            if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
+            render()
+        }
+        dragCard.addView(howToggle)
+        if (howExpanded) {
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(6), dp(4), 0) }
+            if(ex.youtubeUrl.isNotBlank()) how.addView(primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)})
+            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",13f,false,Color.parseColor("#0369A1")))
+            if(Beginner.beginnerMode(this)){
+                val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
+                if(posture.isNotBlank()){
+                    how.addView(makeText("Check your posture:",15f,true,Color.parseColor("#15803D")))
+                    for(c in posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("☐  $c",13f,false))
+                }
+                val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
+                if(cues.isNotBlank()){
+                    how.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1")))
+                    for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("•  $c",13f,false,Theme.textSecondary))
+                }
+                if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",12f,false,Color.parseColor("#92400E")))
+            } else {
+                val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
+                if(cues.isNotBlank()){ how.addView(makeText("Form cues:",14f,true,Color.parseColor("#0369A1"))); for(c in cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}) how.addView(makeText("•  $c",13f,false,Theme.textSecondary)) }
+            }
+            dragCard.addView(how)
+        }
         // Swipe hint
-        dragCard.addView(makeText("Swipe: ← Skip   → Done   ↑ + Set Done   (or use buttons below)",11f,false,Theme.textSecondary))
+        dragCard.addView(makeText("Swipe:  Skip  •  Done  •  Log Set   (or use buttons below)",11f,false,Theme.textSecondary))
 
         wrap.addView(dragCard)
         // Direction tint overlay (fades in with drag progress, tinted per direction)
@@ -184,7 +216,7 @@ class CardSessionActivity : AppCompatActivity() {
             return TextView(this).apply {
                 this.text = text; textSize = 26f; setTextColor(Color.parseColor(color)); typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
                 setPadding(dp(12), dp(6), dp(12), dp(6)); alpha = 0f; rotation = rot; isClickable = false
-                background = GradientDrawable().apply { setColor(0xE6FFFFFF.toInt()); cornerRadius = dp(10).toFloat(); setStroke(dp(2), Color.parseColor(color)) }
+                background = GradientDrawable().apply { setColor(0xE6F7F9FB.toInt()); cornerRadius = dp(10).toFloat(); setStroke(dp(2), Color.parseColor(color)) }
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, gravity).apply { setMargins(dp(14), dp(14), dp(14), dp(14)) }
             }
         }
@@ -253,9 +285,9 @@ class CardSessionActivity : AppCompatActivity() {
             (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) }
             return b
         }
-        row1.addView(actionBtn("← Skip") { animateExitThen(wrapRef, -1) { applySkipped() } })
-        row1.addView(actionBtn("+ Set Done ↑") { animateLogSetLift(wrapRef) { logSetDialog() } })
-        row1.addView(actionBtn("Done →") { animateExitThen(wrapRef, 1) { applyDone() } })
+        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
+        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
+        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) } })
         root.addView(row1)
         val swap=SwapMap.forExercise(ex.name)
         if(swap!=null && sectionType=="Main"){
@@ -429,21 +461,45 @@ class CardSessionActivity : AppCompatActivity() {
         restRow.addView(makeSmallButton("−"){restSec=(restSec-10).coerceAtLeast(10); restTv.text="$restSec sec rest"})
         restRow.addView(makeSmallButton("+"){restSec+=10; restTv.text="$restSec sec rest"})
         box.addView(restRow); box.addView(restTv)
-        val typeEt=EditText(this).apply{hint="…or type weight / reps instead (optional)"; setTextColor(Theme.textPrimary); setHintTextColor(Theme.textSecondary); textSize=12f}
+        val typeEt=EditText(this).apply{hint="…or type weight / reps instead (optional)"; styleEditText(this); textSize=12f}
         box.addView(typeEt)
-        AlertDialog.Builder(this).setTitle("Set done - nice! Log this set").setView(ScrollView(this).apply{addView(box)})
-            .setPositiveButton("Save"){_,_->
-                snapshot(ex)
-                val targets=sets.filter{!it.isDone}.take(count)
-                val typed=typeEt.text.toString().trim().split("/").map{it.trim()}
-                val wStr=if(typed.size>=2&&typed[0].isNotEmpty()) typed[0] else if(isBw) "" else String.format(Locale.US,if(weightVal%1.0==0.0)"%.0f" else "%.1f",weightVal)
-                val rStr=if(typed.size>=2&&typed[1].isNotEmpty()) typed[1].filter{it.isDigit()}.ifEmpty{repsVal.toString()} else repsVal.toString()
-                for(s in targets) db.updateSet(s.copy(weight=wStr, reps=rStr, isBodyweight=isBw, isDone=true))
-                db.syncExerciseStatus(ex.id)
-                val remaining=db.getSets(ex.id).count{!it.isDone}
-                if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); askEffort(ex){ startRest(restSec){ render() } } }
-                else startRest(restSec){ render() }
-            }.setNegativeButton("Cancel",null).show()
+        // Bottom sheet (v2.3): anchored dialog, rounded top, drag handle, big steppers.
+        val sheet = android.app.Dialog(this)
+        val sheetRoot = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply { setColor(Theme.surface); cornerRadii = floatArrayOf(dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), 0f, 0f, 0f, 0f) }
+            setPadding(dp(20), dp(10), dp(20), dp(20))
+        }
+        sheetRoot.addView(View(this).apply { background = roundedBg("#D6DEE8", 4); layoutParams = LinearLayout.LayoutParams(dp(44), dp(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(2), 0, dp(12)) } })
+        sheetRoot.addView(makeText("Log this set", 20f, true))
+        sheetRoot.addView(makeText("Set done - nice! Log this set", 12f, false, Theme.textSecondary))
+        sheetRoot.addView(ScrollView(this).apply { addView(box) })
+        val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val cancelBtn = makeSecondaryButton("Cancel") { sheet.dismiss() }
+        (cancelBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
+        val saveBtn = makeButton("Save Set") {
+            snapshot(ex)
+            val targets=sets.filter{!it.isDone}.take(count)
+            val typed=typeEt.text.toString().trim().split("/").map{it.trim()}
+            val wStr=if(typed.size>=2&&typed[0].isNotEmpty()) typed[0] else if(isBw) "" else String.format(Locale.US,if(weightVal%1.0==0.0)"%.0f" else "%.1f",weightVal)
+            val rStr=if(typed.size>=2&&typed[1].isNotEmpty()) typed[1].filter{it.isDigit()}.ifEmpty{repsVal.toString()} else repsVal.toString()
+            for(s in targets) db.updateSet(s.copy(weight=wStr, reps=rStr, isBodyweight=isBw, isDone=true))
+            db.syncExerciseStatus(ex.id)
+            sheet.dismiss()
+            val remaining=db.getSets(ex.id).count{!it.isDone}
+            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); askEffort(ex){ startRest(restSec){ render() } } }
+            else startRest(restSec){ render() }
+        }
+        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
+        saveRow.addView(cancelBtn); saveRow.addView(saveBtn)
+        sheetRoot.addView(saveRow)
+        sheet.setContentView(sheetRoot)
+        sheet.window?.apply {
+            setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT, android.view.WindowManager.LayoutParams.WRAP_CONTENT)
+            setGravity(Gravity.BOTTOM)
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+        }
+        sheet.show()
     }
 
     private fun startRest(seconds: Int, after: ()->Unit){
