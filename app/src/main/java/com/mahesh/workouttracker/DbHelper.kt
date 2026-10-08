@@ -2,8 +2,11 @@ package com.mahesh.workouttracker
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import org.json.JSONArray
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -303,7 +306,110 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         for (e in getExercises(routineId)) if (e.type.equals("Main", true)) out.addAll(parseMuscles(e.targetMuscles, e.name))
         return out
     }
+    fun sessionCount(): Int {
+        readableDatabase.rawQuery("SELECT COUNT(*) FROM sessions", null).use { c -> if (c.moveToFirst()) return c.getInt(0) }
+        return 0
+    }
+
+    // ---------- Google Drive backup (v2.8) ----------
+    // Snapshot = full contents of the 5 tables (every column, IDs preserved)
+    // plus the small SharedPreferences subset that carries app state
+    // (unit, beginner mode, week counter anchor). Seeded exercise content
+    // (posture checks, cues) lives in the exercises table, so a full-table
+    // snapshot covers it with no extra work.
+    fun exportBackupJson(context: Context): JSONObject {
+        val db = readableDatabase
+        val tables = JSONObject()
+        for (t in BACKUP_TABLES) {
+            val arr = JSONArray()
+            db.rawQuery("SELECT * FROM $t", null).use { c ->
+                val cols = c.columnNames
+                while (c.moveToNext()) {
+                    val row = JSONObject()
+                    for (i in cols.indices) {
+                        when (c.getType(i)) {
+                            Cursor.FIELD_TYPE_NULL -> row.put(cols[i], JSONObject.NULL)
+                            Cursor.FIELD_TYPE_INTEGER -> row.put(cols[i], c.getLong(i))
+                            Cursor.FIELD_TYPE_FLOAT -> row.put(cols[i], c.getDouble(i))
+                            else -> row.put(cols[i], c.getString(i) ?: "")
+                        }
+                    }
+                    arr.put(row)
+                }
+            }
+            tables.put(t, arr)
+        }
+        val prefs = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+        val p = JSONObject()
+        if (prefs.contains("unit")) p.put("unit", prefs.getString("unit", "lb") ?: "lb")
+        if (prefs.contains("beginnerMode")) p.put("beginnerMode", prefs.getBoolean("beginnerMode", true))
+        if (prefs.contains("weekNumber")) p.put("weekNumber", prefs.getInt("weekNumber", 1))
+        if (prefs.contains("weekStart")) p.put("weekStart", prefs.getString("weekStart", "") ?: "")
+        val root = JSONObject()
+        root.put("format", 1)
+        root.put("appVersion", appVersionName(context))
+        root.put("exportedAt", System.currentTimeMillis())
+        root.put("tables", tables)
+        root.put("prefs", p)
+        return root
+    }
+
+    /**
+     * Full-replace restore: validates format==1, then in ONE transaction
+     * deletes all 5 tables and re-inserts every row with its original ID.
+     * Any error rolls the transaction back and local data is untouched.
+     * Prefs are restored only after the DB commit succeeds. Returns counts.
+     */
+    fun importBackupJson(context: Context, root: JSONObject): JSONObject {
+        if (root.optInt("format", -1) != 1) throw Exception("Unsupported backup format")
+        val tables = root.optJSONObject("tables") ?: throw Exception("Backup is missing its tables")
+        val counts = JSONObject()
+        val wdb = writableDatabase
+        wdb.beginTransaction()
+        try {
+            for (t in BACKUP_TABLES) {
+                wdb.delete(t, null, null)
+                val arr = tables.optJSONArray(t) ?: JSONArray()
+                var n = 0
+                for (i in 0 until arr.length()) {
+                    val row = arr.getJSONObject(i)
+                    val cv = ContentValues()
+                    val keys = row.keys()
+                    while (keys.hasNext()) {
+                        val k = keys.next()
+                        when (val v = row.get(k)) {
+                            JSONObject.NULL -> cv.putNull(k)
+                            is Number -> cv.put(k, v.toLong())
+                            is Boolean -> cv.put(k, if (v) 1L else 0L)
+                            else -> cv.put(k, v.toString())
+                        }
+                    }
+                    wdb.insertOrThrow(t, null, cv)
+                    n++
+                }
+                counts.put(t, n)
+            }
+            wdb.setTransactionSuccessful()
+        } finally {
+            wdb.endTransaction()
+        }
+        val p = root.optJSONObject("prefs")
+        if (p != null) {
+            val e = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit()
+            if (p.has("unit")) e.putString("unit", p.optString("unit", "lb"))
+            if (p.has("beginnerMode")) e.putBoolean("beginnerMode", p.optBoolean("beginnerMode", true))
+            if (p.has("weekNumber")) e.putInt("weekNumber", p.optInt("weekNumber", 1))
+            if (p.has("weekStart")) e.putString("weekStart", p.optString("weekStart", ""))
+            e.apply()
+        }
+        return counts
+    }
+
+    private fun appVersionName(context: Context): String =
+        try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?" } catch (e: Exception) { "?" }
+
     companion object {
+        private val BACKUP_TABLES = listOf("routines", "exercises", "sessions", "session_exercises", "session_sets")
         fun parseMuscles(targetMuscles: String, nameHint: String = ""): Set<String> {
             val out = linkedSetOf<String>()
             val raw = (targetMuscles.ifBlank { deriveMuscles(nameHint) }).lowercase(Locale.US)
