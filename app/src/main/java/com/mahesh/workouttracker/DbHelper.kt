@@ -10,7 +10,7 @@ import java.util.Locale
 
 data class Routine(val id: Long, val name: String, val focus: String, val weekday: Int, val youtubeUrl: String, val notes: String)
 data class Exercise(val id: Long, val routineId: Long, val name: String, val type: String, val equipment: String, val defaultSets: Int, val targetReps: String, val defaultWeight: String, val variation: String, val youtubeUrl: String, val sortOrder: Int, val targetMuscles: String = "", val cues: String = "", val postureCheck: String = "")
-data class SessionInfo(val id: Long, val routineId: Long, val routineName: String, val focus: String, val date: String, val weekNumber: Int, val weekStart: String, val completed: Boolean)
+data class SessionInfo(val id: Long, val routineId: Long, val routineName: String, val focus: String, val date: String, val weekNumber: Int, val weekStart: String, val completed: Boolean, val startedAt: Long = 0, val elapsedSec: Int = 0, val endedAt: Long = 0)
 data class SessionExercise(val id: Long, val sessionId: Long, val originExerciseId: Long, val name: String, val type: String, val equipment: String, val variation: String, val youtubeUrl: String, val sortOrder: Int, val targetMuscles: String = "", val status: String = "pending", val cues: String = "", val effort: String = "", val postureCheck: String = "")
 data class SessionSet(val id: Long, val sessionExerciseId: Long, val setNumber: Int, val weight: String, val reps: String, val isBodyweight: Boolean, val isDone: Boolean)
 data class LastPerformed(val date: String, val sets: List<SessionSet>, val effort: String = "")
@@ -44,11 +44,11 @@ object DateUtil {
     fun dayName(weekday: Int): String = if (weekday in 0..6) dayNames[weekday] else "Unassigned"
 }
 
-class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "workout.db", null, 2) {
+class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "workout.db", null, 3) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE routines(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,focus TEXT,weekday INTEGER,youtubeUrl TEXT,notes TEXT)")
         db.execSQL("CREATE TABLE exercises(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,name TEXT,type TEXT,equipment TEXT,defaultSets INTEGER,targetReps TEXT,defaultWeight TEXT,variation TEXT,youtubeUrl TEXT,sortOrder INTEGER,targetMuscles TEXT,cues TEXT,postureCheck TEXT)")
-        db.execSQL("CREATE TABLE sessions(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,routineName TEXT,focus TEXT,date TEXT,weekNumber INTEGER,weekStart TEXT,completed INTEGER)")
+        db.execSQL("CREATE TABLE sessions(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,routineName TEXT,focus TEXT,date TEXT,weekNumber INTEGER,weekStart TEXT,completed INTEGER,startedAt INTEGER,elapsedSec INTEGER DEFAULT 0,endedAt INTEGER)")
         db.execSQL("CREATE TABLE session_exercises(id INTEGER PRIMARY KEY AUTOINCREMENT,sessionId INTEGER,originExerciseId INTEGER,name TEXT,type TEXT,equipment TEXT,variation TEXT,youtubeUrl TEXT,sortOrder INTEGER,targetMuscles TEXT,status TEXT,cues TEXT,effort TEXT,postureCheck TEXT)")
         db.execSQL("CREATE TABLE session_sets(id INTEGER PRIMARY KEY AUTOINCREMENT,sessionExerciseId INTEGER,setNumber INTEGER,weight TEXT,reps TEXT,isBodyweight INTEGER,isDone INTEGER)")
     }
@@ -63,6 +63,12 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
             try { db.execSQL("ALTER TABLE session_exercises ADD COLUMN effort TEXT") } catch (e: Exception) {}
             try { db.execSQL("ALTER TABLE exercises ADD COLUMN postureCheck TEXT") } catch (e: Exception) {}
             try { db.execSQL("ALTER TABLE session_exercises ADD COLUMN postureCheck TEXT") } catch (e: Exception) {}
+        }
+        if (oldVersion < 3) {
+            // v3: workout timer. Preserve all existing rows; old sessions stay untimed.
+            try { db.execSQL("ALTER TABLE sessions ADD COLUMN startedAt INTEGER") } catch (e: Exception) {}
+            try { db.execSQL("ALTER TABLE sessions ADD COLUMN elapsedSec INTEGER DEFAULT 0") } catch (e: Exception) {}
+            try { db.execSQL("ALTER TABLE sessions ADD COLUMN endedAt INTEGER") } catch (e: Exception) {}
         }
     }
 
@@ -118,8 +124,8 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
 
     fun getSessions(): List<SessionInfo> {
         val list = mutableListOf<SessionInfo>()
-        readableDatabase.rawQuery("SELECT id,routineId,routineName,focus,date,weekNumber,weekStart,completed FROM sessions ORDER BY date DESC, id DESC", null).use { c ->
-            while (c.moveToNext()) list.add(SessionInfo(c.getLong(0),c.getLong(1),c.getString(2)?:"",c.getString(3)?:"",c.getString(4)?:"",c.getInt(5),c.getString(6)?:"",c.getInt(7)==1))
+        readableDatabase.rawQuery("SELECT id,routineId,routineName,focus,date,weekNumber,weekStart,completed,startedAt,elapsedSec,endedAt FROM sessions ORDER BY date DESC, id DESC", null).use { c ->
+            while (c.moveToNext()) list.add(SessionInfo(c.getLong(0),c.getLong(1),c.getString(2)?:"",c.getString(3)?:"",c.getString(4)?:"",c.getInt(5),c.getString(6)?:"",c.getInt(7)==1, if(c.isNull(8)) 0L else c.getLong(8), if(c.isNull(9)) 0 else c.getInt(9), if(c.isNull(10)) 0L else c.getLong(10)))
         }
         return list
     }
@@ -136,7 +142,8 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
     fun createSession(routine: Routine, weekNumber: Int, weekStart: String): Long {
         val db = writableDatabase
         val todayStr = DateUtil.fmt(DateUtil.today())
-        val v = ContentValues().apply { put("routineId",routine.id); put("routineName",routine.name); put("focus",routine.focus); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0) }
+        val nowMs = System.currentTimeMillis()
+        val v = ContentValues().apply { put("routineId",routine.id); put("routineName",routine.name); put("focus",routine.focus); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0); put("startedAt",nowMs); put("elapsedSec",0); put("endedAt",0L) }
         val sessionId = db.insert("sessions", null, v)
         val exs = getExercises(routine.id)
         for ((idx, e) in exs.withIndex()) {
@@ -218,6 +225,19 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
     fun setSessionCompleted(sessionId: Long, completed: Boolean) {
         val v = ContentValues().apply { put("completed", if(completed)1 else 0) }
         writableDatabase.update("sessions", v, "id=?", arrayOf(sessionId.toString()))
+    }
+    /** Persist elapsed seconds (and optionally final end timestamp) for the workout timer. */
+    fun updateSessionTimer(sessionId: Long, elapsedSec: Int, endedAt: Long? = null) {
+        val v = ContentValues().apply { put("elapsedSec", elapsedSec); if (endedAt != null) put("endedAt", endedAt) }
+        writableDatabase.update("sessions", v, "id=?", arrayOf(sessionId.toString()))
+    }
+    /** Ensure a session has a start timestamp (for in-progress sessions created before v3 features were used). */
+    fun ensureSessionStarted(sessionId: Long) {
+        val s = getSession(sessionId) ?: return
+        if (s.startedAt <= 0L) {
+            val v = ContentValues().apply { put("startedAt", System.currentTimeMillis()) }
+            writableDatabase.update("sessions", v, "id=?", arrayOf(sessionId.toString()))
+        }
     }
     fun deleteSession(sessionId: Long) {
         val db = writableDatabase
