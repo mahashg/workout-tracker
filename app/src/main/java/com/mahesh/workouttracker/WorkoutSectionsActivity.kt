@@ -24,34 +24,43 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         root.addView(topBar(session.routineName, "${DateUtil.display(session.date)} • Week ${session.weekNumber}"))
         val muscles = linkedSetOf<String>(); for (ex in exs) muscles.addAll(DbHelper.parseMuscles(ex.targetMuscles, ex.name))
 
-        // Compact header: body map + name + timer chip (+ beginner note inline)
+        // Compact header. Explicit 112dp budget (v2.5.1): map+name row (64),
+        // timer/status line (30), beginner note folded into the caption line.
         val header = cardLayout()
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(64)) })
+        header.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(112)).apply { setMargins(0, 0, 0, 0) }
+        header.setPadding(dp(10), dp(6), dp(10), dp(6))
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)) }
+        row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(48), dp(58)) })
         val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
-        info.addView(makeText(session.routineName, 18f, true))
-        info.addView(caption("${session.focus} • ${musclesLabel(muscles)}"))
-        info.addView(statusPill(if (session.completed) "Done" else if (exs.any { db.effectiveStatus(it) != "pending" }) "In Progress" else "Pending"))
+        val sName = makeText(session.routineName, 17f, true)
+        sName.maxLines = 1; sName.ellipsize = android.text.TextUtils.TruncateAt.END
+        (sName.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        info.addView(sName)
+        val statusTxt = if (session.completed) "Done" else if (exs.any { db.effectiveStatus(it) != "pending" }) "In Progress" else "Pending"
+        val sCap = caption("${session.focus} • ${musclesLabel(muscles)} • $statusTxt${if (Beginner.beginnerMode(this) && !session.completed) " • Beginner Mode ON" else ""}")
+        sCap.maxLines = 2; sCap.ellipsize = android.text.TextUtils.TruncateAt.END
+        (sCap.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        info.addView(sCap)
         row.addView(info); header.addView(row)
         if (!session.completed) {
             db.ensureSessionStarted(sessionId)
             val chip = TimerChipView(this)
-            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30)).apply { setMargins(0, dp(4), 0, 0) }
             chip.bind(this, db, db.getSession(sessionId) ?: session) {}
             chip.startTicking()
             timerChip = chip
             header.addView(chip)
         } else if (session.startedAt > 0) {
-            header.addView(caption("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}"))
-        }
-        if (Beginner.beginnerMode(this) && !session.completed) {
-            header.addView(makeText("Beginner Mode ON — cards show posture checks & cues. Stop if you feel sharp pain.", 11f, false, Color.parseColor("#92400E")))
+            header.addView(caption("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, 0) })
         }
         root.addView(header)
 
         // Three section cards share the remaining height.
         val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
-        root.addView(makeText("Today's sections", 14f, true, Theme.textSecondary))
+        root.addView(makeText("Today's sections", 14f, true, Theme.textSecondary).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
+            gravity = Gravity.CENTER_VERTICAL
+        })
         val sectionBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
@@ -83,12 +92,12 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         // Fixed finish bar
         val footRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val listBtn = makeSecondaryButton("View as list") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }) }
-        (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, dp(4), dp(4), 0) }
         val finishBtn = makeButton("Finish Workout") {
             if (!allHandled) { AlertDialog.Builder(this).setTitle("Finish early?").setMessage("Some exercises are not done or skipped yet. Finish anyway?").setPositiveButton("Finish") { _, _ -> doFinish() }.setNegativeButton("Keep going", null).show() }
             else doFinish()
         }
-        (finishBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1.2f; height = dp(48) }
+        (finishBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1.2f; height = dp(48); setMargins(dp(4), dp(4), 0, 0) }
         if (allHandled) finishBtn.background = roundedBg("#15803D", 16)
         footRow.addView(listBtn); footRow.addView(finishBtn)
         root.addView(footRow)
