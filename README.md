@@ -142,3 +142,42 @@ Mahesh request: "it would be great if each page on the app comes in the entire p
 
 Build: same offline invocation; APK `WorkoutTracker-v2.5.apk` (versionCode 7, versionName 2.5) installs over v2.4 with history preserved. Not device-tested.
 
+
+## V2.5.1 (2026-10-07) - hotfix: Home showed only "0 / 5" (versionCode 8, versionName 2.5.1)
+
+Mahesh report on v2.5: "Home page shows 0/5 nothing else. Seems like a bug" — only the week hero rendered; Today and This Week were invisible.
+
+**Root cause (confirmed in code):** v2.5 made pages fixed non-scrolling LinearLayouts whose children used WRAP_CONTENT heights. On a real phone (font scale, status/nav bars), hero + Today card + labels summed past the viewport; LinearLayout laid them out anyway and clipped the overflow, leaving the weight=1 week region at zero height and everything below the hero off-screen. Fixed-height stacks only work with explicit budgets — v2.5 relied on wrap heights happening to fit.
+
+**Fix — deterministic height budgets:** every region on every screen now has an explicit dp height or is the single weight=1 flex region, so the stack cannot exceed the viewport by construction. `topBar` is a fixed 56dp. No ScrollView returned (grep stays 0). Text floors: body >= 12sp, secondary >= 11sp, actions >= 44dp.
+
+**Home budget** (available = screen height - ~72dp bottom nav - root padding):
+| Region | ~640dp viewport (available ~546dp) | ~800dp viewport (available ~706dp) |
+|---|---|---|
+| Hero | 104dp (very short) | 118dp compact / 128dp |
+| "Today" label | 20dp | 20dp |
+| Today card | 132dp (56dp map, 44dp Start inside) | 150dp |
+| Resume strip (only when shown) | 48dp | 48dp |
+| "This Week" label | 24dp | 24dp |
+| Week rows region | ~218-266dp (5 rows share equally, >= 44dp each when available >= 500dp) | ~330-380dp |
+
+Trained-muscles line folded into the hero (no separate row); Today status moved inline (no separate pill row); safety rule shrinks hero/Today to their short-screen floors before the week region may drop.
+
+**Per-screen audit (fixed heights + the one flex region):**
+- Workout Detail: top 56 + Start card 100 + hero 116 + label 24 + section region (weight 1, 3 equal rows) + Open Sections 48.
+- Workout Sections: top 56 + header 112 + label 24 + section region (weight 1) + finish bar 48.
+- Settings: title 40 + Unit 116/124 + Beginner 116/124 + Your Data 84/88 + About 104/112 (bottom nav below).
+- Summary: top 56 + hero 84 + stats 148 + by-section 92 + filler (weight 1) + note + buttons 48.
+- Session list: top 56 + header 76 + exercise region (weight 1) + action rows 44 + 44. See Routines/Session notes below.
+- Routines: title 40 + Library/Add row 56 + routines region (weight 1). History unchanged in structure: title 40 + list region (weight 1, 5/page) + pager 48.
+- Routine Edit: top 56 + header 64 + two 58dp form rows + Save 48 + label 24 + exercise region (weight 1, paged rows) + pager + two 48dp action bars. Exercise Edit: top 56 + name 54 + 4 field rows x 54 + hint 18 + buttons 48 (fields are 14dp label + 40dp input; documented heights sum to ~390dp + padding, so Save is visible on a 600dp viewport with the keyboard closed).
+- Library: top 56 + group chips 126 (3 x 42) + group header 76 + 3 cards sharing the region (weight 1) + footer 20.
+- Card mode / Preview: top 56 + header card 96 (card) / banner 64 + progress 56 (preview) + deck (weight 1) + fixed 48dp action rows (+ 20dp Next line). Deck absorbs all slack; actions are pinned and visible on a 640dp viewport by construction.
+
+**Mahesh refinements folded in (override v2.5 pagination on two screens):**
+- **Routines: NO pagination.** All routines (currently 5) on one fixed page; cards share the region equally (height 0, weight 1), name/day/count on compact lines. If the count grows past ~8 the cards simply get shorter — accepted. The "Exercise Library (33 extra moves)" button became a compact 56dp card row: "Exercise Library" (15sp, one line) with "33 extra moves" as a small caption — it no longer clips at 360dp wide.
+- **Doing-exercise page (Session list): ONE PAGE, no pagination.** All ~13 exercises visible at once; each row is an equal weight share (single line: status dot, name, set chips, reorder +/-, how-to toggle). Tap a set chip to log/edit that set (weight/reps/BW/Done with steppers, same writes as before; Done starts the 60s rest timer). Header (with timer chip) and the bottom action bar (Save Order / Finish / Save & Exit / Discard, two compact 44dp rows) are fixed. "Show me how" is an accordion: the expanded row takes a 3.2x weight share while others compress; posture <= 4, cues <= 3, surplus as "…".
+
+**Button overflow audit (app-wide):** all primary/secondary/small buttons are now single-line with ellipsis + autosize down to 13sp (11sp small) on API 26+. Specific labels shortened: "Delete This Workout" -> "Delete Workout" (Routine Edit), card-mode "Swap -> <long name>" -> "Swap ->" (the dialog still names the alternative), Routines "Add New Workout" -> "Add Workout" beside the new Library card. Settings buttons verified at 360dp: "Turn Beginner Mode OFF/ON", "Restore Preloaded", "Switch to kg/lb", "Export CSV" fit on one line.
+
+No DB or feature changes (still DB v3); installs over v2.5 with history preserved. Not device-tested.
