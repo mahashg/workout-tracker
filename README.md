@@ -181,3 +181,17 @@ Trained-muscles line folded into the hero (no separate row); Today status moved 
 **Button overflow audit (app-wide):** all primary/secondary/small buttons are now single-line with ellipsis + autosize down to 13sp (11sp small) on API 26+. Specific labels shortened: "Delete This Workout" -> "Delete Workout" (Routine Edit), card-mode "Swap -> <long name>" -> "Swap ->" (the dialog still names the alternative), Routines "Add New Workout" -> "Add Workout" beside the new Library card. Settings buttons verified at 360dp: "Turn Beginner Mode OFF/ON", "Restore Preloaded", "Switch to kg/lb", "Export CSV" fit on one line.
 
 No DB or feature changes (still DB v3); installs over v2.5 with history preserved. Not device-tested.
+
+
+## V2.6 (2026-10-07) - UI cleanup from on-device feedback (versionCode 9, versionName 2.6)
+
+Mahesh's v2.5.1 feedback, item by item:
+
+1. **"Hide how-to" button removed; posture always visible.** The Show me how / Hide how-to toggle is gone from CardSessionActivity, PreviewCardsActivity, and the SessionActivity list. Cards now render a compact posture block by default: Watch Form Video (44dp), "What you'll feel", "Check your posture:" header with up to 4 bullets, up to 2 cue lines, and the Start-light hint — no collapsing. Body map shrunk to 52x64dp and line spacing tightened so it fits the fixed-height card. In the Session list, rows no longer have a chevron toggle BUTTON: tapping the row expands/collapses it (accordion, passive chevron glyph), posture visible in the expanded row.
+2. **Preview is pure browse.** PreviewCardsActivity no longer has a Start Workout button (or a bottom Back button); the banner reads "Preview — browsing only". Start lives only in Workout Detail and the Resume flows. Preview remains strictly read-only.
+3. **Corner back control.** `topBar()` keeps a single 40dp circular corner button (ic_back, surface bg + stroke, top-left, title beside it). Full-width/bottom "Back" buttons were removed from Preview, RoutineEdit, and ExerciseEdit — exit is the corner control everywhere.
+4. **Cute segmented Home progress.** The giant "0 / 5 done" hero text is replaced by 5 rounded segments (12dp, one per routine, green `#4ADE80` when done, white 35% alpha when not) plus a small "0 of 5 this week" caption (13sp). Week N and the date range stay; hero budget unchanged (104/118/128dp).
+5. **Today card has no Start button.** The Home Today card is now purely tappable -> Workout Detail, with a status line and a subtle "Tap to open ›" affordance. Card height drops to 108dp (very short) / 120dp; the freed height goes to the This Week region.
+6. **Workout Detail: one clean action pair.** The separate top Start card is deleted. Inside the body-parts hero card (172dp): body-map row, status pill row ("Done / In Progress / Pending" pill + short state line), then two equal halves at 48dp with an 8dp gap — primary "Start Workout / Resume Workout / Start Again" (ic_play) and secondary "Preview" (ic_eye). Per-section rows below unchanged.
+
+Invariants kept: no ScrollView (grep = 0), deterministic per-screen height budgets, DB v3 unchanged, timer/preview/library/swipe behavior intact apart from the items above. Build: same offline invocation; APK `WorkoutTracker-v2.6.apk` (versionCode 9, versionName 2.6) installs over v2.5.1 with history preserved. Not device-tested.
