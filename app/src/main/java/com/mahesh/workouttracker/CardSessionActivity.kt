@@ -73,7 +73,7 @@ class CardSessionActivity : AppCompatActivity() {
     private fun snapshot(ex: SessionExercise){ undoStack.addLast(UndoSnap(ex.id, ex.status, ex.effort, db.getSets(ex.id))) }
 
     private fun dragCardBand(card: LinearLayout) {
-        card.addView(View(this).apply { setBackgroundColor(sectionColor(sectionType)); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { setMargins(0, 0, 0, dp(12)) } })
+        card.addView(View(this).apply { setBackgroundColor(sectionColor(sectionType)); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { setMargins(0, 0, 0, dp(8)) } })
     }
 
     private fun render(){
@@ -84,7 +84,7 @@ class CardSessionActivity : AppCompatActivity() {
             root.addView(topBar(sectionLabel(sectionType), "Section complete"))
             root.addView(makeText("${sectionLabel(sectionType)} complete!",26f,true,Color.parseColor("#15803D")))
             val done=deck.count{db.effectiveStatus(it)=="done"}; val skipped=deck.count{db.effectiveStatus(it)=="skipped"}
-            root.addView(makeText("You finished this section.\n$done done • $skipped skipped\nGreat job — head back to pick the next section.",15f,false))
+            root.addView(makeText("$done done • $skipped skipped",15f,false))
             if(undoStack.isNotEmpty()) root.addView(makeButton("Undo last action"){doUndo(); render()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
             root.addView(makeButton("Back to Sections"){finish()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
             Toast.makeText(this,"${sectionLabel(sectionType)} complete!",Toast.LENGTH_SHORT).show()
@@ -102,7 +102,10 @@ class CardSessionActivity : AppCompatActivity() {
         top.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(96)).apply { setMargins(0, 0, 0, 0) }
         top.setPadding(dp(12), dp(6), dp(12), dp(6))
         top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        top.addView(hProgress(deck.size, deck.count{db.effectiveStatus(it)!="pending"}, sectionColor(sectionType)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
+        // v2.6.1: same position-based fill as Preview — (index+1)/total, never
+        // an empty bar on card 1 (handled count can only raise it further).
+        val handledCount = deck.count { db.effectiveStatus(it) != "pending" }
+        top.addView(hProgress(deck.size, maxOf(handledCount, (index + 1).coerceAtMost(deck.size)), sectionColor(sectionType)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
         val sessForTimer = db.getSession(sessionId)
         if (sessForTimer != null && !sessForTimer.completed) {
             db.ensureSessionStarted(sessionId)
@@ -141,7 +144,8 @@ class CardSessionActivity : AppCompatActivity() {
         }
         val dragCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(10), dp(14), dp(10))
+            // v2.6.1: top padding >= 14dp so the exercise name never touches the band.
+            setPadding(dp(14), dp(14), dp(14), dp(12))
             background = deckCardDrawable()
             elevation = dp(8).toFloat()
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
@@ -154,7 +158,7 @@ class CardSessionActivity : AppCompatActivity() {
         essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(52),dp(64))})
         val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
         essInfo.addView(equipmentBadge(ex.equipment))
-        essInfo.addView(makeText(ex.name,20f,true))
+        essInfo.addView(makeText(ex.name,20f,true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0) })
         if(ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
         essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")))
         essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",13f,true))
@@ -177,6 +181,7 @@ class CardSessionActivity : AppCompatActivity() {
             if(ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)}
                 (vid.layoutParams as LinearLayout.LayoutParams).height = dp(44)
+                tightButton(vid, 44, 12, primary = true); vid.setPadding(dp(8), 0, dp(8), 0)
                 how.addView(vid)
             }
             how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")))
@@ -194,8 +199,8 @@ class CardSessionActivity : AppCompatActivity() {
             if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
             dragCard.addView(how)
         }
-        // Swipe hint
-        dragCard.addView(makeText("Swipe:  Skip  •  Done  •  Log Set   (or use buttons below)",11f,false,Theme.textSecondary))
+        // v2.6.1 copy audit: no swipe-instruction text (the buttons below it
+        // say Skip / Log Set / Done already). "Next up:" stays — it's informative.
 
         wrap.addView(dragCard)
         // Direction tint overlay (fades in with drag progress, tinted per direction)
