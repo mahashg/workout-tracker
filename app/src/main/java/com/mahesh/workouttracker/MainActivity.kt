@@ -43,7 +43,9 @@ class MainActivity : AppCompatActivity() {
         val veryShort = available < 620
         val heroH = if (veryShort) 104 else if (compact) 118 else 128
         val todayLabelH = 20
-        val todayH = if (veryShort) 132 else 150
+        // v2.6: Today card no longer carries a Start button (it lives in Workout
+        // Detail), so it shrinks to ~108-120dp and the freed height goes to the week.
+        val todayH = if (veryShort) 108 else 120
         val weekLabelH = 24
         val suggestedPre = routines.firstOrNull { it.weekday == todayIdx }
         val resumePre = db.inProgressSessions().firstOrNull { it.weekStart == weekStartStr } ?: db.inProgressSessions().firstOrNull()
@@ -65,14 +67,17 @@ class MainActivity : AppCompatActivity() {
         val hero = heroCard()
         val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val heroInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-        heroInfo.addView(makeText("WORKOUT TRACKER", 11f, true, Color.parseColor("#BFDBFE")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
         heroInfo.addView(makeText("Week ${state.weekNumber}", if (compact) 24f else 28f, true, Color.WHITE).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
         heroInfo.addView(makeText("${DateUtil.display(weekStartStr)} – ${DateUtil.display(DateUtil.fmt(weekEndCal))}  •  Sun – Sat", 12f, false, Color.parseColor("#DBEAFE")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         heroRow.addView(heroInfo)
-        if (routines.isNotEmpty()) heroRow.addView(makeText("$doneCount / ${routines.size}\ndone", 15f, true, Color.WHITE).apply { gravity = Gravity.CENTER })
         hero.addView(heroRow)
         if (routines.isNotEmpty()) {
-            hero.addView(hProgress(routines.size, doneCount, Color.parseColor("#4ADE80")).apply { background = roundedBg("#3B82F6", 8); (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
+            // v2.6: cute segmented progress (one segment per routine) + small
+            // caption — no more giant "0 / 5 done" text.
+            hero.addView(segmentedWeekProgress(routines.map { r -> sessionsThisWeek.any { it.routineId == r.id && it.completed } }).apply {
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
+            })
+            hero.addView(makeText("$doneCount of ${routines.size} this week", 13f, false, Color.parseColor("#EFF6FF")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(3), 0, 0); maxLines = 1 })
         }
         // Muscles trained this week folded into the hero's date line (no extra row).
         val weekMuscles = linkedSetOf<String>()
@@ -95,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             val sugCard = cardLayout("#F59E0B", tappable = true) { openDetail(suggested.id) }
             sugCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(todayH)).apply { setMargins(0, 0, 0, 0) }
             sugCard.setPadding(dp(10), dp(6), dp(10), dp(6))
-            val rowH = todayH - 44 - 12 // card padding (6+6) + 44dp button
+            val rowH = todayH - 12 // card padding (6+6); no button inside anymore (v2.6)
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(rowH)) }
             val muscles = db.routineMuscles(suggested.id)
             row.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(if (veryShort) 44 else 52), dp(rowH.coerceAtMost(64))) })
@@ -109,10 +114,10 @@ class MainActivity : AppCompatActivity() {
             var sub = "$wu Warm Up • $main Exercise • $cd Cool Down • ${musclesLabel(muscles)}"
             if (progS != null && progS.startedAt > 0) sub += " • ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, progS))} so far"
             info.addView(caption(sub).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+            // v2.6: no Start button here — the whole card taps through to Workout
+            // Detail, where Start lives. Subtle affordance instead.
+            info.addView(makeText("Tap to open ›", 12f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0); maxLines = 1 })
             row.addView(info); sugCard.addView(row)
-            val startBtn = primaryButtonWithIcon(if (progS != null) "Resume Workout" else if (st == "Done") "Do Again" else "Start Workout", R.drawable.ic_play) { openDetail(suggested.id) }
-            (startBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, 0, 0, 0) }
-            sugCard.addView(startBtn)
             root.addView(sugCard)
         } else {
             val restCard = cardLayout("#F59E0B")
