@@ -18,6 +18,17 @@ class RoutineEditActivity : AppCompatActivity() {
     private var routineId: Long = -1
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db = DbHelper(this); routineId = intent.getLongExtra("routineId", -1); render() }
     override fun onResume() { super.onResume(); if (::db.isInitialized && routineId > 0) render() }
+    private fun pickFromLibrary(existing: Routine) {
+        val labels = Library.entries.map { "${it.group} • ${it.name} (${it.equipment})" }.toTypedArray()
+        AlertDialog.Builder(this).setTitle("Pick from Library")
+            .setItems(labels) { _, which ->
+                val entry = Library.entries[which]
+                val nextOrder = db.getExercises(existing.id).size
+                db.insertExercise(Exercise(0, existing.id, entry.name, "Main", entry.equipment, entry.defaultSets, entry.targetReps, "", "", Library.urlFor(entry), nextOrder, entry.muscles, entry.cues, entry.postureCheck))
+                Toast.makeText(this, "Added ${entry.name}", Toast.LENGTH_SHORT).show(); render()
+            }
+            .setNegativeButton("Cancel", null).show()
+    }
     private fun render() {
         val existing = if (routineId > 0) db.getRoutine(routineId) else null
         val root = rootLayout(); setContentView(ScrollView(this).apply { addView(root) })
@@ -43,7 +54,7 @@ class RoutineEditActivity : AppCompatActivity() {
         root.addView(makeText("Muscle focus", 13f, false, Theme.textSecondary)); root.addView(focusEt)
         root.addView(makeText("Assigned day", 13f, false, Theme.textSecondary)); root.addView(daySpinner)
         root.addView(makeText("Notes", 13f, false, Theme.textSecondary)); root.addView(notesEt)
-        root.addView(makeText("Form videos are per exercise below (▶ Watch Form), not per workout.", 12f, false, Color.parseColor("#FDE68A")))
+        root.addView(makeText("Form videos are per exercise below (Watch Form), not per workout.", 12f, false, Theme.textSecondary))
         root.addView(makeButton("Save Workout") {
             val name = nameEt.text.toString().trim(); if (name.isEmpty()) { Toast.makeText(this,"Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
             val wd = if (daySpinner.selectedItemPosition==7) -1 else daySpinner.selectedItemPosition
@@ -73,7 +84,7 @@ class RoutineEditActivity : AppCompatActivity() {
                 brow.addView(equipmentBadge(e.equipment)); info.addView(brow)
                 info.addView(makeText("${e.type} • ${e.defaultSets} sets • ${e.targetReps}${if(mus.isNotEmpty()) "\nTargets: ${musclesLabel(mus)}" else ""}", 12f, false, Theme.textSecondary))
                 top.addView(info); card.addView(top)
-                if (e.youtubeUrl.isNotBlank()) card.addView(makeSmallButton("▶ Watch Form") { openUrl(this, e.youtubeUrl) })
+                if (e.youtubeUrl.isNotBlank()) card.addView(smallButtonWithIcon("Watch Form", R.drawable.ic_play) { openUrl(this, e.youtubeUrl) })
                 val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
                 if (idx>0) row.addView(makeSmallButton("↑") { db.swapExerciseOrder(e, exs[idx-1]); render() })
                 if (idx<exs.size-1) row.addView(makeSmallButton("↓") { db.swapExerciseOrder(e, exs[idx+1]); render() })
@@ -81,8 +92,9 @@ class RoutineEditActivity : AppCompatActivity() {
                 row.addView(makeSmallButton("Delete") { AlertDialog.Builder(this).setTitle("Delete exercise?").setPositiveButton("Delete"){_,_-> db.deleteExercise(e.id); render()}.setNegativeButton("Cancel",null).show() })
                 card.addView(row); root.addView(card)
             }
-            root.addView(makeButton("＋ Add Exercise") { startActivity(Intent(this, ExerciseEditActivity::class.java).apply{ putExtra("exerciseId", -1L); putExtra("routineId", existing.id) }) })
-            root.addView(makeButton("🗑 Delete This Workout") {
+            root.addView(makeButton("Add Exercise") { startActivity(Intent(this, ExerciseEditActivity::class.java).apply{ putExtra("exerciseId", -1L); putExtra("routineId", existing.id) }) })
+            root.addView(makeSecondaryButton("Pick from Library") { pickFromLibrary(existing) })
+            root.addView(makeButton("Delete This Workout") {
                 AlertDialog.Builder(this).setTitle("Delete workout?").setMessage("Exercises will be deleted. History sessions stay.")
                     .setPositiveButton("Delete"){_,_-> db.deleteRoutine(existing.id); finish()}.setNegativeButton("Cancel",null).show()
             })
