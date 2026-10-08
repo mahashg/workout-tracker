@@ -92,10 +92,8 @@ class ExerciseEditActivity : AppCompatActivity() {
             }
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show(); finish()
         }
-        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
-        val backBtn = makeSecondaryButton("Back") { finish() }
-        (backBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
-        btnRow.addView(saveBtn); btnRow.addView(backBtn)
+        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, 0, 0) }
+        btnRow.addView(saveBtn)
         root.addView(btnRow)
     }
 }

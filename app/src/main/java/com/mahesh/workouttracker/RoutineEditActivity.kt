@@ -189,15 +189,10 @@ class RoutineEditActivity : AppCompatActivity() {
                 AlertDialog.Builder(this).setTitle("Delete workout?").setMessage("Exercises will be deleted. History sessions stay.")
                     .setPositiveButton("Delete") { _, _ -> db.deleteRoutine(existing.id); finish() }.setNegativeButton("Cancel", null).show()
             }
-            (del.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
-            val back = makeSmallButton("Back") { finish() }
-            (back.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
-            actRow2.addView(del); actRow2.addView(back)
+            (del.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, 0, 0) }
+            actRow2.addView(del)
             root.addView(actRow2)
-        } else {
-            val back = makeButton("Back") { finish() }
-            (back.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
-            root.addView(back)
         }
+        // v2.6: no Back buttons — exit via the corner back control in topBar.
     }
 }

@@ -74,7 +74,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val aboutCard = budgetCard(if (compactSet) 104 else 112)
         aboutCard.addView(noMargin(overline("About")))
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.5.1 (v2.5.1)\nWeek runs Sunday–Saturday; the Week counter only advances if you completed at least 1 workout that week.\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it. Every screen fits one page — no scrolling."), 4))
+        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.6 (v2.6)\nWeek runs Sunday–Saturday; the Week counter only advances if you completed at least 1 workout that week.\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it. Every screen fits one page — no scrolling."), 4))
         root.addView(aboutCard)
     }
     private fun launchExport() {
