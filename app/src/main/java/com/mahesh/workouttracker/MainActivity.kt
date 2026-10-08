@@ -114,10 +114,11 @@ class MainActivity : AppCompatActivity() {
             var sub = "$wu Warm Up • $main Exercise • $cd Cool Down • ${musclesLabel(muscles)}"
             if (progS != null && progS.startedAt > 0) sub += " • ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, progS))} so far"
             info.addView(caption(sub).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
-            // v2.6: no Start button here — the whole card taps through to Workout
-            // Detail, where Start lives. Subtle affordance instead.
-            info.addView(makeText("Tap to open ›", 12f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0); maxLines = 1 })
-            row.addView(info); sugCard.addView(row)
+            row.addView(info)
+            // v2.6.1 copy audit: no "Tap to open ›" instruction line — chevron
+            // affordance only (the whole card is the tap target).
+            row.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
+            sugCard.addView(row)
             root.addView(sugCard)
         } else {
             val restCard = cardLayout("#F59E0B")
@@ -134,10 +135,17 @@ class MainActivity : AppCompatActivity() {
             card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(resumeH))
             card.setPadding(dp(10), dp(4), dp(10), dp(4))
             val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
-            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-            info.addView(makeText("● IN PROGRESS — ${inProg.routineName}", 13f, true, Color.parseColor("#92400E")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-            info.addView(caption("Week ${inProg.weekNumber}${if (inProg.startedAt > 0) " • ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, inProg))} so far" else ""} • tap to resume").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-            r.addView(info)
+            // v2.6.1 copy audit: "In progress" pill + name (was a verbose
+            // "● IN PROGRESS — … tap to resume" two-liner saying the same thing).
+            val rpill = statusPill("In Progress")
+            (rpill.layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
+            rpill.setPadding(dp(10), 0, dp(10), 0)
+            r.addView(rpill)
+            val rname = makeText(inProg.routineName, 14f, true, Color.parseColor("#92400E"))
+            rname.maxLines = 1; rname.ellipsize = android.text.TextUtils.TruncateAt.END
+            (rname.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(8), 0, 0, 0) }
+            r.addView(rname)
+            if (inProg.startedAt > 0) r.addView(makeText(WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, inProg)), 12f, true, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             r.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
             card.addView(r)
             root.addView(card)
