@@ -296,8 +296,11 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         return 0
     }
     fun routineMuscles(routineId: Long): Set<String> {
+        // v2.6.1: a routine's focus muscles come from its MAIN exercises only.
+        // Warm-up/cool-down moves (bike, incline walk, stretches) were polluting
+        // hero/Home/Routines body maps and labels (e.g. Quads/Calves on chest day).
         val out = linkedSetOf<String>()
-        for (e in getExercises(routineId)) out.addAll(parseMuscles(e.targetMuscles, e.name))
+        for (e in getExercises(routineId)) if (e.type.equals("Main", true)) out.addAll(parseMuscles(e.targetMuscles, e.name))
         return out
     }
     companion object {
