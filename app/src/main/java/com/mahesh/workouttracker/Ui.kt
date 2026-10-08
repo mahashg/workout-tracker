@@ -126,6 +126,8 @@ fun Context.sectionLabelText(text: String): TextView = makeText(text, 18f, true,
 fun Context.makeButton(text: String, onClick: () -> Unit): Button {
     return Button(this).apply {
         this.text = text; textSize = 15f; setTextColor(Theme.onPrimary); typeface = medium(); isAllCaps = false
+        maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+        if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(13, 15, 1, TypedValue.COMPLEX_UNIT_SP)
         background = RippleDrawable(ColorStateList.valueOf(0x55FFFFFF), rounded(Theme.primary, 16), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(16).toFloat() })
         minHeight = dp(56)
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, dp(6)) }
@@ -135,6 +137,8 @@ fun Context.makeButton(text: String, onClick: () -> Unit): Button {
 fun Context.makeSecondaryButton(text: String, onClick: () -> Unit): Button {
     return Button(this).apply {
         this.text = text; textSize = 15f; setTextColor(Theme.primary); typeface = medium(); isAllCaps = false
+        maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+        if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(13, 15, 1, TypedValue.COMPLEX_UNIT_SP)
         background = RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surface, 16, Theme.primary, 1), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(16).toFloat() })
         minHeight = dp(52)
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, dp(6)) }
@@ -144,6 +148,8 @@ fun Context.makeSecondaryButton(text: String, onClick: () -> Unit): Button {
 fun Context.makeSmallButton(text: String, onClick: () -> Unit): Button {
     return Button(this).apply {
         this.text = text; textSize = 13f; setTextColor(Theme.textPrimary); typeface = medium(); isAllCaps = false
+        maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+        if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(11, 13, 1, TypedValue.COMPLEX_UNIT_SP)
         background = RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surfaceVariant, 12, Theme.stroke, 1), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(12).toFloat() })
         minHeight = dp(48); minWidth = dp(48); setPadding(dp(12), dp(4), dp(12), dp(4))
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(4), dp(2), dp(4), dp(2)) }
@@ -246,18 +252,30 @@ fun Context.hProgress(max: Int, progress: Int, fillColor: Int): LinearLayout {
 
 /** Top app bar for secondary screens: back arrow + title. */
 fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout {
-    val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(2), 0, dp(10)) }
+    // Fixed 56dp bar (v2.5.1): every secondary screen can budget against this.
+    val bar = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56))
+    }
     val back = android.widget.ImageButton(this).apply {
         setImageResource(R.drawable.ic_back); setColorFilter(Theme.primary)
         background = rounded(Theme.surface, 14, Theme.stroke, 1)
-        setPadding(dp(12), dp(12), dp(12), dp(12))
-        layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+        setPadding(dp(10), dp(10), dp(10), dp(10))
+        layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
         setOnClickListener { finish() }
     }
     bar.addView(back)
-    val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(12), 0, 0, 0); layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-    titles.addView(makeText(title, 20f, true, Theme.textPrimary))
-    if (subtitle.isNotBlank()) titles.addView(makeText(subtitle, 12f, false, Theme.textSecondary))
+    val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), 0, 0, 0); layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+    val t = makeText(title, 19f, true, Theme.textPrimary)
+    t.maxLines = 1; t.ellipsize = android.text.TextUtils.TruncateAt.END
+    (t.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+    titles.addView(t)
+    if (subtitle.isNotBlank()) {
+        val st = makeText(subtitle, 11f, false, Theme.textSecondary)
+        st.maxLines = 1; st.ellipsize = android.text.TextUtils.TruncateAt.END
+        (st.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        titles.addView(st)
+    }
     bar.addView(titles)
     return bar
 }
