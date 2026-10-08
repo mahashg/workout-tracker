@@ -14,7 +14,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db=DbHelper(this); Seed.ensureSeeded(db); Seed.applyV2IfNeeded(this,db); routineId=intent.getLongExtra("routineId",-1); if(routineId<0){finish();return}; render() }
     override fun onResume(){ super.onResume(); if(::db.isInitialized && routineId>0) render() }
 
-    private fun sectionPreviewCard(label: String, colorHex: String, countLine: String, lines: List<String>): LinearLayout {
+    private fun sectionPreviewCard(label: String, colorHex: String, countLine: String, lines: List<String>, previewType: String? = null): LinearLayout {
         val card = cardLayout()
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         row.addView(View(this).apply { setBackgroundColor(Color.parseColor(colorHex)); layoutParams = LinearLayout.LayoutParams(dp(5), LinearLayout.LayoutParams.MATCH_PARENT).apply { setMargins(0, dp(2), dp(12), dp(2)) } })
@@ -22,6 +22,13 @@ class WorkoutDetailActivity : AppCompatActivity() {
         col.addView(makeText(label, 16f, true, Color.parseColor(colorHex)))
         col.addView(caption(countLine))
         for (l in lines) col.addView(bodyText(l))
+        if (previewType != null) {
+            col.addView(makeText("Tap to preview these cards  ›", 12f, true, Theme.primary))
+            card.isClickable = true
+            card.setOnClickListener {
+                startActivity(Intent(this, PreviewCardsActivity::class.java).apply { putExtra("routineId", routineId); putExtra("sectionType", previewType) })
+            }
+        }
         row.addView(col); card.addView(row)
         return card
     }
@@ -43,6 +50,15 @@ class WorkoutDetailActivity : AppCompatActivity() {
             startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply{putExtra("sessionId",sid)})
         })
         startCard.addView(caption("This page is just a preview — no workout starts until you tap above."))
+        // Read-only card preview (v2.4): browse the exercise cards without starting.
+        val previewBtn = makeSecondaryButton("Preview Cards"){
+            startActivity(Intent(this, PreviewCardsActivity::class.java).apply{putExtra("routineId",routineId)})
+        }
+        previewBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_eye, 0, 0, 0)
+        previewBtn.compoundDrawablePadding = dp(8)
+        try { previewBtn.compoundDrawables[0]?.setTint(Theme.primary) } catch (e: Exception) {}
+        startCard.addView(previewBtn)
+        startCard.addView(caption("Look through the cards first — browsing never logs anything."))
         root.addView(startCard)
 
         // Hero card
@@ -68,7 +84,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
                 val done=list.count{db.effectiveStatus(it)=="done"}; val skipped=list.count{db.effectiveStatus(it)=="skipped"}
                 val colorHex=when(type){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"}
                 root.addView(sectionPreviewCard(label, colorHex, "${done+skipped} of ${list.size} done/skipped",
-                    list.map{ ex -> val st=db.effectiveStatus(ex); "${if(st=="done")"✓" else if(st=="skipped")"↷" else "•"}  ${ex.name}" }))
+                    list.map{ ex -> val st=db.effectiveStatus(ex); "${if(st=="done")"✓" else if(st=="skipped")"↷" else "•"}  ${ex.name}" }, type))
             }
             root.addView(makeButton("Open Sections"){ startActivity(Intent(this,WorkoutSectionsActivity::class.java).apply{putExtra("sessionId",sess.id)}) })
         } else {
@@ -82,6 +98,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
                 row2.addView(View(this).apply { setBackgroundColor(Color.parseColor(colorHex)); layoutParams = LinearLayout.LayoutParams(dp(5), LinearLayout.LayoutParams.MATCH_PARENT).apply { setMargins(0, dp(2), dp(12), dp(2)) } })
                 val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
                 col.addView(makeText("$label  •  ${list.size} activities",16f,true,Color.parseColor(colorHex)))
+                col.addView(makeText("Tap card to preview these cards  ›",12f,true,Theme.primary))
                 for(e in list){
                     val r=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
                     r.addView(equipmentBadge(e.equipment))
@@ -90,6 +107,10 @@ class WorkoutDetailActivity : AppCompatActivity() {
                     if(e.variation.isNotBlank()) col.addView(caption(e.variation))
                 }
                 row2.addView(col); card.addView(row2)
+                card.isClickable = true
+                card.setOnClickListener {
+                    startActivity(Intent(this, PreviewCardsActivity::class.java).apply { putExtra("routineId", routineId); putExtra("sectionType", type) })
+                }
                 root.addView(card)
             }
         }

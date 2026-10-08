@@ -15,5 +15,6 @@
         <activity android:name=".CardSessionActivity" android:exported="false" />
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".LibraryActivity" android:exported="false" />
+        <activity android:name=".PreviewCardsActivity" android:exported="false" />
     </application>
 </manifest>

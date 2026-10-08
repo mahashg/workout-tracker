@@ -52,7 +52,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val aboutCard = cardLayout()
         aboutCard.addView(overline("About"))
-        aboutCard.addView(caption("Workout Tracker • Version 2.3 (v2.3)\nForm videos are per exercise. Workout time is tracked per session."))
+        aboutCard.addView(caption("Workout Tracker • Version 2.4 (v2.4)\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it."))
         root.addView(aboutCard)
     }
     private fun launchExport() {
