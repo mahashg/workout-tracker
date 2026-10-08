@@ -22,7 +22,7 @@ class SummaryActivity : AppCompatActivity() {
         celeb.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(84)).apply { setMargins(0, 0, 0, 0) }
         celeb.setPadding(dp(12), dp(8), dp(12), dp(8))
         celeb.addView(makeText("Workout complete!", 23f, true, android.graphics.Color.WHITE).apply { gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-        celeb.addView(makeText("${session.routineName} — nice work showing up and getting it done.", 12f, false, android.graphics.Color.parseColor("#DBEAFE")).apply { gravity = Gravity.CENTER; maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+        // v2.6.1 copy audit: no "— nice work showing up…" filler subtitle.
         root.addView(celeb)
 
         val done = exs.count { db.effectiveStatus(it) == "done" }; val skipped = exs.count { db.effectiveStatus(it) == "skipped" }; val setsDone = exs.sumOf { db.getSets(it.id).count { s -> s.isDone } }; val setsTotal = exs.sumOf { db.getSets(it.id).size }
@@ -60,8 +60,8 @@ class SummaryActivity : AppCompatActivity() {
         root.addView(perCard)
 
         // Filler keeps the buttons pinned to the bottom of the fixed screen.
+        // v2.6.1 copy audit: "Every workout counts — see you next session." filler removed; stats only.
         root.addView(LinearLayout(this).apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) })
-        root.addView(makeText("Every workout counts — see you next session.", 12f, false, Theme.textSecondary))
         val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val doneBtn = makeButton("Done") { finish() }
         (doneBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, dp(4), dp(4), 0) }

@@ -38,7 +38,7 @@ class SettingsActivity : AppCompatActivity() {
         val unitCard = budgetCard(if (compactSet) 116 else 124)
         unitCard.addView(noMargin(overline("Units")))
         unitCard.addView(noMargin(cardTitle("Weight unit: $unit")))
-        unitCard.addView(noMargin(caption("Applies to labels, steppers and CSV export.")))
+        unitCard.addView(noMargin(caption("Applies to labels and CSV.")))
         val unitBtn = makeSecondaryButton("Switch to ${if (unit=="lb") "kg" else "lb"}") {
             WeekManager.setUnit(this, if (unit=="lb") "kg" else "lb"); render()
         }
@@ -50,7 +50,7 @@ class SettingsActivity : AppCompatActivity() {
         val begCard = budgetCard(if (compactSet) 116 else 124)
         begCard.addView(noMargin(overline("Beginner Mode")))
         begCard.addView(noMargin(cardTitle("Beginner Mode: ${if(beginnerOn) "ON" else "OFF"}")))
-        begCard.addView(noMargin(caption("Shows posture checks, form cues and starter hints on every exercise. Stop if you feel sharp pain. (Default ON)"), 2))
+        begCard.addView(noMargin(caption("Posture checks and form cues on every exercise."), 1))
         val begBtn = makeSecondaryButton(if(beginnerOn) "Turn Beginner Mode OFF" else "Turn Beginner Mode ON") { Beginner.setBeginnerMode(this, !beginnerOn); render() }
         (begBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(4), 0, 0) }
         begCard.addView(begBtn)
@@ -74,7 +74,8 @@ class SettingsActivity : AppCompatActivity() {
 
         val aboutCard = budgetCard(if (compactSet) 104 else 112)
         aboutCard.addView(noMargin(overline("About")))
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.6 (v2.6)\nWeek runs Sunday–Saturday; the Week counter only advances if you completed at least 1 workout that week.\nForm videos are per exercise. Workout time is tracked per session. Preview cards browse a workout without starting it. Every screen fits one page — no scrolling."), 4))
+        // v2.6.1 copy audit: About is two lines (version + week rule).
+        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.6.1\nWeek counter advances only after a week with 1+ completed workout."), 2))
         root.addView(aboutCard)
     }
     private fun launchExport() {

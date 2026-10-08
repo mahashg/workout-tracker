@@ -69,7 +69,7 @@ class RoutinesActivity : AppCompatActivity() {
             nm.maxLines = 1; nm.ellipsize = android.text.TextUtils.TruncateAt.END
             (nm.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
             info.addView(nm)
-            val sub = makeText("${DateUtil.dayName(r.weekday)} • ${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)} • tap to edit", 11f, false, Theme.textSecondary)
+            val sub = makeText("${DateUtil.dayName(r.weekday)} • ${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)}", 11f, false, Theme.textSecondary)
             sub.maxLines = 1; sub.ellipsize = android.text.TextUtils.TruncateAt.END
             (sub.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
             info.addView(sub)

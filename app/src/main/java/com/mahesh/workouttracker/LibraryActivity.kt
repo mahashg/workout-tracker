@@ -21,7 +21,7 @@ class LibraryActivity : AppCompatActivity() {
         if (groupIndex !in groups.indices) groupIndex = 0
         val group = groups[groupIndex]
         val root = fitRoot(); setContentView(root)
-        root.addView(topBar("Exercise Library", "33 extra moves • one muscle group per page"))
+        root.addView(topBar("Exercise Library", "33 moves"))
 
         // Group switcher: wrapping chip rows (selected group highlighted).
         // Explicit 126dp (3 rows x 42dp) so the card region budget is known.
@@ -51,7 +51,7 @@ class LibraryActivity : AppCompatActivity() {
         hRow.addView(BodyMapView(this, groupMuscles).apply { layoutParams = LinearLayout.LayoutParams(dp(44), dp(54)) })
         val hInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
         hInfo.addView(makeText(group, 18f, true))
-        hInfo.addView(caption("Targets: ${musclesLabel(groupMuscles)} • ${entries.size} moves • add any to a routine"))
+        hInfo.addView(caption("Targets: ${musclesLabel(groupMuscles)}"))
         hRow.addView(hInfo); header.addView(hRow)
         root.addView(header)
 
@@ -93,10 +93,8 @@ class LibraryActivity : AppCompatActivity() {
             box.addView(card)
         }
         root.addView(box)
-        root.addView(makeText("Group ${groupIndex + 1} of ${groups.size}: $group", 12f, false, Theme.textSecondary).apply {
-            gravity = Gravity.CENTER
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
-        })
+        // v2.6.1 copy audit: "Group x of 11" footer removed — the highlighted
+        // chip above already shows where you are.
     }
 
     private fun addToRoutine(entry: Library.Entry) {
