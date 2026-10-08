@@ -32,8 +32,6 @@ class CardSessionActivity : AppCompatActivity() {
     private var deck: List<SessionExercise> = emptyList()
     private var index: Int=0
     private val undoStack = ArrayDeque<UndoSnap>()
-    private val howToExpanded = mutableSetOf<Long>() // exercise ids with "Show me how" open (card mode)
-    private var howToDefaultApplied = false
     private var timerChip: TimerChipView? = null
     private var downX=0f; private var downY=0f
 
@@ -153,7 +151,7 @@ class CardSessionActivity : AppCompatActivity() {
         val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
         // Essentials only up front (approved mockup): name, do-it, dots, badge, map, last done.
         val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(76),dp(94))})
+        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(52),dp(64))})
         val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
         essInfo.addView(equipmentBadge(ex.equipment))
         essInfo.addView(makeText(ex.name,20f,true))
@@ -171,56 +169,29 @@ class CardSessionActivity : AppCompatActivity() {
             dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit",12f,false,Theme.textSecondary))
         } else dragCard.addView(makeText("First time — no previous record. Start light.",12f,false,Theme.textSecondary))
 
-        // "Show me how" — educational content, collapsible. First card of the section
-        // defaults to expanded, the rest collapsed; remembered per exercise in this visit.
-        if (!howToDefaultApplied) { howToDefaultApplied = true; howToExpanded.add(ex.id) }
-        val howExpanded = howToExpanded.contains(ex.id)
-        val howToggle = makeSecondaryButton(if (howExpanded) "Hide how-to  ▴" else "Show me how  ▾") {
-            if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
-            render()
-        }
-        (howToggle.layoutParams as LinearLayout.LayoutParams).height = dp(48)
-        dragCard.addView(howToggle)
-        if (howExpanded) {
-            // Compact how-to: fits INSIDE the fixed-height card (no page scroll).
-            // Posture bullets capped at 4, cues at 3; any remainder fades to "…".
-            val compact = isCompactScreen()
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(4), dp(4), 0) }
+        // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
+        // Compact posture block: video button, feel line, <=4 posture bullets,
+        // <=2 cue lines, start-light hint. Fits inside the fixed-height card.
+        run {
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(2), dp(4), 0) }
             if(ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)}
-                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(44)
                 how.addView(vid)
             }
             how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")))
-            var truncated = false
-            if(Beginner.beginnerMode(this)){
-                val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
-                if(posture.isNotBlank()){
-                    val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                    how.addView(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")))
-                    for(c in items.take(4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > 4) truncated = true
-                }
-                val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-                if(cues.isNotBlank()){
-                    val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                    val cap = if (compact) 2 else 3
-                    how.addView(makeText("Form cues:",12f,true,Color.parseColor("#0369A1")))
-                    for(c in items.take(cap)) how.addView(makeText("•  $c",12f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > cap) truncated = true
-                }
-                if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
-            } else {
-                val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-                if(cues.isNotBlank()){
-                    val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                    val cap = if (compact) 2 else 3
-                    how.addView(makeText("Form cues:",12f,true,Color.parseColor("#0369A1")))
-                    for(c in items.take(cap)) how.addView(makeText("•  $c",12f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > cap) truncated = true
-                }
+            val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
+            if(posture.isNotBlank()){
+                val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
+                how.addView(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")))
+                for(c in items.take(4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
             }
-            if (truncated) how.addView(makeText("…",12f,true,Theme.textTertiary))
+            val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
+            if(cues.isNotBlank()){
+                val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
+                for(c in items.take(2)) how.addView(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+            }
+            if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
             dragCard.addView(how)
         }
         // Swipe hint
