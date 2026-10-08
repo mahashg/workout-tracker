@@ -242,6 +242,19 @@ fun Context.pagerBar(page: Int, pageCount: Int, onPrev: () -> Unit, onNext: () -
     row.addView(prev); row.addView(mid); row.addView(next)
     return row
 }
+/** Small non-cancelable progress dialog for the Drive backup/restore calls (v2.8). */
+fun AppCompatActivity.progressDialog(message: String): androidx.appcompat.app.AlertDialog {
+    val box = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        setPadding(dp(24), dp(18), dp(24), dp(18))
+    }
+    box.addView(android.widget.ProgressBar(this))
+    val label = makeText("  $message", 15f, false)
+    (label.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, 0, 0) }
+    box.addView(label)
+    return androidx.appcompat.app.AlertDialog.Builder(this).setView(box).setCancelable(false).create()
+}
+
 fun Context.cardLayout(stroke: String? = null, tappable: Boolean = false, onClick: (() -> Unit)? = null): LinearLayout {
     val pad = if (isCompactScreen()) 14 else 18
     val gap = if (isCompactScreen()) 4 else 6
