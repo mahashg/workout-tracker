@@ -86,34 +86,22 @@ class PreviewCardsActivity : AppCompatActivity() {
     private fun render() {
         val routine = db.getRoutine(routineId) ?: run { finish(); return }
         val root = fitRoot(); setContentView(root)
-        val st = sectionType
-        root.addView(topBar(routine.name, if (st.isNullOrBlank()) "Preview cards" else "${sectionLabel(st)} preview"))
-
-        // Unmistakable preview-mode banner (no session is running here).
-        // Explicit 64dp budget (v2.5.1).
-        val banner = cardLayout("#2563EB")
-        banner.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)).apply { setMargins(0, 0, 0, 0) }
-        banner.setPadding(dp(12), dp(6), dp(12), dp(6))
-        val bRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        bRow.addView(iconView(R.drawable.ic_eye, 22, Theme.primary))
-        bRow.addView(makeText("  Preview — browsing only", 15f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        banner.addView(bRow)
-        banner.addView(caption("Nothing is recorded here — Start lives on the workout page.").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        root.addView(banner)
 
         if (deck.isEmpty()) {
+            root.addView(slimHeader("Preview", ""))
             root.addView(makeText("No exercises yet — add some in Routines.", 16f, false, Theme.textSecondary))
             return
         }
         val ex = current()!!
 
-        // Progress header. Explicit 56dp budget (v2.5.1).
-        val top = cardLayout(when (ex.type.lowercase()) { "warmup" -> "#D97706"; "stretch" -> "#0D9488"; else -> "#2563EB" })
-        top.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)).apply { setMargins(0, 0, 0, 0) }
-        top.setPadding(dp(12), dp(6), dp(12), dp(6))
-        top.addView(makeText("${sectionLabel(ex.type)}  •  Card ${index + 1} of ${deck.size}", 14f, true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1 })
-        top.addView(hProgress(deck.size, index, sectionColor(ex.type)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
-        root.addView(top)
+        // v2.6.1: ONE slim header (48dp) + thin progress bar (8dp) = 56dp total.
+        // Replaces the old stack of Preview banner card + "Card 1 of 4" card.
+        // Progress fill is POSITION based: (index+1)/total, so card 1 of 4
+        // shows 25% filled — never an empty (broken-looking) bar.
+        root.addView(slimHeader("Preview — ${sectionLabel(ex.type)}", "${index + 1} / ${deck.size}"))
+        root.addView(hProgress(deck.size, index + 1, sectionColor(ex.type)).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(6); setMargins(0, dp(1), 0, dp(1)) }
+        })
 
         // ---- Card deck: ONE moving card over two static peek cards (same feel as card mode) ----
         val deckBox = FrameLayout(this).apply {
@@ -136,60 +124,82 @@ class PreviewCardsActivity : AppCompatActivity() {
         }
         val dragCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(10), dp(14), dp(10))
+            // v2.6.1: top padding >= 14dp so the exercise name never touches the band.
+            setPadding(dp(14), dp(14), dp(14), dp(12))
             background = deckCardDrawable()
             elevation = dp(8).toFloat()
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
         cardSurface = dragCard
-        dragCard.addView(View(this).apply { setBackgroundColor(sectionColor(ex.type)); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { setMargins(0, 0, 0, dp(12)) } })
+        dragCard.addView(View(this).apply { setBackgroundColor(sectionColor(ex.type)); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { setMargins(0, 0, 0, dp(8)) } })
 
+        // Header row (v2.6.1): body map (<=56dp) + name + equipment badge.
+        // Do-it line directly under; set dots INLINE on that row (only when
+        // sets > 1 — no lone floating dot); no redundant plan caption.
         val muscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(64)) })
+        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.TOP }
+        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(46), dp(56)) })
         val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
-        essInfo.addView(equipmentBadge(ex.equipment))
-        essInfo.addView(makeText(ex.name, 20f, true))
-        if (ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation, 12f, false, Theme.textSecondary))
-        essInfo.addView(makeText("Do it: ${doItLine(ex)}", 14f, true, Color.parseColor("#92400E")))
-        // Plan dots: neutral/hollow (no progress in preview)
-        essInfo.addView(makeText((1..planSets(ex)).joinToString("  ") { "○" }, 18f, true, Theme.textSecondary))
-        essInfo.addView(makeText("Planned sets — preview only", 12f, false, Theme.textSecondary))
+        val nameRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val nameTv = makeText(ex.name, 18f, true)
+        nameTv.maxLines = 2; nameTv.ellipsize = android.text.TextUtils.TruncateAt.END
+        (nameTv.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, 0, 0) }
+        nameRow.addView(nameTv)
+        nameRow.addView(equipmentBadge(ex.equipment))
+        essInfo.addView(nameRow)
+        if (ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation, 12f, false, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, 0) })
+        val doRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) }
+        doRow.addView(makeText("Do it: ${doItLine(ex)}", 14f, true, Color.parseColor("#92400E")).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, dp(4), 0, 0) }
+        })
+        if (planSets(ex) > 1) doRow.addView(makeText((1..planSets(ex)).joinToString(" ") { "○" }, 15f, true, Theme.textSecondary).apply {
+            (layoutParams as LinearLayout.LayoutParams).setMargins(dp(8), dp(4), 0, 0)
+        })
+        essInfo.addView(doRow)
         essRow.addView(essInfo)
         dragCard.addView(essRow)
 
-        // Last done (read-only lookup across past sessions)
+        // Last done (read-only lookup) — preview only when a record exists.
+        // v2.6.1: the "First time — no previous record. Start light." line is
+        // session-mode guidance; in preview it was dead text. Removed here.
         val unit = WeekManager.unit(this)
         val last = db.lastPerformedForExercise(ex.name, -1)
         if (last != null) {
             val summary = last.sets.joinToString(", ") { s -> if (s.isBodyweight) "BW x${s.reps}" else "${s.weight} $unit x ${s.reps}" }
             val effortBit = if (last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort, unit)}" else ""
-            dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit", 12f, false, Theme.textSecondary))
-        } else dragCard.addView(makeText("First time — no previous record. Start light.", 12f, false, Theme.textSecondary))
+            dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit", 12f, false, Theme.textSecondary).apply {
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
+            })
+        }
 
         // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
+        // v2.6.1: 8dp gaps, margins normalized (makeText's default 4dp margins
+        // were stacking into the dead whitespace in Mahesh's screenshot).
         run {
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(2), dp(4), 0) }
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, dp(8), 0, 0) }
+            fun norm(v: android.view.View, top: Int = 2) { (v.layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(top), 0, dp(2)) }
             if (ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
                 (vid.layoutParams as LinearLayout.LayoutParams).height = dp(44)
+                tightButton(vid, 44, 12, primary = true)
+                vid.setPadding(dp(8), 0, dp(8), 0)
+                norm(vid, 0)
                 how.addView(vid)
             }
-            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}", 12f, false, Color.parseColor("#0369A1")))
+            val feel = makeText("What you'll feel: ${musclesLabel(muscles)}", 12f, false, Color.parseColor("#0369A1")); norm(feel, 4); how.addView(feel)
             val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
             if (posture.isNotBlank()) {
                 val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                how.addView(makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")))
-                for (c in items.take(4)) how.addView(makeText("☐  $c", 12f, false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+                val ph = makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")); norm(ph, 6); how.addView(ph)
+                for (c in items.take(4)) { val b = makeText("☐  $c", 12f, false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }; norm(b, 1); how.addView(b) }
             }
             val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
             if (cues.isNotBlank()) {
                 val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                for (c in items.take(2)) how.addView(makeText("•  $c", 11f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                for (c in items.take(2)) { val b = makeText("•  $c", 11f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }; norm(b, 1); how.addView(b) }
             }
             dragCard.addView(how)
         }
-        dragCard.addView(makeText("Swipe:  ‹ Prev  •  Next ›   (or use buttons below)", 11f, false, Theme.textSecondary))
 
         wrap.addView(dragCard)
         val tint = View(this).apply {
@@ -258,13 +268,17 @@ class PreviewCardsActivity : AppCompatActivity() {
             wrap.animate().alpha(1f).scaleX(1f).scaleY(1f).translationY(0f).setDuration(220).setInterpolator(DecelerateInterpolator()).start()
         }
 
-        // Browse buttons (every gesture has a button).
+        // Browse buttons (every gesture has a button). v2.6.1: 48dp tall, 15sp,
+        // factory minHeight stripped (they rendered giant in the screenshot).
+        // Copy audit: no "Swipe: … (or use buttons below)" hint anywhere.
         val wrapRef = wrap
         val navRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val prevBtn = makeSecondaryButton("‹ Previous") { if (index > 0) animateExitThen(wrapRef, 1) { step(-1) } }
         (prevBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
+        prevBtn.textSize = 15f; tightButton(prevBtn, 48, 12, primary = false); prevBtn.setPadding(dp(8), 0, dp(8), 0)
         val nextBtn = makeSecondaryButton("Next ›") { if (index < deck.size - 1) animateExitThen(wrapRef, -1) { step(1) } }
         (nextBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
+        nextBtn.textSize = 15f; tightButton(nextBtn, 48, 12, primary = false); nextBtn.setPadding(dp(8), 0, dp(8), 0)
         navRow.addView(prevBtn); navRow.addView(nextBtn)
         root.addView(navRow)
         // Next/Previous combined into one fixed 20dp line (keeps both visible
@@ -280,6 +294,33 @@ class PreviewCardsActivity : AppCompatActivity() {
             maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         })
 
+    }
+
+    /** Slim preview header (v2.6.1): 40dp corner back + title + right count. */
+    private fun slimHeader(title: String, count: String): LinearLayout {
+        val bar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48))
+        }
+        val back = android.widget.ImageButton(this).apply {
+            setImageResource(R.drawable.ic_back); setColorFilter(Theme.primary)
+            background = GradientDrawable().apply { setColor(Theme.surface); cornerRadius = dp(20).toFloat(); setStroke(dp(1), Theme.stroke) }
+            setPadding(dp(10), dp(10), dp(10), dp(10))
+            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+            setOnClickListener { finish() }
+        }
+        bar.addView(back)
+        val t = makeText(title, 17f, true, Theme.textPrimary)
+        t.maxLines = 1; t.ellipsize = android.text.TextUtils.TruncateAt.END
+        (t.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(10), 0, 0, 0) }
+        bar.addView(t)
+        if (count.isNotBlank()) {
+            val c = makeText(count, 14f, true, Theme.textSecondary)
+            c.gravity = Gravity.END; c.maxLines = 1
+            (c.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            bar.addView(c)
+        }
+        return bar
     }
 
     private fun step(dir: Int) {
