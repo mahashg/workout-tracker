@@ -3,116 +3,108 @@ package com.mahesh.workouttracker
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 
 class WorkoutDetailActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var routineId: Long = -1
-    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db=DbHelper(this); Seed.ensureSeeded(db); Seed.applyV2IfNeeded(this,db); routineId=intent.getLongExtra("routineId",-1); if(routineId<0){finish();return}; render() }
-    override fun onResume(){ super.onResume(); if(::db.isInitialized && routineId>0) render() }
+    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db = DbHelper(this); Seed.ensureSeeded(db); Seed.applyV2IfNeeded(this, db); routineId = intent.getLongExtra("routineId", -1); if (routineId < 0) { finish(); return }; render() }
+    override fun onResume() { super.onResume(); if (::db.isInitialized && routineId > 0) render() }
 
-    private fun sectionPreviewCard(label: String, colorHex: String, countLine: String, lines: List<String>, previewType: String? = null): LinearLayout {
-        val card = cardLayout()
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        row.addView(View(this).apply { setBackgroundColor(Color.parseColor(colorHex)); layoutParams = LinearLayout.LayoutParams(dp(5), LinearLayout.LayoutParams.MATCH_PARENT).apply { setMargins(0, dp(2), dp(12), dp(2)) } })
-        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-        col.addView(makeText(label, 16f, true, Color.parseColor(colorHex)))
-        col.addView(caption(countLine))
-        for (l in lines) col.addView(bodyText(l))
-        if (previewType != null) {
-            col.addView(makeText("Tap to preview these cards  ›", 12f, true, Theme.primary))
-            card.isClickable = true
-            card.setOnClickListener {
-                startActivity(Intent(this, PreviewCardsActivity::class.java).apply { putExtra("routineId", routineId); putExtra("sectionType", previewType) })
-            }
-        }
-        row.addView(col); card.addView(row)
-        return card
+    private fun openPreview(type: String?) {
+        startActivity(Intent(this, PreviewCardsActivity::class.java).apply {
+            putExtra("routineId", routineId)
+            if (type != null) putExtra("sectionType", type)
+        })
     }
 
-    private fun render(){
-        val routine = db.getRoutine(routineId) ?: run{finish();return}
+    private fun render() {
+        val routine = db.getRoutine(routineId) ?: run { finish(); return }
         val state = WeekManager.reconcile(this, db)
         val sessionsWeek = db.sessionsInWeek(state.weekStart)
-        val inProg = sessionsWeek.firstOrNull{it.routineId==routine.id && !it.completed} ?: db.inProgressSessions().firstOrNull{it.routineId==routine.id}
-        val completed = sessionsWeek.firstOrNull{it.routineId==routine.id && it.completed}
-        val root=rootLayout(); setContentView(ScrollView(this).apply{addView(root)})
+        val inProg = sessionsWeek.firstOrNull { it.routineId == routine.id && !it.completed } ?: db.inProgressSessions().firstOrNull { it.routineId == routine.id }
+        val completed = sessionsWeek.firstOrNull { it.routineId == routine.id && it.completed }
+        val sess = inProg ?: completed
+        val root = fitRoot(); setContentView(root)
         root.addView(topBar(routine.name, DateUtil.dayName(routine.weekday)))
 
-        // Start/Resume FIRST, prominent at top of content (per Mahesh)
+        // Start/Resume FIRST, prominent (per Mahesh)
         val startCard = cardLayout("#F59E0B")
-        startCard.addView(makeText(if(inProg!=null) "● IN PROGRESS — pick up where you left off" else if(completed!=null) "✓ DONE THIS WEEK" else "○ NOT STARTED YET", 11f, true, Color.parseColor("#92400E")))
-        startCard.addView(primaryButtonWithIcon(if(inProg!=null) "Resume Workout" else if(completed!=null) "Start Again (new session)" else "Start Workout", R.drawable.ic_play){
-            val sid = if(inProg!=null) inProg.id else db.createSession(routine, state.weekNumber, state.weekStart)
-            startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply{putExtra("sessionId",sid)})
-        })
-        startCard.addView(caption("This page is just a preview — no workout starts until you tap above."))
-        // Read-only card preview (v2.4): browse the exercise cards without starting.
-        val previewBtn = makeSecondaryButton("Preview Cards"){
-            startActivity(Intent(this, PreviewCardsActivity::class.java).apply{putExtra("routineId",routineId)})
+        startCard.addView(makeText(if (inProg != null) "● IN PROGRESS — pick up where you left off" else if (completed != null) "✓ DONE THIS WEEK" else "○ NOT STARTED YET", 11f, true, Color.parseColor("#92400E")))
+        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val startBtn = primaryButtonWithIcon(if (inProg != null) "Resume Workout" else if (completed != null) "Start Again" else "Start Workout", R.drawable.ic_play) {
+            val sid = if (inProg != null) inProg.id else db.createSession(routine, state.weekNumber, state.weekStart)
+            startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply { putExtra("sessionId", sid) })
         }
+        (startBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1.2f; height = dp(48) }
+        val previewBtn = makeSecondaryButton("Preview Cards") { openPreview(null) }
         previewBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_eye, 0, 0, 0)
-        previewBtn.compoundDrawablePadding = dp(8)
+        previewBtn.compoundDrawablePadding = dp(6)
         try { previewBtn.compoundDrawables[0]?.setTint(Theme.primary) } catch (e: Exception) {}
-        startCard.addView(previewBtn)
-        startCard.addView(caption("Look through the cards first — browsing never logs anything."))
+        (previewBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        btnRow.addView(startBtn); btnRow.addView(previewBtn)
+        startCard.addView(btnRow)
         root.addView(startCard)
 
-        // Hero card
+        // Compact hero
+        val exs = db.getExercises(routine.id)
+        val mainCount = exs.count { it.type.equals("Main", true) }
+        val wuCount = exs.count { it.type.equals("Warmup", true) }
+        val cdCount = exs.count { it.type.equals("Stretch", true) }
         val hero = cardLayout()
-        val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        val muscles=db.routineMuscles(routine.id)
-        row.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(110),dp(138))})
-        val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; layoutParams=LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1f); setPadding(dp(12),0,0,0)}
-        info.addView(makeText(routine.name,22f,true))
-        val mainCount = db.getExercises(routine.id).count{it.type.equals("Main",true)}
-        val totalCount = db.routineExerciseCount(routine.id)
-        info.addView(caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • $mainCount exercises ($totalCount total incl. warm-up & cool-down)"))
-        info.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",13f,true,Color.parseColor("#0369A1")))
-        info.addView(statusPill(when{completed!=null->"Done"; inProg!=null->"In Progress"; else->"Pending"}))
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val muscles = db.routineMuscles(routine.id)
+        row.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(58), dp(72)) })
+        val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
+        info.addView(makeText(routine.name, 19f, true))
+        info.addView(caption("${routine.focus}\n${DateUtil.dayName(routine.weekday)} • $mainCount exercises ($wuCount Warm Up • $mainCount Exercise • $cdCount Cool Down)\nWhat you'll feel: ${musclesLabel(muscles)}"))
+        info.addView(statusPill(when { completed != null -> "Done"; inProg != null -> "In Progress"; else -> "Pending" }))
         row.addView(info); hero.addView(row); root.addView(hero)
 
-        if(inProg!=null || completed!=null){
-            val sess = inProg ?: completed!!
-            root.addView(sectionLabelText("Your progress"))
-            root.addView(caption("Started ${DateUtil.display(sess.date)} • Week ${sess.weekNumber}. Sections show live progress."))
-            for((label,type) in listOf("Warm Up" to "Warmup","Exercise" to "Main","Cool Down" to "Stretch")){
-                val list=db.getSessionExercises(sess.id).filter{it.type.equals(type,true)}
-                val done=list.count{db.effectiveStatus(it)=="done"}; val skipped=list.count{db.effectiveStatus(it)=="skipped"}
-                val colorHex=when(type){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"}
-                root.addView(sectionPreviewCard(label, colorHex, "${done+skipped} of ${list.size} done/skipped",
-                    list.map{ ex -> val st=db.effectiveStatus(ex); "${if(st=="done")"✓" else if(st=="skipped")"↷" else "•"}  ${ex.name}" }, type))
+        // Sections: three compact rows (tap -> per-section preview). Names live
+        // in the preview cards; this page only carries counts/progress.
+        root.addView(makeText(if (sess != null) "Your progress — tap a section to preview its cards" else "What you'll do — tap a section to preview its cards", 13f, true, Theme.textSecondary))
+        val sectionBox = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        }
+        for ((label, type) in listOf("Warm Up" to "Warmup", "Exercise" to "Main", "Cool Down" to "Stretch")) {
+            val colorHex = when (type) { "Warmup" -> "#D97706"; "Stretch" -> "#0D9488"; else -> "#2563EB" }
+            val card = cardLayout(colorHex, tappable = true) { openPreview(type) }
+            (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(4), 0, dp(4)) }
+            card.setPadding(dp(12), dp(6), dp(12), dp(6))
+            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
+            r.addView(View(this).apply { setBackgroundColor(Color.parseColor(colorHex)); layoutParams = LinearLayout.LayoutParams(dp(5), LinearLayout.LayoutParams.MATCH_PARENT).apply { setMargins(0, dp(2), dp(10), dp(2)) } })
+            val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+            col.addView(makeText(label, 16f, true, Color.parseColor(colorHex)))
+            val line = if (sess != null) {
+                val list = db.getSessionExercises(sess.id).filter { it.type.equals(type, true) }
+                val done = list.count { db.effectiveStatus(it) == "done" }; val skipped = list.count { db.effectiveStatus(it) == "skipped" }
+                "${done + skipped} of ${list.size} done/skipped • tap to preview ›"
+            } else {
+                val list = exs.filter { it.type.equals(type, true) }
+                "${list.size} activities • tap to preview ›"
             }
-            root.addView(makeButton("Open Sections"){ startActivity(Intent(this,WorkoutSectionsActivity::class.java).apply{putExtra("sessionId",sess.id)}) })
-        } else {
-            root.addView(sectionLabelText("What you'll do"))
-            val exs=db.getExercises(routine.id)
-            for((label,type) in listOf("Warm Up" to "Warmup","Exercise" to "Main","Cool Down" to "Stretch")){
-                val list=exs.filter{it.type.equals(type,true)}
-                val colorHex=when(type){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"}
-                val card = cardLayout()
-                val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                row2.addView(View(this).apply { setBackgroundColor(Color.parseColor(colorHex)); layoutParams = LinearLayout.LayoutParams(dp(5), LinearLayout.LayoutParams.MATCH_PARENT).apply { setMargins(0, dp(2), dp(12), dp(2)) } })
-                val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-                col.addView(makeText("$label  •  ${list.size} activities",16f,true,Color.parseColor(colorHex)))
-                col.addView(makeText("Tap card to preview these cards  ›",12f,true,Theme.primary))
-                for(e in list){
-                    val r=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-                    r.addView(equipmentBadge(e.equipment))
-                    r.addView(makeText(e.name,13f,false))
-                    col.addView(r)
-                    if(e.variation.isNotBlank()) col.addView(caption(e.variation))
-                }
-                row2.addView(col); card.addView(row2)
-                card.isClickable = true
-                card.setOnClickListener {
-                    startActivity(Intent(this, PreviewCardsActivity::class.java).apply { putExtra("routineId", routineId); putExtra("sectionType", type) })
-                }
-                root.addView(card)
+            col.addView(caption(line))
+            r.addView(col)
+            if (sess != null) {
+                val list = db.getSessionExercises(sess.id).filter { it.type.equals(type, true) }
+                val handled = list.count { db.effectiveStatus(it) != "pending" }
+                col.addView(hProgress(list.size, handled, Color.parseColor(colorHex)))
             }
+            r.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
+            card.addView(r)
+            sectionBox.addView(card)
+        }
+        root.addView(sectionBox)
+
+        if (sess != null) {
+            val openBtn = makeButton("Open Sections") { startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply { putExtra("sessionId", sess.id) }) }
+            (openBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+            root.addView(openBtn)
         }
     }
 }
