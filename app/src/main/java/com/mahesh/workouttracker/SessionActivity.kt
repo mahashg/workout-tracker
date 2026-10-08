@@ -212,7 +212,7 @@ class SessionActivity : AppCompatActivity() {
                 card.addView(ft)
             }
             if (sets.isNotEmpty()) {
-                val sum = makeText("Sets: " + sets.joinToString(", ") { s -> (if (s.isBodyweight) "BW" else s.weight.ifBlank { "?" }) + "×" + s.reps.ifBlank { "?" } + if (s.isDone) "✓" else "" } + "  (tap a number chip to log)", 11f, false, Theme.textSecondary)
+                val sum = makeText("Sets: " + sets.joinToString(", ") { s -> (if (s.isBodyweight) "BW" else s.weight.ifBlank { "?" }) + "×" + s.reps.ifBlank { "?" } + if (s.isDone) "✓" else "" }, 11f, false, Theme.textSecondary)
                 sum.maxLines = 1; sum.ellipsize = android.text.TextUtils.TruncateAt.END
                 (sum.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
                 card.addView(sum)
@@ -220,6 +220,7 @@ class SessionActivity : AppCompatActivity() {
             if (ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
                 (vid.layoutParams as LinearLayout.LayoutParams).apply { height = dp(36); setMargins(0, dp(2), 0, dp(2)) }
+                tightButton(vid, 36, 12, primary = true); vid.setPadding(dp(8), 0, dp(8), 0)
                 vid.textSize = 12f
                 card.addView(vid)
             }
