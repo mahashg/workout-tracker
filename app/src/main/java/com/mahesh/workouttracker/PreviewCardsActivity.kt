@@ -113,13 +113,15 @@ class PreviewCardsActivity : AppCompatActivity() {
         root.addView(topBar(routine.name, if (st.isNullOrBlank()) "Preview cards" else "${sectionLabel(st)} preview"))
 
         // Unmistakable preview-mode banner (no session is running here).
+        // Explicit 64dp budget (v2.5.1).
         val banner = cardLayout("#2563EB")
+        banner.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)).apply { setMargins(0, 0, 0, 0) }
         banner.setPadding(dp(12), dp(6), dp(12), dp(6))
         val bRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         bRow.addView(iconView(R.drawable.ic_eye, 22, Theme.primary))
-        bRow.addView(makeText("  Preview — Start Workout to log", 15f, true, Theme.primary))
+        bRow.addView(makeText("  Preview — Start Workout to log", 15f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         banner.addView(bRow)
-        banner.addView(caption("Browsing only — nothing is recorded until you start the workout."))
+        banner.addView(caption("Browsing only — nothing is recorded until you start the workout.").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         root.addView(banner)
 
         if (deck.isEmpty()) {
@@ -130,11 +132,12 @@ class PreviewCardsActivity : AppCompatActivity() {
         }
         val ex = current()!!
 
-        // Progress header
+        // Progress header. Explicit 56dp budget (v2.5.1).
         val top = cardLayout(when (ex.type.lowercase()) { "warmup" -> "#D97706"; "stretch" -> "#0D9488"; else -> "#2563EB" })
+        top.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)).apply { setMargins(0, 0, 0, 0) }
         top.setPadding(dp(12), dp(6), dp(12), dp(6))
-        top.addView(makeText("${sectionLabel(ex.type)}  •  Card ${index + 1} of ${deck.size}", 14f, true))
-        top.addView(hProgress(deck.size, index, sectionColor(ex.type)))
+        top.addView(makeText("${sectionLabel(ex.type)}  •  Card ${index + 1} of ${deck.size}", 14f, true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1 })
+        top.addView(hProgress(deck.size, index, sectionColor(ex.type)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
         root.addView(top)
 
         // ---- Card deck: ONE moving card over two static peek cards (same feel as card mode) ----
@@ -311,22 +314,32 @@ class PreviewCardsActivity : AppCompatActivity() {
 
         // Browse buttons (every gesture has a button).
         val wrapRef = wrap
-        val navRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val navRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val prevBtn = makeSecondaryButton("‹ Previous") { if (index > 0) animateExitThen(wrapRef, 1) { step(-1) } }
-        (prevBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (prevBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
         val nextBtn = makeSecondaryButton("Next ›") { if (index < deck.size - 1) animateExitThen(wrapRef, -1) { step(1) } }
-        (nextBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (nextBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
         navRow.addView(prevBtn); navRow.addView(nextBtn)
         root.addView(navRow)
-        deck.getOrNull(index + 1)?.let { root.addView(makeText("Next up: ${it.name}", 12f, false, Color.parseColor("#0369A1"))) }
-        deck.getOrNull(index - 1)?.let { root.addView(makeText("Previous: ${it.name}", 12f, false, Theme.textSecondary)) }
+        // Next/Previous combined into one fixed 20dp line (keeps both visible
+        // without stealing deck height).
+        val navInfo = when {
+            deck.getOrNull(index + 1) != null && deck.getOrNull(index - 1) != null -> "‹ ${deck[index - 1].name}  •  Next: ${deck[index + 1].name} ›"
+            deck.getOrNull(index + 1) != null -> "Next up: ${deck[index + 1].name}"
+            deck.getOrNull(index - 1) != null -> "Previous: ${deck[index - 1].name}"
+            else -> ""
+        }
+        if (navInfo.isNotBlank()) root.addView(makeText(navInfo, 12f, false, Color.parseColor("#0369A1")).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
+            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+        })
 
         // Start from preview - the only place a session can be created from here.
         val startBtn = primaryButtonWithIcon(startButtonLabel(), R.drawable.ic_play) { startWorkout() }
-        (startBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        (startBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
         root.addView(startBtn)
         val backBtn = makeSecondaryButton("Back") { finish() }
-        (backBtn.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+        (backBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
         root.addView(backBtn)
     }
 
