@@ -54,7 +54,9 @@ class RoutineEditActivity : AppCompatActivity() {
         root.addView(topBar(if (existing == null) "Add Workout" else "Edit Workout", existing?.name ?: ""))
 
         if (existing != null) {
+            // Explicit 64dp header budget (v2.5.1).
             val header = cardLayout("#2563EB")
+            header.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)).apply { setMargins(0, 0, 0, 0) }
             header.setPadding(dp(12), dp(6), dp(12), dp(6))
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
             val muscles = db.routineMuscles(existing.id)
@@ -95,11 +97,25 @@ class RoutineEditActivity : AppCompatActivity() {
         rowB.addView(dayCol); rowB.addView(notesCol)
         formBox.addView(rowB)
 
+        // Deterministic form budget (v2.5.1): each field row is 58dp
+        // (14dp label + 40dp field + 4dp slack); spinners get the field height.
+        for (row in listOf(rowA, rowB)) {
+            row.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(58))
+            for (ci in 0 until row.childCount) {
+                val col = row.getChildAt(ci) as LinearLayout
+                val label = col.getChildAt(0)
+                (label.layoutParams as LinearLayout.LayoutParams).apply { height = dp(14); setMargins(0, 0, 0, 0) }
+                val field = col.getChildAt(1)
+                (field.layoutParams as? LinearLayout.LayoutParams)?.apply { height = dp(40); setMargins(0, 0, 0, 0) }
+                if (field is EditText) field.minHeight = dp(40)
+            }
+        }
+
         fun capture() {
             nameVal = nameEt.text.toString(); focusVal = focusEt.text.toString(); notesVal = notesEt.text.toString(); dayPos = daySpinner.selectedItemPosition
         }
 
-        val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val saveBtn = makeButton("Save Workout") {
             capture()
             val name = nameVal.trim(); if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
@@ -113,9 +129,9 @@ class RoutineEditActivity : AppCompatActivity() {
                 Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             }
         }
-        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, 0, 0) }
         saveRow.addView(saveBtn)
-        saveRow.addView(makeText("  Form videos are per exercise below.", 11f, false, Theme.textSecondary))
+        saveRow.addView(makeText("  Form videos are per exercise below.", 11f, false, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
         formBox.addView(saveRow)
 
         if (existing != null) {
@@ -123,7 +139,10 @@ class RoutineEditActivity : AppCompatActivity() {
             val pageSize = (((screenHeightDp() - 470) / 54).coerceIn(3, 5))
             val pageCount = ((exs.size + pageSize - 1) / pageSize).coerceAtLeast(1)
             if (exercisePage !in 0 until pageCount) exercisePage = pageCount - 1
-            root.addView(makeText("Exercises (${exs.size})", 15f, true))
+            root.addView(makeText("Exercises (${exs.size})", 15f, true).apply {
+                (layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
+                gravity = Gravity.CENTER_VERTICAL
+            })
             val box = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
@@ -157,27 +176,27 @@ class RoutineEditActivity : AppCompatActivity() {
             root.addView(box)
             if (pageCount > 1) root.addView(pagerBar(exercisePage, pageCount, { capture(); exercisePage--; render() }, { capture(); exercisePage++; render() }))
 
-            // Fixed action bars
-            val actRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            // Fixed action bars (2 x 48dp, zero button margins)
+            val actRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
             val addEx = makeButton("Add Exercise") { capture(); startActivity(Intent(this, ExerciseEditActivity::class.java).apply { putExtra("exerciseId", -1L); putExtra("routineId", existing.id) }) }
-            (addEx.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            (addEx.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
             val pick = makeSecondaryButton("Pick from Library") { capture(); pickFromLibrary(existing) }
-            (pick.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            (pick.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
             actRow.addView(addEx); actRow.addView(pick)
             root.addView(actRow)
-            val actRow2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            val del = makeSmallButton("Delete This Workout") {
+            val actRow2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
+            val del = makeSmallButton("Delete Workout") {
                 AlertDialog.Builder(this).setTitle("Delete workout?").setMessage("Exercises will be deleted. History sessions stay.")
                     .setPositiveButton("Delete") { _, _ -> db.deleteRoutine(existing.id); finish() }.setNegativeButton("Cancel", null).show()
             }
-            (del.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            (del.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
             val back = makeSmallButton("Back") { finish() }
-            (back.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+            (back.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
             actRow2.addView(del); actRow2.addView(back)
             root.addView(actRow2)
         } else {
             val back = makeButton("Back") { finish() }
-            (back.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+            (back.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
             root.addView(back)
         }
     }

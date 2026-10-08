@@ -32,25 +32,30 @@ class ExerciseEditActivity : AppCompatActivity() {
             setPadding(dp(3), 0, dp(3), 0)
         }
         fun field(col: LinearLayout, label: String, value: String, hint: String): EditText {
-            col.addView(makeText(label, 11f, false, Theme.textSecondary))
+            // Fixed 54dp field block (v2.5.1): 14dp label + 40dp input, no margins.
+            val lb = makeText(label, 11f, false, Theme.textSecondary)
+            (lb.layoutParams as LinearLayout.LayoutParams).apply { height = dp(14); setMargins(0, 0, 0, 0) }
+            col.addView(lb)
             val et = EditText(this).apply { setText(value); this.hint = hint; styleEditText(this); textSize = 13f; minHeight = dp(40); setPadding(dp(8), dp(4), dp(8), dp(4)) }
+            (et.layoutParams as? LinearLayout.LayoutParams)?.apply { height = dp(40); setMargins(0, 0, 0, 0) }
             col.addView(et); return et
         }
         fun rowOf(a: LinearLayout, b: LinearLayout): LinearLayout {
-            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(54)) }
             r.addView(a); r.addView(b); return r
         }
 
         val nameCol = halfCol(); val nameEt = field(nameCol, "Name", existing?.name ?: "", "Exercise name")
+        nameCol.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(54))
         root.addView(nameCol)
 
         val types = listOf("Warmup", "Main", "Stretch")
         val equips = listOf("Kettlebell", "Dumbbell", "Bodyweight", "Machine", "None")
-        val typeCol = halfCol(); typeCol.addView(makeText("Type", 11f, false, Theme.textSecondary))
-        val typeSp = Spinner(this).apply { adapter = ArrayAdapter(this@ExerciseEditActivity, android.R.layout.simple_spinner_dropdown_item, types); setSelection(maxOf(0, types.indexOf(existing?.type ?: "Main"))) }
+        val typeCol = halfCol(); typeCol.addView(makeText("Type", 11f, false, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(14); setMargins(0, 0, 0, 0) } })
+        val typeSp = Spinner(this).apply { adapter = ArrayAdapter(this@ExerciseEditActivity, android.R.layout.simple_spinner_dropdown_item, types); setSelection(maxOf(0, types.indexOf(existing?.type ?: "Main"))); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(40)) }
         typeCol.addView(typeSp)
-        val equipCol = halfCol(); equipCol.addView(makeText("Equipment", 11f, false, Theme.textSecondary))
-        val equipSp = Spinner(this).apply { adapter = ArrayAdapter(this@ExerciseEditActivity, android.R.layout.simple_spinner_dropdown_item, equips); setSelection(maxOf(0, equips.indexOf(existing?.equipment ?: "None"))) }
+        val equipCol = halfCol(); equipCol.addView(makeText("Equipment", 11f, false, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(14); setMargins(0, 0, 0, 0) } })
+        val equipSp = Spinner(this).apply { adapter = ArrayAdapter(this@ExerciseEditActivity, android.R.layout.simple_spinner_dropdown_item, equips); setSelection(maxOf(0, equips.indexOf(existing?.equipment ?: "None"))); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(40)) }
         equipCol.addView(equipSp)
         root.addView(rowOf(typeCol, equipCol))
 
@@ -72,9 +77,10 @@ class ExerciseEditActivity : AppCompatActivity() {
 
         val hint = makeText("Muscles: shoulders, traps, chest, triceps, biceps, back, core, quads, hamstrings, glutes, calves", 11f, false, Theme.textSecondary)
         hint.maxLines = 1; hint.ellipsize = android.text.TextUtils.TruncateAt.END
+        (hint.layoutParams as LinearLayout.LayoutParams).apply { height = dp(18); setMargins(0, 0, 0, 0) }
         root.addView(hint)
 
-        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val saveBtn = makeButton("Save Exercise") {
             val name = nameEt.text.toString().trim(); if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
             val sets = setsEt.text.toString().toIntOrNull() ?: 3
@@ -86,9 +92,9 @@ class ExerciseEditActivity : AppCompatActivity() {
             }
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show(); finish()
         }
-        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, 0, dp(4), 0) }
         val backBtn = makeSecondaryButton("Back") { finish() }
-        (backBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48) }
+        (backBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(4), 0, 0, 0) }
         btnRow.addView(saveBtn); btnRow.addView(backBtn)
         root.addView(btnRow)
     }
