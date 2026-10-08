@@ -1,6 +1,5 @@
 package com.mahesh.workouttracker
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -23,8 +22,8 @@ import kotlin.math.abs
  * STRICTLY READ-ONLY: this activity never creates a session and never writes
  * to the database or the timer preferences. It builds its deck purely from
  * template exercises (db.getExercises) plus read-only last-performed lookups.
- * Logging is only possible after tapping Start Workout, which hands off to
- * the normal session flow (WorkoutSectionsActivity).
+ * v2.6: pure browse — no Start Workout button here; Start lives in Workout
+ * Detail. Exit via the corner back control in the top bar.
  */
 class PreviewCardsActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
@@ -32,8 +31,6 @@ class PreviewCardsActivity : AppCompatActivity() {
     private var sectionType: String? = null
     private var deck: List<Exercise> = emptyList()
     private var index: Int = 0
-    private val howToExpanded = mutableSetOf<Long>()
-    private var howToDefaultApplied = false
 
     // --- Swipe-to-browse state (same drag feel as card mode, browse only) ---
     private var cardWrap: FrameLayout? = null
@@ -86,26 +83,6 @@ class PreviewCardsActivity : AppCompatActivity() {
         else "Do $n sets of $reps"
     }
 
-    private fun startButtonLabel(): String {
-        val routine = db.getRoutine(routineId) ?: return "Start Workout"
-        val state = WeekManager.reconcile(this, db)
-        val sessionsWeek = db.sessionsInWeek(state.weekStart)
-        val inProg = sessionsWeek.firstOrNull { it.routineId == routine.id && !it.completed } ?: db.inProgressSessions().firstOrNull { it.routineId == routine.id }
-        val completed = sessionsWeek.firstOrNull { it.routineId == routine.id && it.completed }
-        return when { inProg != null -> "Resume Workout"; completed != null -> "Start Again (new session)"; else -> "Start Workout" }
-    }
-
-    /** The ONLY write path reachable from preview - the exact start flow WorkoutDetailActivity uses. */
-    private fun startWorkout() {
-        val routine = db.getRoutine(routineId) ?: return
-        val state = WeekManager.reconcile(this, db)
-        val sessionsWeek = db.sessionsInWeek(state.weekStart)
-        val inProg = sessionsWeek.firstOrNull { it.routineId == routine.id && !it.completed } ?: db.inProgressSessions().firstOrNull { it.routineId == routine.id }
-        val sid = if (inProg != null) inProg.id else db.createSession(routine, state.weekNumber, state.weekStart)
-        startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply { putExtra("sessionId", sid) })
-        finish()
-    }
-
     private fun render() {
         val routine = db.getRoutine(routineId) ?: run { finish(); return }
         val root = fitRoot(); setContentView(root)
@@ -119,15 +96,13 @@ class PreviewCardsActivity : AppCompatActivity() {
         banner.setPadding(dp(12), dp(6), dp(12), dp(6))
         val bRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         bRow.addView(iconView(R.drawable.ic_eye, 22, Theme.primary))
-        bRow.addView(makeText("  Preview — Start Workout to log", 15f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+        bRow.addView(makeText("  Preview — browsing only", 15f, true, Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         banner.addView(bRow)
-        banner.addView(caption("Browsing only — nothing is recorded until you start the workout.").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+        banner.addView(caption("Nothing is recorded here — Start lives on the workout page.").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         root.addView(banner)
 
         if (deck.isEmpty()) {
             root.addView(makeText("No exercises yet — add some in Routines.", 16f, false, Theme.textSecondary))
-            root.addView(primaryButtonWithIcon(startButtonLabel(), R.drawable.ic_play) { startWorkout() })
-            root.addView(makeSecondaryButton("Back") { finish() })
             return
         }
         val ex = current()!!
@@ -171,7 +146,7 @@ class PreviewCardsActivity : AppCompatActivity() {
 
         val muscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
         val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(76), dp(94)) })
+        essRow.addView(BodyMapView(this, muscles, true).apply { layoutParams = LinearLayout.LayoutParams(dp(52), dp(64)) })
         val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
         essInfo.addView(equipmentBadge(ex.equipment))
         essInfo.addView(makeText(ex.name, 20f, true))
@@ -192,55 +167,26 @@ class PreviewCardsActivity : AppCompatActivity() {
             dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit", 12f, false, Theme.textSecondary))
         } else dragCard.addView(makeText("First time — no previous record. Start light.", 12f, false, Theme.textSecondary))
 
-        // "Show me how" - same collapsible educational content as session cards.
-        if (!howToDefaultApplied) { howToDefaultApplied = true; howToExpanded.add(ex.id) }
-        val howExpanded = howToExpanded.contains(ex.id)
-        val howToggle = makeSecondaryButton(if (howExpanded) "Hide how-to  ▴" else "Show me how  ▾") {
-            if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else howToExpanded.add(ex.id)
-            render()
-        }
-        (howToggle.layoutParams as LinearLayout.LayoutParams).height = dp(48)
-        dragCard.addView(howToggle)
-        if (howExpanded) {
-            // Compact how-to: fits INSIDE the fixed-height card (no page scroll).
-            // Posture bullets capped at 4, cues at 3; any remainder fades to "…".
-            val compact = isCompactScreen()
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(4), dp(4), 0) }
+        // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
+        run {
+            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(2), dp(4), 0) }
             if (ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play) { openUrl(this, ex.youtubeUrl) }
-                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(48)
+                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(44)
                 how.addView(vid)
             }
             how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}", 12f, false, Color.parseColor("#0369A1")))
-            var truncated = false
-            if (Beginner.beginnerMode(this)) {
-                val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
-                if (posture.isNotBlank()) {
-                    val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                    how.addView(makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")))
-                    for (c in items.take(4)) how.addView(makeText("☐  $c", 12f, false).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > 4) truncated = true
-                }
-                val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
-                if (cues.isNotBlank()) {
-                    val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                    val cap = if (compact) 2 else 3
-                    how.addView(makeText("Form cues:", 12f, true, Color.parseColor("#0369A1")))
-                    for (c in items.take(cap)) how.addView(makeText("•  $c", 12f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > cap) truncated = true
-                }
-                if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.", 11f, false, Color.parseColor("#92400E")))
-            } else {
-                val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
-                if (cues.isNotBlank()) {
-                    val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                    val cap = if (compact) 2 else 3
-                    how.addView(makeText("Form cues:", 12f, true, Color.parseColor("#0369A1")))
-                    for (c in items.take(cap)) how.addView(makeText("•  $c", 12f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f) })
-                    if (items.size > cap) truncated = true
-                }
+            val posture = ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) }
+            if (posture.isNotBlank()) {
+                val items = posture.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                how.addView(makeText("Check your posture:", 13f, true, Color.parseColor("#15803D")))
+                for (c in items.take(4)) how.addView(makeText("☐  $c", 12f, false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
             }
-            if (truncated) how.addView(makeText("…", 12f, true, Theme.textTertiary))
+            val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
+            if (cues.isNotBlank()) {
+                val items = cues.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                for (c in items.take(2)) how.addView(makeText("•  $c", 11f, false, Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+            }
             dragCard.addView(how)
         }
         dragCard.addView(makeText("Swipe:  ‹ Prev  •  Next ›   (or use buttons below)", 11f, false, Theme.textSecondary))
@@ -334,13 +280,6 @@ class PreviewCardsActivity : AppCompatActivity() {
             maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         })
 
-        // Start from preview - the only place a session can be created from here.
-        val startBtn = primaryButtonWithIcon(startButtonLabel(), R.drawable.ic_play) { startWorkout() }
-        (startBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
-        root.addView(startBtn)
-        val backBtn = makeSecondaryButton("Back") { finish() }
-        (backBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
-        root.addView(backBtn)
     }
 
     private fun step(dir: Int) {

@@ -112,7 +112,7 @@ class SessionActivity : AppCompatActivity() {
     /**
      * One-page list row (v2.5.1): equal weight share of the exercise region.
      * Collapsed: one compact line — name, section/status, set chips (tap a chip
-     * to log/edit that set), reorder chevrons, +/− set, how-to toggle.
+     * to log/edit that set), reorder chevrons, +/- set; tap the row to expand (v2.6).
      * Expanded (accordion): takes a larger weight share and shows last-done,
      * set summary, video, posture (<=4) and cues (<=3) under the same line.
      * Logging writes exactly the same SessionSet rows as the old full rows.
@@ -167,16 +167,23 @@ class SessionActivity : AppCompatActivity() {
             chipRow.addView(chip)
         }
         top.addView(chipRow)
-        // Compact controls: reorder, add/remove set, how-to accordion toggle.
+        // Compact controls: reorder, add/remove set. v2.6: no how-to toggle
+        // button — tapping the row itself expands/collapses (accordion).
         if (idx > 0) top.addView(smallBtn("↑", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx - 1]); render(ex.id) })
         if (idx < exs.size - 1) top.addView(smallBtn("↓", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx + 1]); render(ex.id) })
         top.addView(smallBtn("+", 22, 22) { db.addSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
         top.addView(smallBtn("−", 22, 22) { db.removeLastSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
         if (Beginner.beginnerMode(this)) {
-            top.addView(smallBtn(if (expanded) "▴" else "▾", 22, 22) {
+            // Chevron is a passive affordance only (not a button).
+            top.addView(makeText(if (expanded) "▴" else "▾", 13f, true, Theme.textTertiary).apply {
+                gravity = android.view.Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(dp(18), LinearLayout.LayoutParams.WRAP_CONTENT)
+            })
+            top.isClickable = true
+            top.setOnClickListener {
                 if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else { howToExpanded.clear(); howToExpanded.add(ex.id) }
                 render(ex.id)
-            })
+            }
         }
         card.addView(top)
 
