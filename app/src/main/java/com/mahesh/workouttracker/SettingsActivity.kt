@@ -2,13 +2,15 @@ package com.mahesh.workouttracker
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.common.api.ApiException
@@ -17,10 +19,44 @@ import com.google.android.gms.common.api.CommonStatusCodes
 class SettingsActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private val EXPORT_REQ = 2001
-    private val AUTH_REQ = 2002
+
     // Google action waiting on an interactive authorize: "signin", "backup",
-    // "restore" (re-confirm), or "restore-run" (already confirmed).
-    private var pendingAction: String? = null
+    // "restore" (re-confirm), or "restore-run" (already confirmed). It is
+    // persisted rather than kept only in a field so an Activity recreation
+    // while Google's screen is open cannot lose the action that should run
+    // after a successful result.
+    private fun savePendingAction(action: String?) {
+        val e = getSharedPreferences(FLOW_PREFS, Context.MODE_PRIVATE).edit()
+        if (action == null) e.remove(KEY_PENDING_ACTION) else e.putString(KEY_PENDING_ACTION, action)
+        e.apply()
+    }
+    private fun savedPendingAction(): String? =
+        getSharedPreferences(FLOW_PREFS, Context.MODE_PRIVATE).getString(KEY_PENDING_ACTION, null)
+    private fun clearPendingAction() = savePendingAction(null)
+
+    /** Current Google authorization-result plumbing (v2.9.1). The old
+     *  v2.9 code launched the SDK PendingIntent with the deprecated
+     *  startIntentSenderForResult() and, crucially, only parsed the returned
+     *  Intent when resultCode == RESULT_OK. Google can return a non-OK
+     *  result code WITH an Intent containing either a usable result or the
+     *  real ApiException. Discarding that Intent made unrelated Google
+     *  failures look like a user cancellation. This launcher therefore
+     *  hands every callback to handleAuthActivityResult(), which parses a
+     *  non-null Intent first and uses resultCode only as diagnostics. */
+    private val authResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { activityResult ->
+        handleAuthActivityResult(activityResult.resultCode, activityResult.data)
+    }
+
+    companion object {
+        private const val FLOW_PREFS = "settings_google_flow"
+        private const val KEY_PENDING_ACTION = "pending_action"
+        // GoogleSignInStatusCodes.SIGN_IN_CANCELLED. The constant is used
+        // directly because play-services-auth 22.0.0 no longer ships that
+        // legacy status-code class.
+        private const val GOOGLE_SIGN_IN_CANCELLED = 12501
+    }
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db = DbHelper(this); render() }
     // Re-render on resume so the Google section reflects the latest
     // sign-in/backup state whenever Settings comes back to the front.
@@ -105,7 +141,7 @@ class SettingsActivity : AppCompatActivity() {
         val aboutCard = budgetCard(if (compactSet) 56 else 64)
         aboutCard.addView(noMargin(overline("About")))
         // v2.6.1 copy audit: About is two lines (version + week rule).
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.9\nWeek counter advances only after a week with 1+ completed workout."), 2))
+        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.9.1\nWeek counter advances only after a week with 1+ completed workout."), 2))
         root.addView(aboutCard)
     }
 
@@ -146,17 +182,18 @@ class SettingsActivity : AppCompatActivity() {
         return card
     }
 
-    // ----- Google Identity Services authorization (v2.9) -----
+    // ----- Google Identity Services authorization (v2.9, fixed in v2.9.1) -----
 
-    /** Runs the SDK authorize() for [action]; Google may answer inline or
-     *  ask for a resolution UI (account pick / consent), launched via
-     *  startIntentSenderForResult and parsed in onActivityResult. */
+    /** Runs the SDK authorize() for [action] using this Activity as the
+     *  interactive context. Google may answer inline or ask for a
+     *  resolution UI (account pick / consent), launched through
+     *  authResultLauncher and parsed in handleAuthActivityResult(). */
     private fun startGoogleAuth(action: String) {
-        pendingAction = action
-        GoogleAuth.client(this).authorize(GoogleAuth.authorizationRequest(this))
+        savePendingAction(action)
+        GoogleAuth.interactiveClient(this).authorize(GoogleAuth.authorizationRequest(this))
             .addOnSuccessListener { result -> handleAuthResult(result) }
             .addOnFailureListener { e ->
-                pendingAction = null
+                clearPendingAction()
                 if (e is ApiException) showAuthError(e) else Toast.makeText(this, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
@@ -165,15 +202,14 @@ class SettingsActivity : AppCompatActivity() {
         if (result.hasResolution()) {
             val pi = result.pendingIntent
             if (pi == null) {
-                pendingAction = null
+                clearPendingAction()
                 Toast.makeText(this, "Google sign-in failed: no sign-in screen available", Toast.LENGTH_LONG).show()
                 return
             }
             try {
-                @Suppress("DEPRECATION")
-                startIntentSenderForResult(pi.intentSender, AUTH_REQ, null, 0, 0, 0)
-            } catch (e: IntentSender.SendIntentException) {
-                pendingAction = null
+                authResultLauncher.launch(IntentSenderRequest.Builder(pi.intentSender).build())
+            } catch (e: Exception) {
+                clearPendingAction()
                 Toast.makeText(this, "Google sign-in failed: could not open the sign-in screen (${e.message})", Toast.LENGTH_LONG).show()
             }
             return
@@ -181,15 +217,71 @@ class SettingsActivity : AppCompatActivity() {
         onAuthorized(result)
     }
 
+    /** Parse-first result handling: a non-null returned Intent is ALWAYS
+     *  given to getAuthorizationResultFromIntent(), even when Google's
+     *  resolution activity reports RESULT_CANCELED. Only a null Intent is
+     *  treated as a bare cancellation. No access token or Intent extra
+     *  value is displayed or logged. */
+    private fun handleAuthActivityResult(resultCode: Int, data: Intent?) {
+        if (data != null) {
+            try {
+                onAuthorized(GoogleAuth.interactiveClient(this).getAuthorizationResultFromIntent(data))
+            } catch (e: ApiException) {
+                clearPendingAction()
+                if (isGoogleCancellation(e)) showAuthCancelled(e, resultCode) else showAuthError(e, resultCode)
+            } catch (e: Exception) {
+                clearPendingAction()
+                Toast.makeText(this, "Google sign-in failed: ${e.message ?: "unknown error"} (activity result $resultCode)", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        clearPendingAction()
+        Toast.makeText(this, "Google sign-in cancelled (Google returned no result; activity result $resultCode)", Toast.LENGTH_LONG).show()
+    }
+
+    private fun isGoogleCancellation(e: ApiException): Boolean =
+        e.statusCode == CommonStatusCodes.CANCELED ||
+            e.statusCode == GOOGLE_SIGN_IN_CANCELLED
+
+    /** Google itself returned a cancellation status after its screen
+     *  closed. Keep the exact status visible: Mahesh's v2.9 report was an
+     *  account selection followed by "cancelled", and Play services can
+     *  use a cancellation status for a re-authentication failure as well
+     *  as for a deliberate Back/Cancel. The code distinguishes those next
+     *  steps; a bare "cancelled" toast does not. */
+    private fun showAuthCancelled(e: ApiException, resultCode: Int) {
+        val msg = "Google returned cancellation code ${e.statusCode}: ${e.message ?: "sign-in cancelled"}\n" +
+            "Activity result: $resultCode\n\n" +
+            "If you selected an account and did not press Back or Cancel, please send me this exact code."
+        if (!isFinishing && !isDestroyed) {
+            AlertDialog.Builder(this)
+                .setTitle("Google sign-in didn't finish")
+                .setMessage(msg)
+                .setPositiveButton("OK", null)
+                .show()
+        } else {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        }
+    }
+
     /** Failure wording is deliberately explicit — status code + message —
      *  so any remaining Cloud-side mismatch can be quoted back verbatim. */
-    private fun showAuthError(e: ApiException) {
+    private fun showAuthError(e: ApiException, resultCode: Int? = null) {
         val code = e.statusCode
         var msg = "Google sign-in failed (code $code): ${e.message ?: "unknown error"}"
+        if (resultCode != null) msg += "\nActivity result: $resultCode"
         if (code == CommonStatusCodes.DEVELOPER_ERROR) {
-            msg += " — Google doesn't recognize this app: the Cloud Android client's package name and signing-certificate SHA-1 must match this app exactly."
+            msg += "\n\nGoogle doesn't recognize this app: the Cloud Android client's package name and signing-certificate SHA-1 must match this app exactly."
         }
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        if (!isFinishing && !isDestroyed) {
+            AlertDialog.Builder(this)
+                .setTitle("Google sign-in failed")
+                .setMessage(msg)
+                .setPositiveButton("OK", null)
+                .show()
+        } else {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        }
     }
 
     /** A granted result: persist token + identity, then run the pending
@@ -199,13 +291,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun onAuthorized(result: AuthorizationResult) {
         val token = result.accessToken
         if (token.isNullOrBlank()) {
-            pendingAction = null
+            clearPendingAction()
             Toast.makeText(this, "Google sign-in failed: Google returned no access token", Toast.LENGTH_LONG).show()
             return
         }
         GoogleAuth.storeResult(this, result)
-        val action = pendingAction
-        pendingAction = null
+        val action = savedPendingAction()
+        clearPendingAction()
         Bg.run({
             if (GoogleAuth.email(this@SettingsActivity).isBlank() && GoogleAuth.displayName(this@SettingsActivity).isBlank()) {
                 GoogleAuth.fetchIdentityBlocking(this@SettingsActivity, token)
@@ -284,7 +376,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun doSignOut() {
-        pendingAction = null
+        clearPendingAction()
         val dlg = progressDialog("Signing out…")
         dlg.show()
         Bg.run({ GoogleAuth.signOut(this) }, { _, _ ->
@@ -300,20 +392,8 @@ class SettingsActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode==AUTH_REQ) {
-            if (resultCode==Activity.RESULT_OK && data != null) {
-                try {
-                    onAuthorized(GoogleAuth.client(this).getAuthorizationResultFromIntent(data))
-                } catch (e: ApiException) {
-                    pendingAction = null
-                    showAuthError(e)
-                }
-            } else {
-                pendingAction = null
-                Toast.makeText(this, "Google sign-in cancelled", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
+        // Google authorization results arrive through authResultLauncher,
+        // not this legacy callback. Only the CSV document picker remains.
         if (requestCode==EXPORT_REQ && resultCode== Activity.RESULT_OK) {
             val uri: Uri? = data?.data
             if (uri != null) {
