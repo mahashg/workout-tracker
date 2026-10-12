@@ -102,7 +102,17 @@ object GoogleAuth {
 
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+    /** Client for silent/background work. This deliberately uses the
+     *  application context; it must never be used to launch or parse an
+     *  interactive sign-in result. */
     fun client(c: Context) = Identity.getAuthorizationClient(c.applicationContext)
+
+    /** Client for an interactive flow owned by the calling Activity.
+     *  Google's current Android authorization sample creates the client
+     *  from the Activity/Fragment for both authorize() and parsing the
+     *  returned Intent; v2.9 incorrectly reused the application-context
+     *  client for that interactive path. */
+    fun interactiveClient(c: Context) = Identity.getAuthorizationClient(c)
 
     /** The one authorization request used everywhere (interactive + silent).
      *  Client-side only: requestOfflineAccess is deliberately NOT called. */
