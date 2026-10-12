@@ -9,10 +9,17 @@ android {
         applicationId = "com.mahesh.workouttracker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 13
-        versionName = "2.8.1"
+        versionCode = 14
+        versionName = "2.9"
     }
     buildTypes { getByName("release") { } }
+    // v2.9: kotlinx-coroutines (via play-services-auth) and kotlin-stdlib
+    // both ship this metadata file; drop it from the APK.
+    packaging {
+        resources {
+            excludes += "META-INF/kotlin-project-structure-metadata.json"
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -21,6 +28,10 @@ android {
 }
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
+    // v2.9: Google Identity Services Authorization API (client-side only;
+    // no google-services plugin / google-services.json needed). Resolved
+    // into the offline localrepo via ~/workspace/.tooling/resolve.py.
+    implementation("com.google.android.gms:play-services-auth:21.6.0")
 }
 configurations {
     implementation {

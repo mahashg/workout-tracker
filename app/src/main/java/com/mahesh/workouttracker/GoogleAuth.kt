@@ -1,21 +1,25 @@
 package com.mahesh.workouttracker
 
-import android.app.Activity
+import android.accounts.Account
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.google.android.gms.auth.api.identity.ClearTokenRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.auth.api.identity.RevokeAccessRequest
+import com.google.android.gms.common.api.Scope
+import com.google.android.gms.tasks.Tasks
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.security.KeyStore
-import java.security.MessageDigest
-import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -48,11 +52,6 @@ object Net {
             conn.disconnect()
         }
     }
-
-    fun formPost(url: String, params: Map<String, String>): JSONObject {
-        val body = params.entries.joinToString("&") { "${urlEncode(it.key)}=${urlEncode(it.value)}" }.toByteArray(Charsets.UTF_8)
-        return JSONObject(request("POST", url, emptyMap(), body, "application/x-www-form-urlencoded"))
-    }
 }
 
 /** Tiny background runner: blocking work on a thread, result on the main thread. */
@@ -71,41 +70,48 @@ object Bg {
 }
 
 /**
- * Sign in with Google via OAuth2 Authorization Code + PKCE (S256), framework
- * classes only. The app is sideloaded/debug-signed; Mahesh created an Android
- * OAuth client in his own Google Cloud project (package
- * com.mahesh.workouttracker + the debug SHA-1 from the README) and its Client
- * ID is baked in as DEFAULT_CLIENT_ID, so sign-in works with zero setup. A
- * Client ID is a public installed-app identifier, not a secret. Settings can
- * override it (a non-empty pref wins) — e.g. if the signing key ever changes
- * and a new Android OAuth client is registered.
+ * Sign in with Google via the Google Identity Services Authorization API
+ * (play-services-auth), client-side access only — no offline access, no
+ * server client ID, no browser redirect. v2.8's browser Authorization Code +
+ * PKCE flow with a custom URI scheme redirect is rejected by Google on
+ * Android and was removed in v2.9; the SDK identifies the app through the
+ * Android OAuth client registered in Mahesh's Google Cloud project for this
+ * package + signing-certificate SHA-1 (see README V2.9). No client ID string
+ * is entered or stored anywhere in the app.
  *
- * Tokens never touch plaintext storage or logs: access/refresh tokens are
- * AES/GCM-encrypted with a key held in the Android Keystore (alias
- * wt_google_key) and kept in a dedicated prefs file (google_auth). Only the
- * display identity (email/name) and bookkeeping values are plain.
+ * Token model: the SDK hands out short-lived access tokens (~1h). The latest
+ * one is cached AES/GCM-encrypted (Keystore alias wt_google_key, dedicated
+ * google_auth prefs) and treated as expired after 50 minutes; past that,
+ * getAccessToken silently re-authorizes through the SDK (no UI) and only
+ * gives up when Google demands interaction — Settings then runs the
+ * interactive flow. No refresh token exists or is stored. Signed-in state is
+ * the gis_signed_in flag + stored identity, never a leftover v2.8 token:
+ * upgrading users sign in once more with the new flow.
  */
 object GoogleAuth {
     private const val PREFS = "google_auth"
     private const val KEY_ALIAS = "wt_google_key"
-    const val REDIRECT_URI = "com.mahesh.workouttracker:/oauth2redirect"
-    private const val AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-    private const val TOKEN_URL = "https://oauth2.googleapis.com/token"
-    private const val REVOKE_URL = "https://oauth2.googleapis.com/revoke"
-    private const val SCOPES = "openid email profile https://www.googleapis.com/auth/drive.appdata"
+    private const val TOKEN_TTL_MS = 50L * 60L * 1000L
+
+    val SCOPES: List<Scope> = listOf(
+        Scope("https://www.googleapis.com/auth/drive.appdata"),
+        Scope("https://www.googleapis.com/auth/userinfo.email"),
+        Scope("https://www.googleapis.com/auth/userinfo.profile"),
+        Scope("openid")
+    )
 
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    // ----- Client ID (public identifier; baked-in default + Settings override) -----
-    // Default Android OAuth client from Mahesh's Google Cloud project,
-    // registered for package com.mahesh.workouttracker + debug SHA-1
-    // 7B:82:1B:6B:13:FD:A8:B2:2E:15:7A:EA:0B:84:BC:EE:66:DB:08:CC.
-    // Changing the signing key requires registering a new Android OAuth
-    // client and updating this value (or the Settings override).
-    const val DEFAULT_CLIENT_ID = "746141152814-7uc1ov26tuflo5mapc010t4al6134ptf.apps.googleusercontent.com"
-    /** Effective Client ID: the Settings override when non-empty, else the default. */
-    fun clientId(c: Context): String = prefs(c).getString("client_id", "")?.takeIf { it.isNotBlank() } ?: DEFAULT_CLIENT_ID
-    fun setClientId(c: Context, id: String) { prefs(c).edit().putString("client_id", id.trim()).apply() }
+    fun client(c: Context) = Identity.getAuthorizationClient(c.applicationContext)
+
+    /** The one authorization request used everywhere (interactive + silent).
+     *  Client-side only: requestOfflineAccess is deliberately NOT called. */
+    fun authorizationRequest(c: Context): AuthorizationRequest {
+        val b = AuthorizationRequest.builder().setRequestedScopes(SCOPES)
+        val em = email(c)
+        if (em.isNotBlank()) b.setAccount(Account(em, "com.google"))
+        return b.build()
+    }
 
     // ----- Display identity + bookkeeping (plain, not sensitive) -----
     fun email(c: Context): String = prefs(c).getString("email", "") ?: ""
@@ -113,9 +119,31 @@ object GoogleAuth {
     fun lastBackupMs(c: Context): Long = prefs(c).getLong("last_backup_ms", 0L)
     fun setLastBackupMs(c: Context, ms: Long) { if (ms > 0) prefs(c).edit().putLong("last_backup_ms", ms).apply() }
 
-    fun isSignedIn(c: Context): Boolean = !getEnc(c, "rt").isNullOrBlank()
+    fun isSignedIn(c: Context): Boolean {
+        scrubLegacy(c)
+        return prefs(c).getBoolean("gis_signed_in", false)
+    }
 
-    // ----- Keystore-backed AES/GCM encryption for the tokens -----
+    /** v2.8 leftovers (browser-flow tokens, the pasted Client ID, pending
+     *  PKCE values) must never count as signed-in state under the SDK model.
+     *  Drop them on sight; a cached access token without the GIS flag goes
+     *  too, so an upgrade always starts from one fresh GIS sign-in. */
+    private fun scrubLegacy(c: Context) {
+        val p = prefs(c)
+        val e = p.edit()
+        var dirty = false
+        for (k in listOf("rt", "client_id", "pending_verifier", "pending_state")) {
+            if (p.contains(k)) { e.remove(k); dirty = true }
+        }
+        if (!p.getBoolean("gis_signed_in", false)) {
+            for (k in listOf("at", "exp_ms")) {
+                if (p.contains(k)) { e.remove(k); dirty = true }
+            }
+        }
+        if (dirty) e.apply()
+    }
+
+    // ----- Keystore-backed AES/GCM encryption for the cached access token -----
     private fun secretKey(): SecretKey {
         val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (ks.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
@@ -152,121 +180,97 @@ object GoogleAuth {
         e.putString(key, encryptText(value))
     }
 
-    // ----- PKCE helpers -----
-    private fun b64url(bytes: ByteArray): String = Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-    private fun randomB64Url(n: Int): String = b64url(ByteArray(n).also { SecureRandom().nextBytes(it) })
-    private fun challengeOf(verifier: String): String =
-        b64url(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII)))
-
     /**
-     * Opens the Google consent page in the browser (ACTION_VIEW; androidx.browser
-     * is not available in this build). Returns false when no Client ID is set.
-     * The browser redirects back to OauthCallbackActivity via the custom scheme.
+     * Persists a granted AuthorizationResult: the encrypted access token
+     * (50-minute TTL), the GIS signed-in flag, and the display identity when
+     * the result's Google account carries one. Callers verify the token is
+     * non-blank before relying on this for an interactive sign-in.
      */
-    fun startSignIn(activity: Activity): Boolean {
-        val cid = clientId(activity)
-        if (cid.isBlank()) return false
-        val verifier = randomB64Url(64)
-        val state = randomB64Url(32)
-        prefs(activity).edit().putString("pending_verifier", verifier).putString("pending_state", state).apply()
-        val url = AUTH_URL +
-            "?client_id=" + Net.urlEncode(cid) +
-            "&redirect_uri=" + Net.urlEncode(REDIRECT_URI) +
-            "&response_type=code" +
-            "&scope=" + Net.urlEncode(SCOPES) +
-            "&access_type=offline" +
-            "&prompt=consent" +
-            "&code_challenge=" + Net.urlEncode(challengeOf(verifier)) +
-            "&code_challenge_method=S256" +
-            "&state=" + Net.urlEncode(state)
-        activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply { addCategory(Intent.CATEGORY_BROWSABLE) })
-        return true
-    }
-
-    fun expectedState(c: Context): String? = prefs(c).getString("pending_state", null)
-    fun clearPending(c: Context) { prefs(c).edit().remove("pending_verifier").remove("pending_state").apply() }
-
-    /** Blocking: exchanges the auth code for tokens and stores them encrypted. */
-    fun exchangeCode(context: Context, code: String) {
-        val ctx = context.applicationContext
-        val verifier = prefs(ctx).getString("pending_verifier", null) ?: throw Exception("Missing PKCE verifier — start sign-in again")
-        val tok = Net.formPost(
-            TOKEN_URL, linkedMapOf(
-                "code" to code,
-                "client_id" to clientId(ctx),
-                "code_verifier" to verifier,
-                "grant_type" to "authorization_code",
-                "redirect_uri" to REDIRECT_URI
-            )
-        )
-        storeTokens(ctx, tok)
-        clearPending(ctx)
-    }
-
-    private fun storeTokens(ctx: Context, tok: JSONObject) {
-        val at = tok.optString("access_token")
-        if (at.isBlank()) throw Exception("Google did not return an access token")
+    fun storeResult(c: Context, result: AuthorizationResult) {
+        val ctx = c.applicationContext
         val e = prefs(ctx).edit()
-        putEnc(e, "at", at)
-        val rt = tok.optString("refresh_token")
-        if (rt.isNotBlank()) putEnc(e, "rt", rt)
-        e.putLong("exp_ms", System.currentTimeMillis() + tok.optLong("expires_in", 3600L) * 1000L)
+        val token = result.accessToken
+        if (!token.isNullOrBlank()) {
+            putEnc(e, "at", token)
+            e.putLong("exp_ms", System.currentTimeMillis() + TOKEN_TTL_MS)
+        }
+        e.putBoolean("gis_signed_in", true)
         e.apply()
-        val idToken = tok.optString("id_token")
-        if (idToken.isNotBlank()) {
-            try {
-                val parts = idToken.split(".")
-                var payload = parts[1].replace('-', '+').replace('_', '/')
-                while (payload.length % 4 != 0) payload += "="
-                val json = JSONObject(String(Base64.decode(payload, Base64.DEFAULT), Charsets.UTF_8))
-                val em = json.optString("email", "")
-                val nm = json.optString("name", "")
+        try {
+            val acct = result.toGoogleSignInAccount()
+            val em = acct?.email ?: ""
+            val nm = acct?.displayName ?: ""
+            if (em.isNotBlank() || nm.isNotBlank()) {
                 prefs(ctx).edit().apply {
                     if (em.isNotBlank()) putString("email", em)
                     if (nm.isNotBlank()) putString("name", nm)
                 }.apply()
-            } catch (e2: Exception) { /* identity is display-only; tokens are what matter */ }
-        }
+            }
+        } catch (e2: Exception) { /* identity is display-only; the token is what matters */ }
+    }
+
+    /** Blocking: fills a missing display identity from the OIDC userinfo
+     *  endpoint using the just-granted access token. Best-effort. */
+    fun fetchIdentityBlocking(c: Context, token: String) {
+        try {
+            val body = Net.request("GET", "https://openidconnect.googleapis.com/v1/userinfo", mapOf("Authorization" to "Bearer $token"))
+            val json = JSONObject(body)
+            val em = json.optString("email", "")
+            val nm = json.optString("name", "")
+            if (em.isNotBlank() || nm.isNotBlank()) {
+                prefs(c.applicationContext).edit().apply {
+                    if (em.isNotBlank()) putString("email", em)
+                    if (nm.isNotBlank()) putString("name", nm)
+                }.apply()
+            }
+        } catch (e: Exception) { /* display-only; ignore */ }
     }
 
     /**
-     * Blocking: returns a valid access token, refreshing (and persisting the
-     * new token) when the stored one is expired or about to expire.
-     * Null when signed out or the refresh fails.
+     * Blocking — background threads ONLY (Tasks.await). Returns a usable
+     * access token: the cached one while fresh, otherwise a silent SDK
+     * re-authorization. Null when signed out, when Google requires
+     * interaction (hasResolution), or when the silent call fails — callers
+     * surface that as "session expired, sign in again".
      */
     fun getAccessToken(context: Context): String? {
         val ctx = context.applicationContext
+        scrubLegacy(ctx)
+        if (!prefs(ctx).getBoolean("gis_signed_in", false)) return null
         val at = getEnc(ctx, "at")
         val exp = prefs(ctx).getLong("exp_ms", 0L)
         if (!at.isNullOrBlank() && System.currentTimeMillis() < exp - 60_000L) return at
-        val rt = getEnc(ctx, "rt")
-        if (rt.isNullOrBlank()) return null
         return try {
-            val tok = Net.formPost(
-                TOKEN_URL, linkedMapOf(
-                    "client_id" to clientId(ctx),
-                    "refresh_token" to rt,
-                    "grant_type" to "refresh_token"
-                )
-            )
-            storeTokens(ctx, tok)
-            getEnc(ctx, "at")
+            val result = Tasks.await(client(ctx).authorize(authorizationRequest(ctx)), 30, TimeUnit.SECONDS)
+            if (result == null || result.hasResolution()) return null
+            val fresh = result.accessToken
+            if (fresh.isNullOrBlank()) null else { storeResult(ctx, result); fresh }
         } catch (e: Exception) { null }
     }
 
-    /** Blocking, best-effort: revokes the token at Google, then clears the
-     *  local token/identity state. The Client ID is kept for the next sign-in.
-     *  Local workout data is never touched. */
+    /** Blocking, best-effort: revokes this app's access for the account and
+     *  clears the cached token at Google, then wipes ALL local auth state
+     *  (tokens, identity, GIS flag, last-backup). Local workout data is
+     *  never touched. */
     fun signOut(context: Context) {
         val ctx = context.applicationContext
+        val cl = client(ctx)
+        val token = getEnc(ctx, "at")
         try {
-            val t = getEnc(ctx, "rt") ?: getEnc(ctx, "at")
-            if (t != null) Net.formPost(REVOKE_URL, mapOf("token" to t))
+            if (!token.isNullOrBlank()) {
+                Tasks.await(cl.clearToken(ClearTokenRequest.builder().setToken(token).build()), 15, TimeUnit.SECONDS)
+            }
         } catch (e: Exception) { /* best effort */ }
-        prefs(ctx).edit()
-            .remove("at").remove("rt").remove("exp_ms")
-            .remove("email").remove("name").remove("last_backup_ms")
-            .remove("pending_verifier").remove("pending_state")
-            .apply()
+        try {
+            val em = email(ctx)
+            if (em.isNotBlank()) {
+                val req = RevokeAccessRequest.builder()
+                    .setAccount(Account(em, "com.google"))
+                    .setScopes(SCOPES)
+                    .build()
+                Tasks.await(cl.revokeAccess(req), 15, TimeUnit.SECONDS)
+            }
+        } catch (e: Exception) { /* best effort */ }
+        prefs(ctx).edit().clear().apply()
     }
 }
