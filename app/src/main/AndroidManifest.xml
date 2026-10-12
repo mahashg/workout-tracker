@@ -17,13 +17,5 @@
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".LibraryActivity" android:exported="false" />
         <activity android:name=".PreviewCardsActivity" android:exported="false" />
-        <activity android:name=".OauthCallbackActivity" android:exported="true" android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.mahesh.workouttracker" android:host="oauth2redirect" />
-            </intent-filter>
-        </activity>
     </application>
 </manifest>

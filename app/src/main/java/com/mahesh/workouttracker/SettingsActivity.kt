@@ -3,28 +3,35 @@ package com.mahesh.workouttracker
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.IntentSender
 import android.net.Uri
 import android.os.Bundle
-import android.text.InputType
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private val EXPORT_REQ = 2001
+    private val AUTH_REQ = 2002
+    // Google action waiting on an interactive authorize: "signin", "backup",
+    // "restore" (re-confirm), or "restore-run" (already confirmed).
+    private var pendingAction: String? = null
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); db = DbHelper(this); render() }
-    // v2.8: re-render on resume so the Google section reflects sign-in state
-    // when returning from the browser OAuth round-trip.
+    // Re-render on resume so the Google section reflects the latest
+    // sign-in/backup state whenever Settings comes back to the front.
     override fun onResume() { super.onResume(); if (::db.isInitialized) render() }
 
     private fun render() {
         val root = tabScaffold("Settings")
-        // Explicit card budgets (v2.5.1; v2.8 adds the Google Backup card and
-        // tightens the rest — compact sum 34+110+110+152+78+60 = 544dp, under
-        // the ~546dp available at a 640dp viewport; bottom nav always visible).
+        // Explicit card budgets (v2.5.1; v2.9's simpler Google card shrinks
+        // the signed-out state — compact sums: signed-out 34+106+106+118+74+56
+        // = 494dp, signed-in 34+106+106+144+74+56 = 520dp, both under the
+        // ~546dp available at a 640dp viewport; bottom nav always visible).
         val compactSet = isCompactScreen()
         fun budgetCard(h: Int): LinearLayout {
             val c = cardLayout()
@@ -72,7 +79,10 @@ class SettingsActivity : AppCompatActivity() {
         begCard.addView(begBtn)
         root.addView(begCard)
 
-        root.addView(googleCard(if (compactSet) 148 else 170, ::fixBtn, ::noMargin))
+        val signedIn = GoogleAuth.isSignedIn(this)
+        root.addView(googleCard(
+            if (signedIn) (if (compactSet) 144 else 158) else (if (compactSet) 118 else 128),
+            ::fixBtn, ::noMargin))
 
         // Training-week rule folded into About (keeps this screen one page tall).
         val dataCard = budgetCard(if (compactSet) 74 else 84)
@@ -95,12 +105,13 @@ class SettingsActivity : AppCompatActivity() {
         val aboutCard = budgetCard(if (compactSet) 56 else 64)
         aboutCard.addView(noMargin(overline("About")))
         // v2.6.1 copy audit: About is two lines (version + week rule).
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.8.1\nWeek counter advances only after a week with 1+ completed workout."), 2))
+        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.9\nWeek counter advances only after a week with 1+ completed workout."), 2))
         root.addView(aboutCard)
     }
 
-    /** Google Backup card (v2.8): sign-in state, Drive backup/restore.
-     *  The stored Client ID is a public identifier, not a secret. */
+    /** Google Backup card (v2.9): GIS sign-in state, Drive backup/restore.
+     *  No IDs to paste — Play services identifies the app by its package +
+     *  signing key via the Android OAuth client in Mahesh's Cloud project. */
     private fun googleCard(heightDp: Int, fixBtn: (Button, Int) -> Unit, noMargin: (android.widget.TextView, Int) -> android.widget.TextView): LinearLayout {
         val card = cardLayout()
         card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(heightDp)).apply { setMargins(0, dp(2), 0, dp(2)) }
@@ -126,37 +137,8 @@ class SettingsActivity : AppCompatActivity() {
             fixBtn(signOutBtn, 36)
             card.addView(signOutBtn)
         } else {
-            val setupLine = noMargin(caption("Client ID is prefilled and ready — sign in to back up to your Drive. Edit it only to use a different Google Cloud project."), 2)
-            card.addView(setupLine)
-            val idRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(40)); setPadding(0, dp(4), 0, 0) }
-            val idEt = EditText(this).apply {
-                setText(GoogleAuth.clientId(this@SettingsActivity))
-                hint = "Google Client ID"
-                styleEditText(this)
-                textSize = 13f; minHeight = dp(40); isSingleLine = true
-                inputType = InputType.TYPE_CLASS_TEXT
-                layoutParams = LinearLayout.LayoutParams(0, dp(40), 1f)
-            }
-            val saveBtn = makeSmallButton("Save") {
-                GoogleAuth.setClientId(this, idEt.text.toString())
-                Toast.makeText(this, "Client ID saved", Toast.LENGTH_SHORT).show()
-            }
-            (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = dp(68); setMargins(dp(6), 0, 0, 0) }
-            fixBtn(saveBtn, 40)
-            idRow.addView(idEt); idRow.addView(saveBtn)
-            card.addView(idRow)
-            val signInBtn = makeButton("Sign in with Google") {
-                // Save whatever is typed first, so one paste is enough.
-                val typed = idEt.text.toString().trim()
-                if (typed.isNotBlank() && typed != GoogleAuth.clientId(this)) GoogleAuth.setClientId(this, typed)
-                if (GoogleAuth.clientId(this).isBlank()) {
-                    AlertDialog.Builder(this).setTitle("Client ID needed")
-                        .setMessage("The Google Client ID field is empty. It is normally prefilled — paste a Client ID from your Google Cloud project to continue.")
-                        .setPositiveButton("OK", null).show()
-                } else if (!GoogleAuth.startSignIn(this)) {
-                    Toast.makeText(this, "Could not start Google sign-in", Toast.LENGTH_LONG).show()
-                }
-            }
+            card.addView(noMargin(caption("Sign in with Google to back up your workouts to Drive. The app is identified by the Android client registered for this package and signing key — nothing to paste or set up here."), 3))
+            val signInBtn = makeButton("Sign in with Google") { startGoogleAuth("signin") }
             (signInBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
             fixBtn(signInBtn, 44)
             card.addView(signInBtn)
@@ -164,33 +146,145 @@ class SettingsActivity : AppCompatActivity() {
         return card
     }
 
+    // ----- Google Identity Services authorization (v2.9) -----
+
+    /** Runs the SDK authorize() for [action]; Google may answer inline or
+     *  ask for a resolution UI (account pick / consent), launched via
+     *  startIntentSenderForResult and parsed in onActivityResult. */
+    private fun startGoogleAuth(action: String) {
+        pendingAction = action
+        GoogleAuth.client(this).authorize(GoogleAuth.authorizationRequest(this))
+            .addOnSuccessListener { result -> handleAuthResult(result) }
+            .addOnFailureListener { e ->
+                pendingAction = null
+                if (e is ApiException) showAuthError(e) else Toast.makeText(this, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun handleAuthResult(result: AuthorizationResult) {
+        if (result.hasResolution()) {
+            val pi = result.pendingIntent
+            if (pi == null) {
+                pendingAction = null
+                Toast.makeText(this, "Google sign-in failed: no sign-in screen available", Toast.LENGTH_LONG).show()
+                return
+            }
+            try {
+                @Suppress("DEPRECATION")
+                startIntentSenderForResult(pi.intentSender, AUTH_REQ, null, 0, 0, 0)
+            } catch (e: IntentSender.SendIntentException) {
+                pendingAction = null
+                Toast.makeText(this, "Google sign-in failed: could not open the sign-in screen (${e.message})", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        onAuthorized(result)
+    }
+
+    /** Failure wording is deliberately explicit — status code + message —
+     *  so any remaining Cloud-side mismatch can be quoted back verbatim. */
+    private fun showAuthError(e: ApiException) {
+        val code = e.statusCode
+        var msg = "Google sign-in failed (code $code): ${e.message ?: "unknown error"}"
+        if (code == CommonStatusCodes.DEVELOPER_ERROR) {
+            msg += " — Google doesn't recognize this app: the Cloud Android client's package name and signing-certificate SHA-1 must match this app exactly."
+        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    /** A granted result: persist token + identity, then run the pending
+     *  action. Also the post-sign-in Drive check from v2.8: remember the
+     *  last backup time, and offer the one-time restore when a backup
+     *  exists and this phone has no sessions yet. */
+    private fun onAuthorized(result: AuthorizationResult) {
+        val token = result.accessToken
+        if (token.isNullOrBlank()) {
+            pendingAction = null
+            Toast.makeText(this, "Google sign-in failed: Google returned no access token", Toast.LENGTH_LONG).show()
+            return
+        }
+        GoogleAuth.storeResult(this, result)
+        val action = pendingAction
+        pendingAction = null
+        Bg.run({
+            if (GoogleAuth.email(this@SettingsActivity).isBlank() && GoogleAuth.displayName(this@SettingsActivity).isBlank()) {
+                GoogleAuth.fetchIdentityBlocking(this@SettingsActivity, token)
+            }
+            try { DriveBackup.findMeta(this@SettingsActivity) } catch (e: Exception) { null }
+        }, { meta, _ ->
+            if (meta != null) {
+                GoogleAuth.setLastBackupMs(this, DriveBackup.parseModified(meta.modifiedTime))
+                if (db.sessionCount() == 0 && !isFinishing && !isDestroyed) {
+                    offerDriveRestore(meta)
+                    render()
+                    return@run
+                }
+            }
+            when (action) {
+                "backup" -> doBackup()
+                "restore" -> confirmRestore()
+                "restore-run" -> doDriveRestore()
+                else -> {
+                    Toast.makeText(this, "Signed in as ${GoogleAuth.email(this)}", Toast.LENGTH_SHORT).show()
+                    render()
+                }
+            }
+        })
+    }
+
+    private fun offerDriveRestore(meta: DriveBackup.Meta) {
+        AlertDialog.Builder(this)
+            .setTitle("Drive backup found")
+            .setMessage("Restore your backup from ${displayTime(meta.modifiedTime)}? This replaces all data on this phone.")
+            .setPositiveButton("Restore") { _, _ -> doDriveRestore() }
+            .setNegativeButton("Not now", null)
+            .show()
+    }
+
+    private fun displayTime(rfc3339: String): String {
+        val ms = DriveBackup.parseModified(rfc3339)
+        if (ms <= 0L) return "your last backup"
+        return java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.US).format(java.util.Date(ms))
+    }
+
     private fun doBackup() {
+        if (!GoogleAuth.isSignedIn(this)) { startGoogleAuth("backup"); return }
         val dlg = progressDialog("Backing up…")
         dlg.show()
-        Bg.run({ DriveBackup.backupNow(this, db) }, { _, ex ->
+        // getAccessToken silently refreshes when it can; a null marker (no
+        // exception) means Google needs interaction — run the auth flow and
+        // let onAuthorized re-run this backup.
+        Bg.run({ if (GoogleAuth.getAccessToken(this) != null) DriveBackup.backupNow(this, db) else null }, { res, ex ->
             dlg.dismiss()
             if (ex != null) Toast.makeText(this, "Backup failed: ${ex.message}", Toast.LENGTH_LONG).show()
+            else if (res == null) startGoogleAuth("backup")
             else { Toast.makeText(this, "Backup complete", Toast.LENGTH_SHORT).show(); render() }
         })
     }
 
     private fun confirmRestore() {
+        if (!GoogleAuth.isSignedIn(this)) { startGoogleAuth("restore"); return }
         AlertDialog.Builder(this).setTitle("Restore from Drive?")
             .setMessage("Replace all data on this phone with the Drive backup?")
-            .setPositiveButton("Restore") { _, _ ->
-                val dlg = progressDialog("Restoring…")
-                dlg.show()
-                Bg.run({ DriveBackup.restoreNow(this, db) }, { counts, ex ->
-                    dlg.dismiss()
-                    if (ex != null) Toast.makeText(this, "Restore failed: ${ex.message}", Toast.LENGTH_LONG).show()
-                    else Toast.makeText(this, "Restored: ${counts?.optInt("routines") ?: 0} routines, ${counts?.optInt("sessions") ?: 0} sessions", Toast.LENGTH_LONG).show()
-                    render()
-                })
-            }
+            .setPositiveButton("Restore") { _, _ -> doDriveRestore() }
             .setNegativeButton("Cancel", null).show()
     }
 
+    private fun doDriveRestore() {
+        if (!GoogleAuth.isSignedIn(this)) { startGoogleAuth("restore-run"); return }
+        val dlg = progressDialog("Restoring…")
+        dlg.show()
+        Bg.run({ if (GoogleAuth.getAccessToken(this) != null) DriveBackup.restoreNow(this, db) else null }, { counts, ex ->
+            dlg.dismiss()
+            if (ex != null) Toast.makeText(this, "Restore failed: ${ex.message}", Toast.LENGTH_LONG).show()
+            else if (counts == null) { startGoogleAuth("restore-run"); return@run }
+            else Toast.makeText(this, "Restored: ${counts.optInt("routines")} routines, ${counts.optInt("sessions")} sessions", Toast.LENGTH_LONG).show()
+            render()
+        })
+    }
+
     private fun doSignOut() {
+        pendingAction = null
         val dlg = progressDialog("Signing out…")
         dlg.show()
         Bg.run({ GoogleAuth.signOut(this) }, { _, _ ->
@@ -206,6 +300,20 @@ class SettingsActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode==AUTH_REQ) {
+            if (resultCode==Activity.RESULT_OK && data != null) {
+                try {
+                    onAuthorized(GoogleAuth.client(this).getAuthorizationResultFromIntent(data))
+                } catch (e: ApiException) {
+                    pendingAction = null
+                    showAuthError(e)
+                }
+            } else {
+                pendingAction = null
+                Toast.makeText(this, "Google sign-in cancelled", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
         if (requestCode==EXPORT_REQ && resultCode== Activity.RESULT_OK) {
             val uri: Uri? = data?.data
             if (uri != null) {
