@@ -22,7 +22,7 @@ object DriveBackup {
     data class Meta(val id: String, val modifiedTime: String, val sizeBytes: Long)
 
     private fun token(context: Context): String =
-        GoogleAuth.getAccessToken(context.applicationContext) ?: throw Exception("Not signed in to Google")
+        GoogleAuth.getAccessToken(context.applicationContext) ?: throw Exception("Google session expired — open Settings and sign in again")
 
     private fun auth(t: String) = mapOf("Authorization" to "Bearer $t")
 
