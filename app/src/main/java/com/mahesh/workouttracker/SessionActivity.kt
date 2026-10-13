@@ -124,6 +124,7 @@ class SessionActivity : AppCompatActivity() {
             height = 0; weight = if (expanded) 3.2f else 1f; setMargins(0, dp(1), 0, dp(1))
         }
         val sets = db.getSets(ex.id)
+        val sessionNow = db.getSession(sessionId)
         val status = db.effectiveStatus(ex)
         val allDone = sets.isNotEmpty() && sets.all { it.isDone }
 
@@ -177,12 +178,51 @@ class SessionActivity : AppCompatActivity() {
                 gravity = android.view.Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(dp(18), LinearLayout.LayoutParams.WRAP_CONTENT)
             })
-            top.isClickable = true
-            top.setOnClickListener {
+        }
+        // v3.1: no button row on the exercise. Tap = Start/open (the set
+        // logger for the first open set); Skip / Do later live behind a
+        // long-press menu (Start / Do later / Skip). When there is nothing
+        // to log (no sets, or the session is finished) tap falls back to
+        // expanding the row in Beginner Mode.
+        val startOrExpand = {
+            val firstOpen = sets.firstOrNull { !it.isDone } ?: sets.firstOrNull()
+            if (sessionNow != null && !sessionNow.completed && firstOpen != null) editSetDialog(ex, firstOpen, unit)
+            else if (Beginner.beginnerMode(this)) {
                 if (howToExpanded.contains(ex.id)) howToExpanded.remove(ex.id) else { howToExpanded.clear(); howToExpanded.add(ex.id) }
                 render(ex.id)
             }
         }
+        val longPressMenu = {
+            if (sessionNow != null && !sessionNow.completed) {
+                AlertDialog.Builder(this)
+                    .setTitle(ex.name)
+                    .setItems(arrayOf("Start", "Do later", if (status == "skipped") "Un-skip" else "Skip")) { _, which ->
+                        when (which) {
+                            0 -> {
+                                val firstOpen = sets.firstOrNull { !it.isDone } ?: sets.firstOrNull()
+                                if (firstOpen != null) editSetDialog(ex, firstOpen, unit)
+                                else Toast.makeText(this, "No sets yet — tap + to add one", Toast.LENGTH_SHORT).show()
+                            }
+                            1 -> {
+                                db.moveSessionExerciseToEndOfSection(ex.id)
+                                Toast.makeText(this, "Moved ${ex.name} to later", Toast.LENGTH_SHORT).show()
+                                render(ex.id)
+                            }
+                            else -> {
+                                db.setSessionExerciseStatus(ex.id, if (status == "skipped") "pending" else "skipped")
+                                render(ex.id)
+                            }
+                        }
+                    }.show()
+                true
+            } else false
+        }
+        top.isClickable = true
+        top.setOnClickListener { startOrExpand() }
+        top.setOnLongClickListener { longPressMenu() }
+        card.isClickable = true
+        card.setOnClickListener { startOrExpand() }
+        card.setOnLongClickListener { longPressMenu() }
         card.addView(top)
 
         // One-line meta under the name line only when there is height for it is
@@ -210,27 +250,9 @@ class SessionActivity : AppCompatActivity() {
                 (ft.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
                 card.addView(ft)
             }
-            // v3: the three in-workout actions for Exercises (Skip / Do later /
-            // Start = open the set logger), mirroring the card flow.
-            val sessionNow = db.getSession(sessionId)
-            if (ex.type.equals("Main", true) && sessionNow != null && !sessionNow.completed) {
-                val actRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(32)).apply { setMargins(0, dp(2), 0, dp(2)) } }
-                fun actBtn(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(32); setMargins(dp(2), 0, dp(2), 0) }; b.textSize = 11.5f; actRow.addView(b) }
-                actBtn(smallBtn(if (status == "skipped") "Un-skip" else "Skip", 60, 32) {
-                    db.setSessionExerciseStatus(ex.id, if (status == "skipped") "pending" else "skipped")
-                    render(ex.id)
-                })
-                actBtn(smallBtn("Do later", 60, 32) {
-                    db.moveSessionExerciseToEndOfSection(ex.id)
-                    Toast.makeText(this, "Moved ${ex.name} to later", Toast.LENGTH_SHORT).show()
-                    render(ex.id)
-                })
-                actBtn(smallBtn("Start · Log set", 60, 32) {
-                    val firstOpen = db.getSets(ex.id).firstOrNull { !it.isDone } ?: db.getSets(ex.id).firstOrNull()
-                    if (firstOpen != null) editSetDialog(ex, firstOpen, unit) else Toast.makeText(this, "No sets yet — tap + to add one", Toast.LENGTH_SHORT).show()
-                })
-                card.addView(actRow)
-            }
+            // v3.1: the old Skip / Do later / Start button row is gone —
+            // tap = Start/open, long-press = Start / Do later / Skip menu
+            // (wired on the card above).
             if (sets.isNotEmpty()) {
                 val sum = makeText("Sets: " + sets.joinToString(", ") { s -> (if (s.isBodyweight) "BW" else s.weight.ifBlank { "?" }) + "×" + s.reps.ifBlank { "?" } + if (s.isDone) "✓" else "" }, 11f, false, Theme.textSecondary)
                 sum.maxLines = 1; sum.ellipsize = android.text.TextUtils.TruncateAt.END

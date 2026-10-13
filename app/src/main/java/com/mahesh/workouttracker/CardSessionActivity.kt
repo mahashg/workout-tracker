@@ -42,6 +42,8 @@ class CardSessionActivity : AppCompatActivity() {
     private var doneLabel: TextView? = null
     private var skipLabel: TextView? = null
     private var upLabel: TextView? = null
+    private var downLabel: TextView? = null
+    private val photoLoopers = mutableListOf<PhotoLooper>()
     private var peekNear: View? = null
     private var peekFar: View? = null
     private var draggingCard = false
@@ -61,8 +63,12 @@ class CardSessionActivity : AppCompatActivity() {
         reloadDeck(); moveToPending(); render()
     }
 
-    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow() }
-    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking() }
+    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() } }
+    override fun onResume() { super.onResume(); photoLoopers.forEach { it.start() } }
+    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking(); photoLoopers.forEach { it.stop() } }
+
+    /** Do-later applies while another pending exercise remains in this section. */
+    private fun laterAvailable(): Boolean = deck.count { db.effectiveStatus(it) == "pending" } > 1
 
     private fun reloadDeck(){ deck=db.getSessionExercises(sessionId).filter{it.type.equals(sectionType,true)} }
     private fun moveToPending(){
@@ -77,6 +83,9 @@ class CardSessionActivity : AppCompatActivity() {
     }
 
     private fun render(){
+        // Views from the previous render are discarded below; stop their
+        // photo crossfade loops first (v3.1).
+        photoLoopers.forEach { it.stop() }; photoLoopers.clear()
         reloadDeck()
         if(index !in deck.indices){
             // Completion state (fixed screen, no scrolling)
@@ -93,7 +102,6 @@ class CardSessionActivity : AppCompatActivity() {
         val ex=current()!!
         val sets=db.getSets(ex.id)
         val doneSets=sets.count{it.isDone}
-        val unit=WeekManager.unit(this)
         val root=fitRoot(); setContentView(root)
         root.addView(topBar(sectionLabel(sectionType), "Card ${index+1} of ${deck.size}"))
         // Top bar color-coded + workout timer chip. Explicit 96dp budget (v2.5.1):
@@ -153,34 +161,72 @@ class CardSessionActivity : AppCompatActivity() {
         cardSurface = dragCard
         dragCardBand(dragCard)
         val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-        // v3: exercise photo (free-exercise-db, bundled) shown prominently at
-        // the top of the card where one exists; BodyMap is the fallback.
+        // v3: last performance PROMINENT at the top of the card (user ask) —
+        // in v3.1 it lives in the header overlay below.
+        val last=db.lastPerformedForExercise(ex.name, sessionId)
+        val lastLine = if (last != null) lastTimeTitle(last) else "First time — no previous record. Start light."
+        // v3.1: the exercise photo is the BACKGROUND of the card header —
+        // a CENTER_CROP ImageView filling a rounded-corner header frame
+        // (never stretched), exercise name + last-time line overlaid at the
+        // bottom on a dark gradient scrim. Where the dataset shipped a
+        // second frame it crossfade-loops (PhotoLooper). No photo -> the
+        // body map gets the same header space on the mist surface.
         val photoAsset = PhotoLib.assetForSessionExercise(this, db, ex)
         val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
-        if (photoBmp != null) {
-            dragCard.addView(android.widget.ImageView(this).apply {
-                setImageBitmap(photoBmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(104)).apply { setMargins(0, 0, 0, dp(6)) }
-            })
+        val header = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(148)).apply { setMargins(0, 0, 0, dp(6)) }
+            roundedClip(16)
         }
-        // Essentials only up front (approved mockup): name, do-it, dots, badge, map, last done.
-        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        if (photoBmp == null) essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(52),dp(64))})
-        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
+        if (photoBmp != null) {
+            header.setBackgroundColor(Theme.surfaceVariant)
+            header.addView(android.widget.ImageView(this).apply {
+                setImageBitmap(photoBmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            })
+            val photo2 = photoAsset?.let { PhotoLib.secondBitmap(this, it) }
+            if (photo2 != null) {
+                val iv2 = android.widget.ImageView(this).apply {
+                    setImageBitmap(photo2); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP; alpha = 0f
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                }
+                header.addView(iv2)
+                val looper = PhotoLooper(iv2); photoLoopers.add(looper); looper.start()
+            }
+            header.addView(View(this).apply {
+                background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xCC000000.toInt(), 0x00000000))
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(84), Gravity.BOTTOM)
+            })
+            val overlay = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), 0, dp(12), dp(8))
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)
+            }
+            overlay.addView(makeText(ex.name, 20f, true, Color.WHITE).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+            overlay.addView(makeText(lastLine, 12.5f, true, Color.WHITE).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+            header.addView(overlay)
+        } else {
+            header.background = roundedBg("#EDF2F7", 16)
+            header.addView(BodyMapView(this, muscles, true).apply {
+                layoutParams = FrameLayout.LayoutParams(dp(76), dp(96), Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(14), 0) }
+            })
+            val overlay = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), 0, dp(12), dp(8))
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)
+            }
+            overlay.addView(makeText(ex.name, 20f, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+            overlay.addView(makeText(lastLine, 12.5f, true, Theme.primary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+            header.addView(overlay)
+        }
+        dragCard.addView(header)
+        // Essentials under the header: badge, variation, do-it, set dots.
+        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) }
         essInfo.addView(equipmentBadge(ex.equipment))
-        essInfo.addView(makeText(ex.name,20f,true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0) })
         if(ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
         essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")))
         essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",13f,true))
         essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")))
-        essRow.addView(essInfo)
-        dragCard.addView(essRow)
-        // v3: last performance PROMINENT at the top of the card (user ask).
-        val last=db.lastPerformedForExercise(ex.name, sessionId)
-        if(last!=null){
-            dragCard.addView(makeText(lastTimeTitle(last),13.5f,true,Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-            if(last.effort.isNotBlank()) dragCard.addView(makeText("Effort last time: ${last.effort} — ${Beginner.effortSuggestion(last.effort,unit)}",11.5f,false,Theme.textSecondary))
-        } else dragCard.addView(makeText("First time — no previous record. Start light.",12f,false,Theme.textSecondary))
+        dragCard.addView(essInfo)
 
         // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
         // Compact posture block: video button, feel line, <=4 posture bullets,
@@ -210,8 +256,9 @@ class CardSessionActivity : AppCompatActivity() {
             if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
             dragCard.addView(how)
         }
-        // v2.6.1 copy audit: no swipe-instruction text (the buttons below it
-        // say Skip / Log Set / Done already). "Next up:" stays — it's informative.
+        // v3.1: one small swipe-hint line sits under the button row (Skip /
+        // Done are swipe-only now, so the hint earns its place). "Next up:"
+        // stays — it's informative.
 
         wrap.addView(dragCard)
         // Direction tint overlay (fades in with drag progress, tinted per direction)
@@ -233,7 +280,8 @@ class CardSessionActivity : AppCompatActivity() {
         skipLabel = dirLabel("✕ SKIP", "#DC2626", Gravity.TOP or Gravity.START, 10f)
         doneLabel = dirLabel("✓ DONE", "#15803D", Gravity.TOP or Gravity.END, -10f)
         upLabel = dirLabel("↑ LOG SET", "#2563EB", Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0f)
-        wrap.addView(skipLabel); wrap.addView(doneLabel); wrap.addView(upLabel)
+        downLabel = dirLabel("↓ LATER", "#7C3AED", Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0f)
+        wrap.addView(skipLabel); wrap.addView(doneLabel); wrap.addView(upLabel); wrap.addView(downLabel)
         cardWrap = wrap
         deckBox.addView(wrap)
         root.addView(deckBox)
@@ -272,6 +320,8 @@ class CardSessionActivity : AppCompatActivity() {
                         when {
                             abs(dx) >= tx && abs(dx) >= 1.3f * abs(dy) -> if(dx > 0) animateExitThen(v, 1) { applyDone() } else animateExitThen(v, -1) { applySkipped() }
                             dy < 0 && abs(dy) >= ty && abs(dy) >= 1.3f * abs(dx) -> animateLogSetLift(v) { logSetDialog() }
+                            // v3.1: down-swipe = Do later (same as the Later button).
+                            dy > 0 && abs(dy) >= ty && abs(dy) >= 1.3f * abs(dx) -> if (laterAvailable()) animateLaterDrop(v) { doLater() } else snapCardBack(v)
                             else -> snapCardBack(v)
                         }
                     }
@@ -287,36 +337,28 @@ class CardSessionActivity : AppCompatActivity() {
             wrap.animate().alpha(1f).scaleX(1f).scaleY(1f).translationY(0f).setDuration(220).setInterpolator(DecelerateInterpolator()).start()
         }
 
-        // Buttons (every gesture has a button): same animated exits as the swipes.
+        // v3.1 final card design (user-approved mock): NO Skip and NO Done
+        // buttons anywhere — those two actions are swipe-only (left/right).
+        // The only buttons on this screen are Log set (primary) and Later
+        // (secondary) in one slim row; up-swipe also opens Log set and
+        // down-swipe is Later, the same two actions.
         val wrapRef = wrap
-        val row1=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        fun actionBtn(label: String, act: () -> Unit): android.widget.Button {
-            val b = makeSmallButton(label, act)
-            (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(52) }
-            return b
+        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(46)) }
+        val logBtn = makeButton("Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
+        (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
+        tightButton(logBtn, 46, 12, primary = true)
+        btnRow.addView(logBtn)
+        if (laterAvailable()) {
+            val laterBtn = makeSecondaryButton("Later") { animateLaterDrop(wrapRef) { doLater() } }
+            (laterBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
+            tightButton(laterBtn, 46, 12)
+            btnRow.addView(laterBtn)
         }
-        row1.addView(smallButtonWithIcon("Skip", R.drawable.ic_close, Theme.textPrimary) { animateExitThen(wrapRef, -1) { applySkipped() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
-        row1.addView(smallButtonWithIcon("Log Set", R.drawable.ic_arrow_up, Theme.primary) { animateLogSetLift(wrapRef) { logSetDialog() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
-        row1.addView(smallButtonWithIcon("Done", R.drawable.ic_check, Theme.success) { animateExitThen(wrapRef, 1) { applyDone() } }.apply { (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) } })
-        root.addView(row1)
-        // Compact secondary row (all previous actions preserved, one 48dp row)
-        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
-        fun secBtn(b: android.widget.Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), dp(4), dp(2), 0) }; row2.addView(b) }
-        // v3: visible "Later" button (alongside the swipes) — moves this
-        // exercise to the end of today's remaining list for this section.
-        if (sectionType == "Main" && deck.count { db.effectiveStatus(it) == "pending" } > 1) {
-            secBtn(makeSmallButton("Later") { doLater() })
-        }
-        val swap = SwapMap.forExercise(ex.name)
-        if (swap != null && sectionType == "Main") {
-            secBtn(makeSmallButton("Swap →") {
-                AlertDialog.Builder(this).setTitle("Swap exercise?").setMessage("Replace ${ex.name} with ${swap.first}? Your logged sets stay.").setPositiveButton("Swap") { _, _ -> snapshot(ex); db.swapSessionExercise(ex.id, swap.first, swap.second); Toast.makeText(this, "Swapped to ${swap.first}", Toast.LENGTH_SHORT).show(); render() }.setNegativeButton("Cancel", null).show()
-            })
-        }
-        if (undoStack.isNotEmpty()) secBtn(makeSmallButton("Undo") { doUndo(); render() })
-        secBtn(makeSmallButton("List / sets") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }) })
-        secBtn(makeSmallButton("Sections") { finish() })
-        root.addView(row2)
+        root.addView(btnRow)
+        root.addView(makeText("Swipe ← Skip · → Done · ↓ Later", 11.5f, false, Theme.textSecondary).apply {
+            gravity = Gravity.CENTER
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(18); setMargins(0, dp(2), 0, 0) }
+        })
         val next = deck.getOrNull(index + 1)
         if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")).apply {
             (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
@@ -329,18 +371,20 @@ class CardSessionActivity : AppCompatActivity() {
     /** Faded direction label + card tint/border grow with drag progress toward the commit threshold. */
     private fun updateDragFeedback(v: View, dx: Float, dy: Float, tx: Float, ty: Float) {
         val px = if (tx > 0) abs(dx) / tx else 0f
-        val py = if (dy < 0 && ty > 0) abs(dy) / ty else 0f
+        val py = if (ty > 0) abs(dy) / ty else 0f
         val horizontal = px >= py
         val progress = (if (horizontal) px else py).coerceIn(0f, 1f)
         val dirColor = when {
-            !horizontal -> Color.parseColor("#2563EB")
+            !horizontal && dy < 0 -> Color.parseColor("#2563EB")
+            !horizontal -> Color.parseColor("#7C3AED")
             dx >= 0 -> Color.parseColor("#15803D")
             else -> Color.parseColor("#DC2626")
         }
         doneLabel?.alpha = if (horizontal && dx > 0) progress else 0f
         skipLabel?.alpha = if (horizontal && dx < 0) progress else 0f
-        upLabel?.alpha = if (!horizontal) progress else 0f
-        val active = when { horizontal && dx > 0 -> doneLabel; horizontal && dx < 0 -> skipLabel; !horizontal -> upLabel; else -> null }
+        upLabel?.alpha = if (!horizontal && dy < 0) progress else 0f
+        downLabel?.alpha = if (!horizontal && dy > 0) progress else 0f
+        val active = when { horizontal && dx > 0 -> doneLabel; horizontal && dx < 0 -> skipLabel; !horizontal && dy < 0 -> upLabel; !horizontal && dy > 0 -> downLabel; else -> null }
         active?.let { val s = 0.92f + 0.13f * progress; it.scaleX = s; it.scaleY = s }
         // Border strengthens toward the direction color; tint washes the card face.
         cardSurface?.background = deckCardDrawable(if (progress > 0.02f) dirColor else null)
@@ -367,6 +411,7 @@ class CardSessionActivity : AppCompatActivity() {
         doneLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
         skipLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
         upLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
+        downLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
         tintOverlay?.animate()?.alpha(0f)?.setDuration(140)?.start()
         peekNear?.animate()?.scaleX(0.96f)?.scaleY(0.96f)?.translationY(dp(12).toFloat())?.alpha(0.7f)?.setDuration(180)?.start()
         cardSurface?.background = deckCardDrawable()
@@ -403,6 +448,21 @@ class CardSessionActivity : AppCompatActivity() {
             }.start()
     }
 
+    /** Down-swipe / Later-button treatment (v3.1): the card sinks and
+     *  fades, THEN Do later is applied and the next card enters. */
+    private fun animateLaterDrop(v: View, after: () -> Unit) {
+        if (cardAnimating) return
+        cardAnimating = true
+        fadeDragFeedback()
+        v.animate().translationY(v.height * 0.35f).translationX(0f).rotation(0f).alpha(0f)
+            .setDuration(240).setInterpolator(AccelerateInterpolator(1.1f))
+            .withEndAction {
+                cardAnimating = false
+                animateEntryOnNextRender = true
+                after()
+            }.start()
+    }
+
     // ---- Actions (applied after the card animation, or directly from dialogs) ----
 
     private fun applySkipped(){
@@ -415,7 +475,8 @@ class CardSessionActivity : AppCompatActivity() {
         val ex=current() ?: return; snapshot(ex)
         for(s in db.getSets(ex.id)){ if(!s.isDone) db.updateSet(s.copy(isDone=true)) }
         db.setSessionExerciseStatus(ex.id,"done")
-        askEffort(ex){ advanceWithRest() }
+        // v3.1: no effort/feedback prompt — finishing never interrupts.
+        advanceWithRest()
     }
     /** v3 "Do later": current exercise moves to the end of this section's
      *  remaining list; the next exercise slides in. No status change. */
@@ -474,11 +535,23 @@ class CardSessionActivity : AppCompatActivity() {
         Toast.makeText(this,"Undone",Toast.LENGTH_SHORT).show()
     }
 
-    private fun askEffort(ex: SessionExercise, after: ()->Unit){
-        val opts=arrayOf("Too Easy","Just Right","Too Hard")
-        AlertDialog.Builder(this).setTitle("How was that?")
-            .setItems(opts){_,which-> db.setSessionExerciseEffort(ex.id,opts[which]); after()}
-            .setNegativeButton("Skip"){_,_->after()}.setCancelable(false).show()
+    /** v3.1 custom value editor for the set logger: a numeric EditText
+     *  (decimal allowed for weight, integer for reps) prefilled with the
+     *  current value; OK applies it to the set being logged. */
+    private fun customValueDialog(decimal: Boolean, current: Double, title: String, apply: (Double) -> Unit) {
+        val et = EditText(this).apply {
+            inputType = if (decimal) android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                        else android.text.InputType.TYPE_CLASS_NUMBER
+            setText(if (decimal) (if (current % 1.0 == 0.0) current.toInt().toString() else current.toString()) else current.toInt().toString())
+            setSelection(text.length)
+            styleEditText(this)
+        }
+        AlertDialog.Builder(this).setTitle(title).setView(et)
+            .setPositiveButton("OK") { _, _ ->
+                val v = et.text.toString().toDoubleOrNull() ?: return@setPositiveButton
+                apply(if (decimal) v.coerceAtLeast(0.0) else v.coerceAtLeast(1.0))
+            }
+            .setNegativeButton("Cancel", null).show()
     }
 
     private fun logSetDialog(){
@@ -509,6 +582,8 @@ class CardSessionActivity : AppCompatActivity() {
         box.addView(makeText("Weight used ($unit)",14f,true))
         val wStep=if(unit=="kg")2.5 else 5.0
         val wTv=makeText(if(isBw) "Bodyweight" else String.format(Locale.US,"%.1f %s",weightVal,unit),22f,true,Color.parseColor("#92400E"))
+        // v3.1: the displayed value itself is tappable — opens the custom editor.
+        wTv.setOnClickListener{ customValueDialog(true, weightVal, "Custom weight ($unit)") { v -> isBw=false; weightVal=v; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit) } }
         val wRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         wRow.addView(makeSmallButton("−"){isBw=false; weightVal=(weightVal-wStep).coerceAtLeast(0.0); wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
         wRow.addView(wTv); wRow.addView(makeSmallButton("+"){isBw=false; weightVal+=wStep; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
@@ -516,16 +591,22 @@ class CardSessionActivity : AppCompatActivity() {
         val wChips=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         wChips.addView(makeSmallButton("BW"){isBw=true; wTv.text="Bodyweight"})
         for(w in listOf(10,20,30,40,50)) wChips.addView(makeSmallButton("$w"){isBw=false; weightVal=w.toDouble(); wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
+        // v3.1: final chip opens the custom weight editor (any value).
+        wChips.addView(makeSmallButton("Custom"){ customValueDialog(true, weightVal, "Custom weight ($unit)") { v -> isBw=false; weightVal=v; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit) } })
         box.addView(wChips)
         // Reps stepper + chips
         box.addView(makeText("Reps done",14f,true))
         val rTv=makeText("$repsVal reps",22f,true,Color.parseColor("#92400E"))
+        // v3.1: the displayed value itself is tappable — opens the custom editor.
+        rTv.setOnClickListener{ customValueDialog(false, repsVal.toDouble(), "Custom reps") { v -> repsVal=v.toInt().coerceAtLeast(1); rTv.text="$repsVal reps" } }
         val rRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         rRow.addView(makeSmallButton("−"){repsVal=(repsVal-1).coerceAtLeast(1); rTv.text="$repsVal reps"})
         rRow.addView(rTv); rRow.addView(makeSmallButton("+"){repsVal++; rTv.text="$repsVal reps"})
         box.addView(rRow)
         val rChips=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         for(r in listOf(8,10,12,15)) rChips.addView(makeSmallButton("$r"){repsVal=r; rTv.text="$repsVal reps"})
+        // v3.1: final chip opens the custom reps editor (any value).
+        rChips.addView(makeSmallButton("Custom"){ customValueDialog(false, repsVal.toDouble(), "Custom reps") { v -> repsVal=v.toInt().coerceAtLeast(1); rTv.text="$repsVal reps" } })
         box.addView(rChips)
         // v3: no per-log rest picker — rest durations are the user's Settings
         // values (30s between sets / 60s between exercises by default) and
@@ -563,7 +644,7 @@ class CardSessionActivity : AppCompatActivity() {
                 db.syncExerciseStatus(ex.id)
                 sheet.dismiss()
                 val remaining = db.getSets(ex.id).count { !it.isDone }
-                if (remaining == 0) { db.setSessionExerciseStatus(ex.id, "done"); askEffort(ex) { advanceWithRest() } }
+                if (remaining == 0) { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
                 else setRestThen(ex) { render() }
             }
             (repeatBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(2), 0, 0) }
@@ -582,7 +663,7 @@ class CardSessionActivity : AppCompatActivity() {
             db.syncExerciseStatus(ex.id)
             sheet.dismiss()
             val remaining=db.getSets(ex.id).count{!it.isDone}
-            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); askEffort(ex){ advanceWithRest() } }
+            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); advanceWithRest() }
             else setRestThen(ex){ render() }
         }
         (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
