@@ -13,9 +13,11 @@ class ExerciseEditActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var exerciseId: Long = -1
     private var routineId: Long = -1
+    private var bodyPartExtra: String = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); db = DbHelper(this)
         exerciseId = intent.getLongExtra("exerciseId", -1); routineId = intent.getLongExtra("routineId", -1)
+        bodyPartExtra = intent.getStringExtra("bodyPart") ?: ""
         render()
     }
 
@@ -85,8 +87,14 @@ class ExerciseEditActivity : AppCompatActivity() {
             val name = nameEt.text.toString().trim(); if (name.isEmpty()) { Toast.makeText(this, "Name required", Toast.LENGTH_SHORT).show(); return@makeButton }
             val sets = setsEt.text.toString().toIntOrNull() ?: 3
             if (existing == null) {
-                val count = db.getExercises(routineId).size
-                db.insertExercise(Exercise(0, routineId, name, types[typeSp.selectedItemPosition], equips[equipSp.selectedItemPosition], sets, repsEt.text.toString(), weightEt.text.toString(), varEt.text.toString(), ytEt.text.toString(), count, musEt.text.toString(), cuesEt.text.toString(), postEt.text.toString()))
+                if (bodyPartExtra.isNotBlank() && BodyParts.byId(bodyPartExtra) != null) {
+                    // v3 part-scoped add: no routine; the part owns the row.
+                    val count = db.getExercisesForPart(bodyPartExtra).size
+                    db.insertExercise(Exercise(0, -1, name, types[typeSp.selectedItemPosition], equips[equipSp.selectedItemPosition], sets, repsEt.text.toString(), weightEt.text.toString(), varEt.text.toString(), ytEt.text.toString(), count, musEt.text.toString(), cuesEt.text.toString(), postEt.text.toString(), bodyPart = bodyPartExtra, sourceId = ""))
+                } else {
+                    val count = db.getExercises(routineId).size
+                    db.insertExercise(Exercise(0, routineId, name, types[typeSp.selectedItemPosition], equips[equipSp.selectedItemPosition], sets, repsEt.text.toString(), weightEt.text.toString(), varEt.text.toString(), ytEt.text.toString(), count, musEt.text.toString(), cuesEt.text.toString(), postEt.text.toString()))
+                }
             } else {
                 db.updateExercise(existing.copy(name = name, type = types[typeSp.selectedItemPosition], equipment = equips[equipSp.selectedItemPosition], defaultSets = sets, targetReps = repsEt.text.toString(), defaultWeight = weightEt.text.toString(), variation = varEt.text.toString(), youtubeUrl = ytEt.text.toString(), targetMuscles = musEt.text.toString(), cues = cuesEt.text.toString(), postureCheck = postEt.text.toString()))
             }
