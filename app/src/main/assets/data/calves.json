@@ -1,0 +1,65 @@
+{
+  "bodyPart": "calves",
+  "warmups": [],
+  "exercises": [
+    {
+      "id": "standing-calf-raise-machine",
+      "photo": "exercise-images/standing-calf-raise-machine.jpg",
+      "name": "Standing Calf Raise Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "calves",
+      "precautions": "Balls of feet on step edge, heels lower than toes;Legs straight but knees never locked hard;Rise straight up - no bouncing at the bottom;Body tall - shoulders under pads, no leaning",
+      "cues": "Shoulders under pads, feet at edge;Rise onto toes high;Lower heels below step, slowly",
+      "image": "calves",
+      "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raise+Machine+form",
+      "primary": false
+    },
+    {
+      "id": "seated-calf-raise",
+      "photo": "exercise-images/seated-calf-raise.jpg",
+      "name": "Seated Calf Raise",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "calves",
+      "precautions": "Balls of feet on platform, pad rests on lower thighs;Knees bent ~90 degrees and still throughout;Rise straight up on toes - no rocking;Full stretch at bottom - pause before rising",
+      "cues": "Sit tall, pad on thighs;Raise heels as high as you can;Lower slowly to full stretch",
+      "image": "calves",
+      "url": "https://www.youtube.com/results?search_query=Seated+Calf+Raise+form",
+      "primary": false
+    },
+    {
+      "id": "single-leg-calf-raise",
+      "photo": "exercise-images/single-leg-calf-raise.jpg",
+      "name": "Single-Leg Calf Raise",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "12 ea",
+      "targetMuscles": "calves",
+      "precautions": "Ball of one foot on step edge, hold rail for balance;Standing leg straight, knee soft - not locked;Rise straight up - hips level, no leaning away;Lower heel below step slowly, no bounce",
+      "cues": "One foot on step, hold support;Rise onto toes tall;Lower slowly, repeat, switch",
+      "image": "calves",
+      "url": "https://www.youtube.com/results?search_query=Single-Leg+Calf+Raise+form",
+      "primary": false
+    }
+  ],
+  "stretches": [
+    {
+      "id": "standing-calf-stretch",
+      "photo": "exercise-images/standing-calf-stretch.jpg",
+      "name": "Standing Calf Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "calves",
+      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+      "image": "calves",
+      "url": "https://www.youtube.com/watch?v=zeTV7lvAWyg",
+      "primary": true,
+      "defaultWeight": "BW"
+    }
+  ]
+}
