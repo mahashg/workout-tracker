@@ -38,7 +38,9 @@ class HistoryActivity : AppCompatActivity() {
             name.maxLines = 1; name.ellipsize = android.text.TextUtils.TruncateAt.END
             info.addView(name)
             val dur = if (s.startedAt > 0) " • ${WorkoutTimer.formatDuration(if (s.completed) s.elapsedSec else WorkoutTimer.liveElapsedSec(this, s))}" else ""
-            val sub = makeText(s.focus + dur, 11f, false, Theme.textSecondary)
+            // v3 sessions store focus as part ids ("back,biceps") — show names.
+            val focusLabel = s.focus.split(",").map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ") { tok -> BodyParts.byId(tok)?.name ?: tok }
+            val sub = makeText(focusLabel + dur, 11f, false, Theme.textSecondary)
             sub.maxLines = 1; sub.ellipsize = android.text.TextUtils.TruncateAt.END
             info.addView(sub)
             row.addView(info)
