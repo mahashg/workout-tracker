@@ -17,5 +17,8 @@
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".LibraryActivity" android:exported="false" />
         <activity android:name=".PreviewCardsActivity" android:exported="false" />
+        <activity android:name=".PickPartsActivity" android:exported="false" />
+        <activity android:name=".AssembleActivity" android:exported="false" />
+        <activity android:name=".BodyPartDetailActivity" android:exported="false" />
     </application>
 </manifest>
