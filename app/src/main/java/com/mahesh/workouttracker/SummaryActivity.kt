@@ -96,6 +96,46 @@ class SummaryActivity : AppCompatActivity() {
         }
         root.addView(perCard)
 
+        // S4 (v3): beat-last-time, fresh completions only. Metric: total
+        // volume = sum over done sets of weight x reps; exercises with no
+        // weighted done sets on either day compare total reps instead.
+        // "Beat" = today's metric strictly greater than last time's.
+        if (celebrate) {
+            fun volReps(sets: List<com.mahesh.workouttracker.SessionSet>): Pair<Double, Int> {
+                var vol = 0.0; var reps = 0
+                for (s in sets) {
+                    if (!s.isDone) continue
+                    val w = if (s.isBodyweight) 0.0 else (s.weight.toDoubleOrNull() ?: 0.0)
+                    val r = s.reps.filter { it.isDigit() }.toIntOrNull() ?: 0
+                    vol += w * r; reps += r
+                }
+                return vol to reps
+            }
+            val cmps = mutableListOf<Triple<String, Boolean, String>>()
+            for (ex in exs) {
+                if (db.effectiveStatus(ex) != "done") continue
+                val last = db.lastPerformedForExercise(ex.name, sessionId) ?: continue
+                val (tv, tr) = volReps(db.getSets(ex.id))
+                val (pv, pr) = volReps(last.sets)
+                val useVol = tv > 0 && pv > 0
+                val beat = if (useVol) tv > pv else tr > pr
+                val delta = if (useVol) "${ex.name} ${pv.toInt()}→${tv.toInt()} vol" else "${ex.name} $pr→$tr reps"
+                cmps.add(Triple(ex.name, beat, delta))
+            }
+            if (cmps.isNotEmpty()) {
+                val beatCard = cardLayout()
+                beatCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(68)).apply { setMargins(0, 0, 0, 0) }
+                beatCard.setPadding(dp(12), dp(8), dp(12), dp(8))
+                beatCard.addView(makeText("Beat last time on ${cmps.count { it.second }} of ${cmps.size} exercises", 14f, true, Theme.primary))
+                val deltas = cmps.filter { it.second }.take(3)
+                beatCard.addView(makeText(
+                    if (deltas.isEmpty()) "No exercise beat its last time — showing up still counts."
+                    else deltas.joinToString("  ·  ") { it.third },
+                    11.5f, false, Theme.textSecondary).apply { maxLines = 2 })
+                root.addView(beatCard)
+            }
+        }
+
         // Filler keeps the buttons pinned to the bottom of the fixed screen.
         // v2.6.1 copy audit: "Every workout counts — see you next session." filler removed; stats only.
         root.addView(LinearLayout(this).apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) })
