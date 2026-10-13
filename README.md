@@ -443,3 +443,70 @@ Invariants kept: no ScrollView anywhere (grep = 0), one-page screens, Mist
 palette, Beginner posture content untouched, launcher icon unchanged, no
 gamification. Google sign-in / Drive auth code untouched (that thread is
 parked; only the backup table list + prefs subset changed).
+
+## V3.1 (versionCode 17) — on-device feedback round
+
+DB stays v4 (no schema change). All 8 items are from Mahesh's on-device
+v3 test:
+
+1. **No feedback ask** — the post-exercise effort prompt ("How was that?")
+   is gone entirely, as is the effort readout line on the cards. Finishing
+   or logging never interrupts to ask how it felt. DB columns/data left
+   as-is; effort suggestions simply stop being fed.
+2. **Photo rendering** — the exercise photo is now the BACKGROUND of the
+   card header (card mode) and of the exercise row (Library detail):
+   a `CENTER_CROP` ImageView filling a rounded-corner frame — never
+   stretched (`fitXY` grep = 0) — with the exercise name + last-time line
+   overlaid at the bottom on a dark gradient scrim. No photo -> the body
+   map gets the same header space.
+3. **Card buttons** — no Skip and no Done buttons anywhere in card mode
+   (both are swipe-only). The only buttons are **Log set** (primary) and
+   **Later** (secondary) in one slim row under the card. Swipes keep the
+   strict commit rules (dominant axis >= 1.3x, displacement thresholds):
+   left = Skip, right = Done, up = Log set, down = Do later (new), with
+   faded direction labels while dragging (incl. a new down LATER label)
+   and one hint line: "Swipe <- Skip · -> Done · v Later". In the list
+   session view the per-exercise button row is gone too: tap = Start/open
+   (set logger), long-press opens a Start / Do later / Skip menu.
+4. **Custom log values** — the set logger's weight and reps chip rows end
+   with a **Custom** chip that opens a numeric editor (decimal for
+   weight, integer for reps) prefilled with the current value; the
+   displayed weight/reps value itself is also tappable to open the same
+   editor. Fixed chips unchanged.
+5. **Google sign-in removed from Settings** — the whole Google Backup
+   section (account card, Sign in with Google, Backup now, Restore from
+   Drive, Sign out) is deleted from the Settings UI. `GoogleAuth.kt` /
+   `DriveBackup.kt` remain in the codebase but are unreachable from any
+   UI; the post-workout auto-backup call sites stay silent no-ops when
+   never signed in (verified by code read of `backupSilently`).
+6. **Tab rename** — the bottom-nav tab formerly "Body Parts" is now
+   **Library** (label only; content unchanged).
+7. **Settings switches fixed** — the Units and Beginner Mode cards were
+   shorter than their content (~102dp in 98dp cards) and clipped their
+   buttons. Both cards are now 138dp with an exact 56dp switch button and
+   full padding. Recomputed budget (compact): title 32 + Units 138 +
+   Beginner 138 + Rest 72 + Data 116 + ~16 margins = ~512dp, under the
+   ~546dp floor; still zero scrolling (ScrollView grep = 0) and every
+   row fully visible (the removed Google card freed the space).
+8. **Picker compatibility highlighting** — `BodyParts` gains a symmetric
+   `compatibleWith` matrix (e.g. Chest<->{Triceps, Shoulders}, Back<->
+   {Biceps, Traps}, Quads<->{Hamstrings, Glutes, Calves}, Core<->all).
+   In the Start Workout picker: nothing selected -> all cards normal;
+   with >=1 selected, unselected parts compatible with EVERY selected
+   part get a primary border + "Pairs well" pill, and other unselected
+   cards dim to alpha 0.55 (still fully selectable). Recomputed on every
+   selection change.
+
+Plus, from the same review — **animated exercise images**: every bundled
+photo's dataset entry ships a second frame (the other movement position);
+all 81 were downloaded, resized (max width 640px, JPEG q80) and bundled
+as `assets/exercise-images/<id>-2.jpg`. Card-mode headers and Library
+detail rows crossfade-loop the two frames (~800ms hold, ~350ms fade, two
+stacked CENTER_CROP ImageViews, no animation library), stopping when the
+screen isn't visible. Coverage: **81 of 81** photos animated; see
+`research-exercise-images.md`. The -2.jpg binaries, like the originals,
+are NOT pushed to GitHub (text-only connector).
+
+APK: 11,166,828 bytes (+3,337,491 vs v3.0's 7,829,337 — the 81 second
+frames). Signing cert unchanged: SHA-1
+0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.

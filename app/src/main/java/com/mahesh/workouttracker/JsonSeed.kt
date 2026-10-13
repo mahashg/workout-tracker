@@ -162,6 +162,12 @@ object PhotoLib {
         return JsonSeed.entryByName(context, se.name)?.photo?.takeIf { it.isNotBlank() }
     }
 
+    /** v3.1 animation frame 2: "<id>-2.jpg" next to the bundled photo (the
+     *  dataset entry's second movement position). Null when the entry has
+     *  no second frame — callers then show the static photo. */
+    fun secondBitmap(context: Context, firstAssetPath: String): Bitmap? =
+        bitmap(context, firstAssetPath.removeSuffix(".jpg") + "-2.jpg")
+
     fun bitmap(context: Context, assetPath: String): Bitmap? {
         bitmapCache.get(assetPath)?.let { return it }
         return try {

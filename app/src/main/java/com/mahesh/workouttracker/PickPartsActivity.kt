@@ -33,11 +33,19 @@ class PickPartsActivity : AppCompatActivity() {
         val lastTrained = db.lastTrainedDates()
         val counts = db.partCountsInWeek(wm.weekStart)
 
+        // v3.1 compatibility highlighting: with >=1 part picked, the
+        // preferred set = unselected parts compatible with EVERY selected
+        // part (BodyParts.compatibleWith). Preferred cards get a primary
+        // border + "Pairs well" pill; other unselected cards dim but stay
+        // fully selectable. Recomputed on every render (selection change).
+        val preferred: Set<String> = if (selected.isEmpty()) emptySet()
+            else BodyParts.all.filter { p -> p.id !in selected && selected.all { s -> BodyParts.compatible(p.id, s) } }.map { it.id }.toSet()
+
         val cellH = if (compact) 56 else 64
         for (rowParts in BodyParts.all.chunked(2)) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             for (part in rowParts) {
-                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0, part.id in preferred, selected.isNotEmpty() && part.id !in selected && part.id !in preferred), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
             }
             if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
             root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
@@ -55,15 +63,16 @@ class PickPartsActivity : AppCompatActivity() {
         root.addView(btn)
     }
 
-    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
+    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int, isPreferred: Boolean, isDimmed: Boolean): View {
         val isSel = part.id in selected
         val done = countThisWeek > 0
         val days = last?.let { daysSince(it) }
         val due = !part.repeatable && !done && (last == null || (days != null && days >= 7))
         val cell = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = cardDrawable(accent = if (isSel) "#2563EB" else null, tappable = true)
+            background = cardDrawable(accent = if (isSel || isPreferred) "#2563EB" else null, tappable = true)
             setPadding(dp(10), dp(6), dp(10), dp(5))
+            if (isDimmed) alpha = 0.55f
             isClickable = true
             setOnClickListener {
                 if (isSel) selected.remove(part.id) else selected.add(part.id)
@@ -77,6 +86,7 @@ class PickPartsActivity : AppCompatActivity() {
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
         val (pillText, pillBg, pillInk) = when {
             isSel -> Triple("✓ Picked", "#DBEAFE", Theme.primary)
+            isPreferred -> Triple("Pairs well", "#2563EB", android.graphics.Color.WHITE)
             part.repeatable -> Triple("${countThisWeek}× this week", "#EDF2F7", Theme.textSecondary)
             done -> Triple("✓ Done", "#DCFCE7", Theme.success)
             due -> Triple("Due", "#FEF3C7", Theme.warn)

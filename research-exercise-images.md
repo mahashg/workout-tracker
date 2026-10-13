@@ -115,6 +115,10 @@ Verification: 20 downloaded images were spot-viewed (see notes). 1 was dropped a
 | pigeon-pose | Pigeon Pose | — | — | unmatched |
 | cobra-pose | Cobra Pose | — | — | unmatched |
 
+## Second frames (v3.1 animation)
+
+Each dataset entry ships a second photo (`images[1]` — the other position of the movement). On 2026-10-13 the second frame of every matched entry above was downloaded from the same URL pattern (`.../exercises/<Entry>/1.jpg`), resized to max width 640px and re-encoded as JPEG quality 80 with Pillow, and bundled as `app/src/main/assets/exercise-images/<our-id>-2.jpg`. Coverage: **81 of 81** bundled photos have a second frame (every matched entry had one). The app crossfade-loops the two frames in card mode and in the Library detail (hold ~800ms, fade ~350ms); exercises without a photo still use the body-map display. Like the first frames, the `-2.jpg` binaries are NOT pushed to GitHub.
+
 ## Notes on specific matches
 
 - **KB Step-Up → Dumbbell Step Ups**, **KB Romanian Deadlift → Romanian Deadlift** (barbell), **KB Sumo Squat → Plie Dumbbell Squat**, **Hip Thrust Machine → Barbell Hip Thrust**, **Single-Arm KB Press → One-Arm Kettlebell Push Press**, **KB Swing (light) → One-Arm Kettlebell Swings**: no exact kettlebell/machine entry exists in the dataset; these are the same movement with a different equipment/grip variant, per the variant-tolerant rule.
