@@ -1,0 +1,93 @@
+{
+  "bodyPart": "biceps",
+  "warmups": [],
+  "exercises": [
+    {
+      "id": "db-bicep-curl",
+      "photo": "exercise-images/db-bicep-curl.jpg",
+      "name": "DB Bicep Curl",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "biceps",
+      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
+      "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
+      "image": "biceps",
+      "url": "https://www.youtube.com/watch?v=5EQ1Nu1ODgE",
+      "primary": true
+    },
+    {
+      "id": "db-hammer-curl",
+      "photo": "exercise-images/db-hammer-curl.jpg",
+      "name": "DB Hammer Curl",
+      "equipment": "Dumbbell",
+      "sets": 2,
+      "targetReps": "12",
+      "targetMuscles": "biceps",
+      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
+      "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
+      "image": "biceps",
+      "url": "https://www.youtube.com/shorts/I6saX6C_G4E",
+      "primary": true
+    },
+    {
+      "id": "cable-bicep-curl",
+      "photo": "exercise-images/cable-bicep-curl.jpg",
+      "name": "Cable Bicep Curl",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "biceps",
+      "precautions": "Elbows fixed at your sides - they never drift forward;Upper arms completely still - only forearms move;Stand tall, chest up - no swinging from hips;Lower all the way to straight arms slowly",
+      "cues": "Bar at thigh height to start;Curl without swinging;Lower slowly all the way",
+      "image": "biceps",
+      "url": "https://www.youtube.com/results?search_query=Cable+Bicep+Curl+form",
+      "primary": false
+    },
+    {
+      "id": "incline-db-curl",
+      "photo": "exercise-images/incline-db-curl.jpg",
+      "name": "Incline DB Curl",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "biceps",
+      "precautions": "Back and head rest on the incline bench the whole set;Upper arms hang vertical, slightly behind body - still;Elbows never come forward during the curl;Lower all the way until arms straighten fully",
+      "cues": "Sit back on 45-degree bench;Curl both dumbbells up;Lower slowly into full stretch",
+      "image": "biceps",
+      "url": "https://www.youtube.com/results?search_query=Incline+DB+Curl+form",
+      "primary": false
+    },
+    {
+      "id": "machine-preacher-curl",
+      "photo": "exercise-images/machine-preacher-curl.jpg",
+      "name": "Machine Preacher Curl",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "biceps",
+      "precautions": "Upper arms flat on the pad - armpits over the pad edge;Elbows in line with the machine pivot;Sit tall - no leaning or bouncing to cheat;Lower to near-straight arms under control",
+      "cues": "Adjust seat so arms rest flat;Curl handle up smoothly;Lower slowly, feel the stretch",
+      "image": "biceps",
+      "url": "https://www.youtube.com/results?search_query=Machine+Preacher+Curl+form",
+      "primary": false
+    }
+  ],
+  "stretches": [
+    {
+      "id": "doorway-bicep-stretch",
+      "photo": "exercise-images/doorway-bicep-stretch.jpg",
+      "name": "Doorway Bicep Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "biceps",
+      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+      "image": "biceps",
+      "url": "https://www.youtube.com/results?search_query=doorway+bicep+stretch+hindi",
+      "primary": true,
+      "defaultWeight": "BW"
+    }
+  ]
+}
