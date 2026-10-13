@@ -1,0 +1,79 @@
+{
+  "bodyPart": "traps",
+  "warmups": [],
+  "exercises": [
+    {
+      "id": "db-shrug",
+      "photo": "exercise-images/db-shrug.jpg",
+      "name": "DB Shrug",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "15",
+      "targetMuscles": "traps",
+      "precautions": "Stand tall, arms straight and still at sides;Lift shoulders straight up to ears - no rolling;Head neutral, chin level, no jutting forward;Pause at top - feel it in upper traps",
+      "cues": "Arms straight, stand tall;Lift shoulders to ears;Pause, then lower slowly",
+      "image": "traps",
+      "url": "https://www.youtube.com/watch?v=vMr-kzeElVo",
+      "primary": true
+    },
+    {
+      "id": "cable-shrug",
+      "photo": "exercise-images/cable-shrug.jpg",
+      "name": "Cable Shrug",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "traps",
+      "precautions": "Stand tall, arms straight and still in front;Head neutral, chin level - no jutting forward;Shoulders lift straight UP - never roll them;Lift through upper traps only",
+      "cues": "Grip bar low in front;Shrug shoulders to ears;Pause, then lower slowly",
+      "image": "traps",
+      "url": "https://www.youtube.com/results?search_query=Cable+Shrug+form",
+      "primary": false
+    },
+    {
+      "id": "farmers-carry",
+      "photo": "exercise-images/farmers-carry.jpg",
+      "name": "Farmer's Carry",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "40 sec",
+      "targetMuscles": "traps",
+      "precautions": "Stand tall - shoulders down and back, chest up;Arms straight at sides, weights not touching thighs;Walk heel-to-toe, steps short and even;Head level - look straight ahead, never down",
+      "cues": "Pick up heavy dumbbells;Walk tall and slow;Set down with a flat back",
+      "image": "traps",
+      "url": "https://www.youtube.com/results?search_query=Farmer's+Carry+form",
+      "primary": false
+    },
+    {
+      "id": "kb-high-pull-light",
+      "photo": "exercise-images/kb-high-pull-light.jpg",
+      "name": "KB High Pull (Light)",
+      "equipment": "Kettlebell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "traps,shoulders",
+      "precautions": "Feet hip-width, hinge at hips, flat back;Bell starts between feet - arms straight, lats tight;Stand tall - no leaning back at the top;Elbows end high, pointing back - wrists below elbows",
+      "cues": "Hinge and grip the bell;Snap hips to stand;Pull elbows high, lower with control",
+      "image": "traps",
+      "url": "https://www.youtube.com/results?search_query=KB+High+Pull+(Light)+form",
+      "primary": false
+    }
+  ],
+  "stretches": [
+    {
+      "id": "neck-trapezius-stretch",
+      "photo": "exercise-images/neck-trapezius-stretch.jpg",
+      "name": "Neck Trapezius Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "traps",
+      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+      "image": "traps",
+      "url": "https://www.youtube.com/watch?v=3hw6r9zrraU",
+      "primary": true,
+      "defaultWeight": "BW"
+    }
+  ]
+}
