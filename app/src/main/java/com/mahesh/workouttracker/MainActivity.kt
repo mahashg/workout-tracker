@@ -1,200 +1,166 @@
 package com.mahesh.workouttracker
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
+/** v3 Home: the Week N scoreboard over body parts (the fixed 5-day routine
+ *  assignment is retired). Start Workout -> pick today's parts -> assembled
+ *  flat list. In-progress resume behavior is unchanged.
+ *  Budget (compact): title 40 + hero ~86 + grid 6x(54+5) + start 50 + gaps
+ *  ≈ 545 <= ~546 available at a 640dp viewport. */
 class MainActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
+    private var created = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = DbHelper(this)
         Seed.ensureSeeded(db)
         Seed.applyV2IfNeeded(this, db)
+        JsonSeed.applyV3IfNeeded(this, db)
+        created = true
         render()
     }
-    override fun onResume() { super.onResume(); if (::db.isInitialized) render() }
 
-    private fun compactRow(heightDp: Int): LinearLayout.LayoutParams =
-        LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(heightDp)).apply { setMargins(0, dp(3), 0, dp(3)) }
+    override fun onResume() {
+        super.onResume()
+        if (created) render()
+    }
 
     private fun render() {
-        val state = WeekManager.reconcile(this, db)
-        val weekStartCal = DateUtil.parse(state.weekStart)
-        val weekEndCal = DateUtil.saturdayOf(weekStartCal)
-        val weekStartStr = state.weekStart
-        val todayIdx = DateUtil.weekdayIndex(DateUtil.today())
-        val routines = db.getRoutines()
-        val sessionsThisWeek = db.sessionsInWeek(weekStartStr)
-        val root = tabScaffold("Home")
+        val wm = WeekManager.reconcile(this, db)
         val compact = isCompactScreen()
+        val root = tabScaffold("Home")
+        val lastTrained = db.lastTrainedDates()
+        val counts = db.partCountsInWeek(wm.weekStart)
+        val nonRepeatable = BodyParts.all.filter { !it.repeatable }
+        val doneCount = nonRepeatable.count { counts.containsKey(it.id) }
 
-        // ---- Deterministic height budget (v2.5.1 hotfix) ----
-        // Available content height = screen - bottom nav (~72dp) - root vertical
-        // padding. Every region below gets an EXPLICIT dp height and weekBox
-        // takes whatever remains, so the stack can never overflow the viewport
-        // and clip the Today/This Week regions (the v2.5 bug).
-        val rootPadV = if (compact) 22 else 32
-        val available = (screenHeightDp() - 72 - rootPadV).coerceAtLeast(360)
-        val veryShort = available < 620
-        val heroH = if (veryShort) 104 else if (compact) 118 else 128
-        val todayLabelH = 20
-        // v2.6: Today card no longer carries a Start button (it lives in Workout
-        // Detail), so it shrinks to ~108-120dp and the freed height goes to the week.
-        val todayH = if (veryShort) 108 else 120
-        val weekLabelH = 24
-        val suggestedPre = routines.firstOrNull { it.weekday == todayIdx }
-        val resumePre = db.inProgressSessions().firstOrNull { it.weekStart == weekStartStr } ?: db.inProgressSessions().firstOrNull()
-        val hasResume = resumePre != null && (suggestedPre == null || resumePre.routineId != suggestedPre.id)
-        val resumeH = if (hasResume) 48 else 0
-        var weekBoxH = available - heroH - todayLabelH - todayH - weekLabelH - resumeH
-        // Safety: the five week rows need >= 220dp (5 x 44dp). Shrink hero/Today
-        // further before ever letting weekBox drop below that floor.
-        if (weekBoxH < 220) {
-            // heroH/todayH are already at their short-screen floors in this branch
-            // for any viewport where this triggers; weekBox is then whatever is
-            // left (>= 220 whenever available >= 500, which the coerce covers
-            // down to the smallest supported phones).
-            weekBoxH = weekBoxH.coerceAtLeast(180)
-        }
-
-        // ---- Hero header card (gradient, compact) ----
-        val doneCount = routines.count { r -> sessionsThisWeek.any { it.routineId == r.id && it.completed } }
+        root.addView(screenTitle("Home").apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(40); setMargins(0, 0, 0, 0) }
+            gravity = Gravity.CENTER_VERTICAL
+        })
+        // Week hero (blue gradient, same family as v2.6): Week N + range + bar.
         val hero = heroCard()
-        val heroRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        val heroInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-        heroInfo.addView(makeText("Week ${state.weekNumber}", if (compact) 24f else 28f, true, Color.WHITE).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-        heroInfo.addView(makeText("${DateUtil.display(weekStartStr)} – ${DateUtil.display(DateUtil.fmt(weekEndCal))}  •  Sun – Sat", 12f, false, Color.parseColor("#DBEAFE")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        heroRow.addView(heroInfo)
-        hero.addView(heroRow)
-        if (routines.isNotEmpty()) {
-            // v2.6: cute segmented progress (one segment per routine) + small
-            // caption — no more giant "0 / 5 done" text.
-            hero.addView(segmentedWeekProgress(routines.map { r -> sessionsThisWeek.any { it.routineId == r.id && it.completed } }).apply {
-                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
-            })
-            hero.addView(makeText("$doneCount of ${routines.size} this week", 13f, false, Color.parseColor("#EFF6FF")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(3), 0, 0); maxLines = 1 })
-        }
-        // Muscles trained this week folded into the hero's date line (no extra row).
-        val weekMuscles = linkedSetOf<String>()
-        for (s in sessionsThisWeek.filter { it.completed }) for (ex in db.getSessionExercises(s.id)) if (db.effectiveStatus(ex) == "done") weekMuscles.addAll(DbHelper.parseMuscles(ex.targetMuscles, ex.name))
-        // (Trained-muscles summary appended to the subtitle line added above via heroInfo is
-        //  omitted as a separate view to keep the hero inside its explicit budget.)
-        hero.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(heroH)).apply { setMargins(0, 0, 0, 0) }
-        hero.setPadding(dp(12), dp(8), dp(12), dp(8))
+        hero.setPadding(dp(16), dp(10), dp(16), dp(10))
+        val titleRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        titleRow.addView(makeText("Week ${wm.weekNumber}", if (compact) 21f else 23f, true, Color.WHITE))
+        titleRow.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+        titleRow.addView(makeText(weekRangeLabel(wm.weekStart), 12.5f, false, 0xD9FFFFFF.toInt()))
+        hero.addView(titleRow)
+        hero.addView(segmentedWeekProgress(nonRepeatable.map { counts.containsKey(it.id) }).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(8), 0, 0) }
+        })
+        hero.addView(makeText("$doneCount of ${nonRepeatable.size} body parts done this week", 12.5f, false, 0xD9FFFFFF.toInt()).apply {
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
+        })
         root.addView(hero)
 
-        // ---- TODAY hero (daily loop: one primary action) ----
-        val suggested = routines.firstOrNull { it.weekday == todayIdx }
-        root.addView(overline("Today").apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(todayLabelH); setMargins(0, 0, 0, 0) }
-            gravity = Gravity.CENTER_VERTICAL
-        })
-        if (suggested != null) {
-            val st = statusFor(suggested, sessionsThisWeek)
-            val progS = sessionsThisWeek.firstOrNull { it.routineId == suggested.id && !it.completed }
-            val sugCard = cardLayout("#F59E0B", tappable = true) { openDetail(suggested.id) }
-            sugCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(todayH)).apply { setMargins(0, 0, 0, 0) }
-            sugCard.setPadding(dp(10), dp(6), dp(10), dp(6))
-            val rowH = todayH - 12 // card padding (6+6); no button inside anymore (v2.6)
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(rowH)) }
-            val muscles = db.routineMuscles(suggested.id)
-            row.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(if (veryShort) 44 else 52), dp(rowH.coerceAtMost(64))) })
-            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10), 0, 0, 0) }
-            info.addView(makeText("${DateUtil.dayName(todayIdx)} • ${suggested.focus} • $st", 11f, true, Color.parseColor("#92400E")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-            info.addView(makeText(suggested.name, 17f, true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-            val exsToday = db.getExercises(suggested.id)
-            val wu = exsToday.count { it.type.equals("Warmup", true) }
-            val main = exsToday.count { it.type.equals("Main", true) }
-            val cd = exsToday.count { it.type.equals("Stretch", true) }
-            var sub = "$wu Warm Up • $main Exercise • $cd Cool Down • ${musclesLabel(muscles)}"
-            if (progS != null && progS.startedAt > 0) sub += " • ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, progS))} so far"
-            info.addView(caption(sub).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
-            row.addView(info)
-            // v2.6.1 copy audit: no "Tap to open ›" instruction line — chevron
-            // affordance only (the whole card is the tap target).
-            row.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
-            sugCard.addView(row)
-            root.addView(sugCard)
-        } else {
-            val restCard = cardLayout("#F59E0B")
-            restCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(todayH)).apply { setMargins(0, 0, 0, 0) }
-            restCard.addView(cardTitle("Rest day"))
-            restCard.addView(caption("No workout assigned for ${DateUtil.dayName(todayIdx)}. Pick any pending workout below."))
-            root.addView(restCard)
+        // Body-part grid: 2 columns x 6 rows, one page, no scrolling.
+        val cellH = if (compact) 54 else 62
+        for (rowParts in BodyParts.all.chunked(2)) {
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            for (part in rowParts) {
+                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+            }
+            if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
+            root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
         }
 
-        // ---- Resume banner (compact single row, only when it differs from today's) ----
-        val inProg = db.inProgressSessions().firstOrNull { it.weekStart == weekStartStr } ?: db.inProgressSessions().firstOrNull()
-        if (inProg != null && (suggested == null || inProg.routineId != suggested.id)) {
-            val card = cardLayout("#F59E0B", tappable = true) { openSections(inProg.id) }
-            card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(resumeH))
-            card.setPadding(dp(10), dp(4), dp(10), dp(4))
-            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
-            // v2.6.1 copy audit: "In progress" pill + name (was a verbose
-            // "● IN PROGRESS — … tap to resume" two-liner saying the same thing).
-            val rpill = statusPill("In Progress")
-            (rpill.layoutParams as LinearLayout.LayoutParams).apply { height = dp(24); setMargins(0, 0, 0, 0) }
-            rpill.setPadding(dp(10), 0, dp(10), 0)
-            r.addView(rpill)
-            val rname = makeText(inProg.routineName, 14f, true, Color.parseColor("#92400E"))
-            rname.maxLines = 1; rname.ellipsize = android.text.TextUtils.TruncateAt.END
-            (rname.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(8), 0, 0, 0) }
-            r.addView(rname)
-            if (inProg.startedAt > 0) r.addView(makeText(WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, inProg)), 12f, true, Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            r.addView(iconView(R.drawable.ic_chevron, 20, Theme.textTertiary))
-            card.addView(r)
-            root.addView(card)
-        }
+        root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        val inProgress = db.getSessions().firstOrNull { !it.completed }
+        val startBtn = makeButton(if (inProgress != null) "Resume Workout" else "Start Workout") { startWorkout() }
+        tightButton(startBtn, if (compact) 50 else 54, 14, primary = true)
+        root.addView(startBtn)
+    }
 
-        // ---- This Week: explicit-height region; rows share it equally ----
-        root.addView(makeText("This Week", 16f, true).apply {
-            setPadding(0, 0, 0, 0)
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(weekLabelH); setMargins(0, 0, 0, 0) }
-            gravity = Gravity.CENTER_VERTICAL
-        })
-        val weekBox = LinearLayout(this).apply {
+    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
+        val done = countThisWeek > 0
+        val days = last?.let { daysSince(it) }
+        val due = !part.repeatable && !done && (last == null || (days != null && days >= 7))
+        val cell = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(weekBoxH))
+            background = cardDrawable(tappable = true)
+            setPadding(dp(10), dp(6), dp(10), dp(5))
+            isClickable = true
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, BodyPartDetailActivity::class.java).putExtra("bodyPart", part.id))
+            }
         }
-        if (routines.isEmpty()) weekBox.addView(caption("No routines yet. Add one in Routines."))
-        for (r in routines) {
-            val done = sessionsThisWeek.any { it.routineId == r.id && it.completed }
-            val status = statusFor(r, sessionsThisWeek)
-            val card = cardLayout(if (r.id == suggested?.id) "#F59E0B" else null, tappable = true) { openDetail(r.id) }
-            (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(3), 0, dp(3)) }
-            card.setPadding(dp(10), dp(4), dp(10), dp(4))
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
-            val muscles = db.routineMuscles(r.id)
-            row.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(30), dp(if (weekBoxH < 260) 34 else 42)) })
-            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(8), 0, 0, 0) }
-            val title = makeText("${if (done) "✓ " else ""}${r.name}", 14f, true)
-            if (done) strike(title, true)
-            title.maxLines = 1; title.ellipsize = android.text.TextUtils.TruncateAt.END
-            (title.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-            info.addView(title)
-            val sub = makeText("${DateUtil.dayName(r.weekday)} • ${db.routineExerciseCount(r.id)} exercises • ${musclesLabel(muscles)}", 11f, false, Theme.textSecondary)
-            sub.maxLines = 1; sub.ellipsize = android.text.TextUtils.TruncateAt.END
-            (sub.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-            info.addView(sub)
-            row.addView(info)
-            row.addView(statusPill(status))
-            row.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(6), 1) })
-            row.addView(iconView(R.drawable.ic_chevron, 18, Theme.textTertiary))
-            card.addView(row)
-            weekBox.addView(card)
+        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val nameTv = makeText(part.name, 14.5f, true)
+        nameTv.maxLines = 1
+        top.addView(nameTv)
+        top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+        val (pillText, pillBg, pillInk) = when {
+            part.repeatable -> Triple("${countThisWeek}× this week", "#EDF2F7", Theme.textSecondary)
+            done -> Triple("✓ Done", "#DCFCE7", Theme.success)
+            due -> Triple("Due", "#FEF3C7", Theme.warn)
+            else -> Triple("Pending", "#E2E8F0", Theme.pendingFg)
         }
-        root.addView(weekBox)
+        top.addView(TextView(this).apply {
+            text = pillText; textSize = 10.5f; setTextColor(pillInk); typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            background = roundedBg(pillBg, 999); setPadding(dp(7), dp(2), dp(7), dp(2)); maxLines = 1
+        })
+        cell.addView(top)
+        val lastLine = when {
+            last == null -> "Not trained yet"
+            days != null && days == 0L -> "Last · today"
+            days != null && days == 1L -> "Last · yesterday"
+            days != null -> "Last · ${DateUtil.display(last)} · ${days}d ago"
+            else -> "Last · ${DateUtil.display(last)}"
+        }
+        val lastTv = makeText(lastLine, 11f, false, Theme.textSecondary)
+        lastTv.maxLines = 1
+        lastTv.setPadding(0, dp(2), 0, 0)
+        cell.addView(lastTv)
+        return cell
     }
-    private fun statusFor(r: Routine, sessionsThisWeek: List<SessionInfo>): String = when {
-        sessionsThisWeek.any { it.routineId == r.id && it.completed } -> "Done"
-        sessionsThisWeek.any { it.routineId == r.id && !it.completed } -> "In Progress"
-        else -> "Pending"
+
+    private fun startWorkout() {
+        val inProgress = db.getSessions().firstOrNull { !it.completed }
+        if (inProgress == null) {
+            startActivity(Intent(this, PickPartsActivity::class.java))
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Workout in progress")
+            .setMessage("${inProgress.routineName} is in progress. Resume it, view its cards, or discard it and start a new workout?")
+            .setPositiveButton("Resume workout") { _, _ ->
+                startActivity(Intent(this, WorkoutSectionsActivity::class.java).putExtra("sessionId", inProgress.id))
+            }
+            .setNeutralButton("View cards") { _, _ ->
+                // Cards open at the first section that still has pending work.
+                val exs = db.getSessionExercises(inProgress.id)
+                val section = listOf("Warmup", "Main", "Stretch").firstOrNull { t ->
+                    exs.any { it.type.equals(t, true) && db.effectiveStatus(it) == "pending" }
+                } ?: "Main"
+                startActivity(Intent(this, CardSessionActivity::class.java).putExtra("sessionId", inProgress.id).putExtra("sectionType", section))
+            }
+            .setNegativeButton("Discard & start new") { _, _ ->
+                db.deleteSession(inProgress.id)
+                startActivity(Intent(this, PickPartsActivity::class.java))
+            }
+            .show()
     }
-    private fun openDetail(routineId: Long) { startActivity(Intent(this, WorkoutDetailActivity::class.java).apply { putExtra("routineId", routineId) }) }
-    private fun openSections(id: Long) { startActivity(Intent(this, WorkoutSectionsActivity::class.java).apply { putExtra("sessionId", id) }) }
+
+    private fun weekRangeLabel(weekStart: String): String {
+        return try {
+            val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val start = fmt.parse(weekStart) ?: return ""
+            val cal = Calendar.getInstance().apply { time = start; add(Calendar.DAY_OF_YEAR, 6) }
+            val label = SimpleDateFormat("EEE MMM d", Locale.US)
+            "${label.format(start)} – ${label.format(cal.time)}"
+        } catch (e: Exception) { "" }
+    }
 }
