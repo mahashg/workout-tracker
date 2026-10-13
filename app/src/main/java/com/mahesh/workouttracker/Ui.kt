@@ -352,7 +352,7 @@ fun AppCompatActivity.bottomNav(selected: String): LinearLayout {
     val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(4), dp(4), dp(4), dp(8)) }
     val tabs = listOf(
         Triple("Home", R.drawable.ic_home, MainActivity::class.java),
-        Triple("Routines", R.drawable.ic_list, RoutinesActivity::class.java),
+        Triple("Body Parts", R.drawable.ic_list, RoutinesActivity::class.java),
         Triple("History", R.drawable.ic_history, HistoryActivity::class.java),
         Triple("Settings", R.drawable.ic_settings, SettingsActivity::class.java)
     )
@@ -410,6 +410,28 @@ fun doItLine(sets: List<SessionSet>): String {
     return if (reps.contains("min") || reps.contains("sec") || reps.contains("/")) "Do ${sets.size} set${if(sets.size>1)"s" else ""} of $reps"
     else "Do ${sets.size} sets of $reps"
 }
+/** One logged set as "weight×reps" (v3 last-performance lines): bodyweight
+ *  sets read "BW×10"; timed reps ("40 sec") pass through as-is. */
+fun setText(s: SessionSet): String {
+    val reps = s.reps.ifBlank { "?" }
+    return when {
+        s.isBodyweight -> if (reps.all { it.isDigit() }) "BW×$reps" else reps
+        s.weight.isNotBlank() -> "${s.weight}×$reps"
+        else -> reps
+    }
+}
+/** "12×10 · 12×12 · 15×10" — the per-set last-performance line (v3). */
+fun lastTimeLine(last: LastPerformed): String = last.sets.joinToString(" · ") { setText(it) }
+/** Prominent in-workout header: "Last time (Tue Oct 7) · 12×10 · 12×12 · 15×10". */
+fun lastTimeTitle(last: LastPerformed): String = "Last time (${DateUtil.display(last.date)}) · ${lastTimeLine(last)}"
+/** Whole days between a "yyyy-MM-dd" date and today (null if unparseable). */
+fun daysSince(dateStr: String): Long? {
+    return try {
+        val then = DateUtil.parse(dateStr)
+        val now = DateUtil.today()
+        (now.timeInMillis - then.timeInMillis) / 86_400_000L
+    } catch (e: Exception) { null }
+}
 fun Context.sectionHeader(title: String, subtitle: String = ""): LinearLayout {
     val color = when(title) { "Warm-up", "Warm Up" -> Theme.warmAmber; "Stretching", "Cool Down" -> Theme.coolTeal; else -> Theme.primary }
     val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(16), 0, dp(6)) }
@@ -453,6 +475,14 @@ object WeekManager {
     }
     fun unit(context: Context): String = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getString("unit", "lb") ?: "lb"
     fun setUnit(context: Context, unit: String) { context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit().putString("unit", unit).apply() }
+    // Rest timer durations (v3 user defaults: 30s between sets, 60s between
+    // exercises), adjustable in Settings and carried in the Drive backup.
+    fun restSetSec(context: Context): Int = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getInt("restSetSec", 30).coerceIn(0, 600)
+    fun restExerciseSec(context: Context): Int = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getInt("restExerciseSec", 60).coerceIn(0, 900)
+    fun setRestSecs(context: Context, setSec: Int, exerciseSec: Int) {
+        context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit()
+            .putInt("restSetSec", setSec.coerceIn(0, 600)).putInt("restExerciseSec", exerciseSec.coerceIn(0, 900)).apply()
+    }
 }
 object CalendarCompat { const val DAY = java.util.Calendar.DAY_OF_YEAR }
 
@@ -502,16 +532,18 @@ object CsvExporter {
     fun buildCsv(context: Context, db: DbHelper): String {
         val unit = WeekManager.unit(context)
         val sb = StringBuilder()
-        sb.append("date,week_number,week_start,workout,exercise,exercise_order,exercise_type,equipment,set_number,weight,weight_unit,reps,completed,exercise_youtube_url,workout_duration_sec\n")
+        sb.append("date,week_number,week_start,workout,exercise,exercise_order,exercise_type,equipment,set_number,weight,weight_unit,reps,completed,exercise_youtube_url,workout_duration_sec,body_part\n")
         for (s in db.getSessions().sortedBy { it.date }) {
             val dur = if (s.startedAt > 0) s.elapsedSec.toString() else ""
             for ((idx, ex) in db.getSessionExercises(s.id).withIndex()) {
                 val sets = db.getSets(ex.id)
+                val partId = db.sessionExercisePart(ex)
+                val partName = if (partId.isNotBlank()) BodyParts.name(partId) else ""
                 if (sets.isEmpty()) {
-                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), "", "", esc(unit), "", if(s.completed)"true" else "false", esc(ex.youtubeUrl), dur).joinToString(",")).append("\n")
+                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), "", "", esc(unit), "", if(s.completed)"true" else "false", esc(ex.youtubeUrl), dur, esc(partName)).joinToString(",")).append("\n")
                 } else for (set in sets) {
                     val w = if (set.isBodyweight) "BW" else set.weight
-                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), set.setNumber.toString(), esc(w), esc(unit), esc(set.reps), if(set.isDone)"true" else "false", esc(ex.youtubeUrl), dur).joinToString(",")).append("\n")
+                    sb.append(listOf(esc(s.date), s.weekNumber.toString(), esc(s.weekStart), esc(s.routineName), esc(ex.name), (idx+1).toString(), esc(ex.type), esc(ex.equipment), set.setNumber.toString(), esc(w), esc(unit), esc(set.reps), if(set.isDone)"true" else "false", esc(ex.youtubeUrl), dur, esc(partName)).joinToString(",")).append("\n")
                 }
             }
         }
