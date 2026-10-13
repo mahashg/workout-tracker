@@ -1,0 +1,142 @@
+{
+  "bodyPart": "glutes",
+  "warmups": [
+    {
+      "id": "glute-bridge-activation",
+      "photo": "exercise-images/glute-bridge-activation.jpg",
+      "name": "Glute Bridge Activation",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "12",
+      "targetMuscles": "glutes",
+      "precautions": "Feet flat hip-width, knees tracking over toes;Ribs down - do not arch lower back at top;Chin slightly tucked, eyes forward (bridge/thrust)",
+      "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
+      "image": "glutes",
+      "url": "https://www.youtube.com/shorts/STYnAiPREnI",
+      "primary": true,
+      "defaultWeight": "BW",
+      "variation": "Warm-up activation"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "kb-swing-light",
+      "photo": "exercise-images/kb-swing-light.jpg",
+      "name": "KB Swing (light)",
+      "equipment": "Kettlebell",
+      "sets": 2,
+      "targetReps": "12",
+      "targetMuscles": "glutes,hamstrings",
+      "precautions": "Feet hip-width, soft bend in knees that stays;Flat back the whole time - spine long, chest up;Push hips BACK - weight slides close to legs;Stand by squeezing glutes - no leaning back at top",
+      "cues": "Hinge at hips, not a squat;Snap hips, let the bell float;Keep back flat and core tight",
+      "image": "glutes",
+      "url": "https://www.youtube.com/watch?v=O3tXmXn2sog",
+      "primary": true,
+      "variation": "Hinge only",
+      "easier": "KB Deadlift (Light)"
+    },
+    {
+      "id": "cable-glute-kickback",
+      "photo": "exercise-images/cable-glute-kickback.jpg",
+      "name": "Cable Glute Kickback",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "glutes",
+      "precautions": "Feet flat hip-width, knees tracking over toes;Ribs down - do not arch lower back at top;Chin slightly tucked, eyes forward (bridge/thrust);Squeeze glutes hard at top for 1 second",
+      "cues": "Hips still, core tight;Kick heel back, not up;Squeeze glute, lower slowly",
+      "image": "glutes",
+      "url": "https://www.youtube.com/shorts/jKvvKrs2u_g",
+      "primary": true,
+      "easier": "Glute Bridge"
+    },
+    {
+      "id": "hip-thrust-machine",
+      "photo": "exercise-images/hip-thrust-machine.jpg",
+      "name": "Hip Thrust Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "glutes",
+      "precautions": "Feet flat hip-width, knees tracking over toes;Ribs down - do not arch lower back at top;Chin slightly tucked, eyes forward (bridge/thrust);Squeeze glutes hard at top for 1 second",
+      "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
+      "image": "glutes",
+      "url": "https://www.youtube.com/shorts/fjHMwYiMgno",
+      "primary": true,
+      "easier": "Glute Bridge"
+    },
+    {
+      "id": "glute-bridge",
+      "photo": "exercise-images/glute-bridge.jpg",
+      "name": "Glute Bridge",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "15",
+      "targetMuscles": "glutes",
+      "precautions": "Feet flat hip-width, knees tracking over toes;Ribs down - do not arch lower back at top;Chin slightly tucked, eyes forward (bridge/thrust);Squeeze glutes hard at top for 1 second",
+      "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
+      "image": "glutes",
+      "url": "https://www.youtube.com/shorts/STYnAiPREnI",
+      "primary": true,
+      "defaultWeight": "BW"
+    },
+    {
+      "id": "hip-abduction-machine",
+      "photo": "exercise-images/hip-abduction-machine.jpg",
+      "name": "Hip Abduction Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "glutes",
+      "precautions": "Sit tall, back on pad - no leaning forward hard;Knees lined up with pads, feet flat on rests;Push from outer thighs/glutes - not by rocking torso;Move slowly - no slamming the weight stack",
+      "cues": "Sit tall, pads outside knees;Press knees apart wide;Return slowly to stretch",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=Hip+Abduction+Machine+form",
+      "primary": false
+    },
+    {
+      "id": "kb-sumo-squat",
+      "photo": "exercise-images/kb-sumo-squat.jpg",
+      "name": "KB Sumo Squat",
+      "equipment": "Kettlebell",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "glutes,quads",
+      "precautions": "Feet wider than shoulders, toes turned out ~45 degrees;Chest up, flat back - look straight ahead;Knees track out over toes - never cave in;Weight in heels and mid-foot - heels stay down",
+      "cues": "Bell hangs between legs;Squat down wide and tall;Push through heels, squeeze glutes",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=KB+Sumo+Squat+form",
+      "primary": false
+    },
+    {
+      "id": "fire-hydrant",
+      "name": "Fire Hydrant",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "12 ea",
+      "targetMuscles": "glutes",
+      "precautions": "On all fours - hands under shoulders, knees under hips;Back flat like a table - no sagging or twisting;Knee stays bent at 90 degrees the whole move;Hips stay square to floor - don't roll open",
+      "cues": "Lift bent knee out to side;Keep hips level;Lower slowly, repeat, switch sides",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=Fire+Hydrant+form",
+      "primary": false
+    }
+  ],
+  "stretches": [
+    {
+      "id": "pigeon-pose",
+      "name": "Pigeon Pose",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "45 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+      "image": "glutes",
+      "url": "https://www.youtube.com/shorts/fbMLr8XtVPE",
+      "primary": true,
+      "defaultWeight": "BW",
+      "variation": "Glute stretch"
+    }
+  ]
+}
