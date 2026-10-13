@@ -454,6 +454,7 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         if (prefs.contains("weekStart")) p.put("weekStart", prefs.getString("weekStart", "") ?: "")
         if (prefs.contains("restSetSec")) p.put("restSetSec", prefs.getInt("restSetSec", 30))
         if (prefs.contains("restExerciseSec")) p.put("restExerciseSec", prefs.getInt("restExerciseSec", 60))
+        if (prefs.contains("hc_sync")) p.put("hc_sync", prefs.getBoolean("hc_sync", false))
         val root = JSONObject()
         root.put("format", 1)
         root.put("appVersion", appVersionName(context))
@@ -511,6 +512,7 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
             if (p.has("weekStart")) e.putString("weekStart", p.optString("weekStart", ""))
             if (p.has("restSetSec")) e.putInt("restSetSec", p.optInt("restSetSec", 30))
             if (p.has("restExerciseSec")) e.putInt("restExerciseSec", p.optInt("restExerciseSec", 60))
+            if (p.has("hc_sync")) e.putBoolean("hc_sync", p.optBoolean("hc_sync", false))
             e.apply()
         }
         return counts
