@@ -315,3 +315,131 @@ Mahesh's on-device v2.9 test reached Google's account picker, but after he selec
 - **Scopes unchanged:** Drive appData + userinfo email/profile + `openid` remain the request. Google's current Android authorization guide explicitly uses the userinfo/profile/openid scopes when the app needs the selected account's identity from the userinfo endpoint, and this app already has that fallback; there was no evidence that `openid` caused the cancellation, so it was not removed on speculation.
 
 Invariants kept: DB still v3, Drive JSON payload/find/backup/restore and transactional restore unchanged, v2.8.1 icon retained, no Client ID in source, grep ScrollView = 0. **Still untested end-to-end in this environment:** the next real test is Mahesh installing v2.9.1, signing in from Settings, and tapping Backup now. If Google still returns an error, the new dialog's exact status code — not another bare "cancelled" — is the evidence needed for the next step.
+
+## V3 (2026-10-13) - body-part workouts, JSON data, photos, Rest Ring (versionCode 16, versionName 3.0)
+
+The fixed 5-day routine assignment is retired. New flow: Home shows a
+**Week N scoreboard of body parts** -> **Start Workout** -> pick today's body
+parts -> the app assembles **one flat workout list** -> in-workout each
+exercise offers **Skip / Do later / Start**.
+
+### Design: model in code, data in JSON
+
+- **Model** — `BodyParts.kt`: the 11 body parts (shoulders, traps, chest,
+  triceps, back, biceps, quads, hamstrings, glutes, calves, core), each with
+  id slug, display name and a `repeatable` flag (only **core** is repeatable:
+  it shows "N× this week" and never locks).
+- **Data** — one JSON per body part in `app/src/main/assets/data/<part-id>.json`:
+
+```json
+{
+  "bodyPart": "biceps",
+  "warmups": [],
+  "exercises": [
+    {
+      "id": "db-bicep-curl",
+      "name": "DB Bicep Curl",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "biceps",
+      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;...",
+      "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
+      "image": "biceps",
+      "url": "https://www.youtube.com/watch?v=5EQ1Nu1ODgE",
+      "primary": true,
+      "photo": "exercise-images/db-bicep-curl.jpg"
+    }
+  ],
+  "stretches": []
+}
+```
+
+`precautions`/`cues` are ";" separated and preserved verbatim from the v2
+data. `primary` marks the old routine exercises (pre-checked when assembling);
+library extras are `primary: false`. `easier` carries the existing
+easier-variation name where one exists. Content migration: **94 entries**
+(67 exercises = 34 routine + 33 library, 14 warm-ups, 13 stretches) — the
+same 94 before and after; nothing was dropped.
+
+On first v3 launch `JsonSeed` seeds the DB from the JSONs; afterwards the DB
+is the working copy, so in-app add/edit keeps working, scoped by body part
+(Body Parts tab -> part -> Add/Edit). Settings -> Restore Preloaded re-seeds
+the canonical rows from the JSONs (user-added rows and history untouched).
+
+### Flow details
+
+- **Home**: Week hero (segment bar over the 10 non-repeatable parts) + all 11
+  parts with last-trained date and this-week state. A part not trained in 7+
+  days (or never) gets an amber **Due** tag; Done-this-week wins; Core keeps
+  its count. Resume of an in-progress session is unchanged.
+- **Picker**: multi-select parts (Due/Done state shown), "Build workout".
+- **Assembled list**: warm-up card = union of the parts' warm-ups deduped by
+  id; then ONE flat exercise list (no body-part sections), each row tagged
+  with its body part, default order grouped by equipment — **Machine ->
+  Dumbbell -> Kettlebell -> Bodyweight** (JSON order inside a cluster).
+  Primary exercises pre-checked; rows can be unchecked and reordered (up/down
+  buttons). Per-row last performance ("Last: 12×10 · 12×12 · 15×10"). Start
+  creates the session with only warm-ups + checked exercises + stretches, in
+  the displayed order.
+- **In-workout**: card flow keeps its swipes and gains visible **Skip /
+  Later** buttons; the list view's expanded row offers Skip / Do later /
+  Start (log set). "Do later" moves the exercise to the end of today's
+  remaining list. Last performance is prominent at the TOP of the card and in
+  the expanded list row: "Last time (Tue Oct 7) · 12×10 · 12×12 · 15×10", and
+  the set logger shows each set's own last-time value as a hint.
+- **Repeat last time** (set logger): one tap fills all sets from the last
+  performance and marks them logged; rows stay editable.
+- **Beat last time** (Summary, fresh completions only): per exercise, total
+  volume = sum over done sets of weight × reps; exercises with no weighted
+  done sets on either day compare total reps. Shows "Beat last time on N of
+  M exercises" plus up to 3 deltas.
+
+### Rest Ring (replaces the old single fixed 60s rest timer)
+
+The old behavior was one fixed 60-second countdown dialog. V3 replaces it
+everywhere with a code-drawn **Rest Ring**: a circular ring that drains as
+seconds pass, big second count in the center, ring turns warm amber in the
+final 10 seconds, green "GO" pop + haptic at zero, "+15s" and "Skip rest"
+buttons. Under the ring: the next set's last-time target ("Next · Set 3 —
+last time 15×10"), or the next exercise's name when resting between
+exercises, plus a rotating form cue from the current exercise's cues
+("While you rest — ...", rotating every ~5s).
+
+Durations are user-set defaults: **30 seconds between sets, 60 seconds
+between exercises**, auto-started when a set is logged (more sets to go ->
+set rest; exercise finished/skipped -> exercise rest). Both are adjustable
+in Settings ("Rest Timer" card, ±5s / ±15s steppers), persist in prefs, and
+are included in the Drive backup prefs subset.
+
+### Exercise photos
+
+Source: **yuhonas/free-exercise-db** (public domain / **Unlicense**),
+downloaded 2026-10-13. Each photo is the dataset entry's first image,
+resized to max width 640px, JPEG q80, bundled under
+`app/src/main/assets/exercise-images/<our-id>.jpg` and referenced from the
+JSON entry's `photo` field. Matching was variant-tolerant (same movement,
+grip/equipment variants OK) but never forced across movements; unmatched
+exercises fall back to the BodyMap visual. Coverage: **64 of 67 exercises**
+(unmatched: Pike Push-up, Wall Sit, Fire Hydrant) plus 17 warm-ups/stretches
+= **81 photos**; 20 images spot-viewed, 1 dropped and 2 re-matched after
+checking. Full mapping: `research-exercise-images.md`.
+**Note: the .jpg binaries live in the APK/local assets only and are NOT
+pushed to GitHub** (the connector is text-only and corrupts binaries).
+
+### DB v4
+
+- `exercises` += `bodyPart TEXT`, `sourceId TEXT` (ALTERs; existing rows
+  backfilled by name -> JSON id, duplicates from the multi-day seed deduped,
+  all history preserved).
+- New table `session_parts(sessionId, bodyPart)` — which parts a session
+  trained; pre-v3 sessions backfilled from their exercises. New sessions
+  store `routineName` = "Back + Biceps" style label and `focus` =
+  comma-joined part ids.
+- Drive backup payload adds `session_parts`; import tolerates old backups
+  without it. CSV export gains a trailing `body_part` column.
+
+Invariants kept: no ScrollView anywhere (grep = 0), one-page screens, Mist
+palette, Beginner posture content untouched, launcher icon unchanged, no
+gamification. Google sign-in / Drive auth code untouched (that thread is
+parked; only the backup table list + prefs subset changed).
