@@ -43,6 +43,13 @@ class CardSessionActivity : AppCompatActivity() {
     private var skipLabel: TextView? = null
     private var upLabel: TextView? = null
     private var downLabel: TextView? = null
+    // v3.3: persistent on-card swipe cues (pills on the photo band). At rest
+    // they sit slightly translucent; during a drag the matching cue goes
+    // fully opaque and scales up while the other two fade back.
+    private var cueSkip: TextView? = null
+    private var cueDone: TextView? = null
+    private var cueLater: TextView? = null
+    private val cueRestAlpha = 0.9f
     private val photoLoopers = mutableListOf<PhotoLooper>()
     private var peekNear: View? = null
     private var peekFar: View? = null
@@ -197,14 +204,16 @@ class CardSessionActivity : AppCompatActivity() {
                 header.addView(iv2)
                 val looper = PhotoLooper(iv2); photoLoopers.add(looper); looper.start()
             }
+            // v3.3: scrim is taller (112dp) and the name block is raised
+            // 32dp so the bottom swipe cue (item 4) never overlaps it.
             header.addView(View(this).apply {
                 background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xCC000000.toInt(), 0x00000000))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(84), Gravity.BOTTOM)
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(112), Gravity.BOTTOM)
             })
             val overlay = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(12), 0, dp(12), dp(8))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
             }
             overlay.addView(makeText(ex.name, 20f, true, Color.WHITE).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             overlay.addView(makeText(lastLine, 12.5f, true, Color.WHITE).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
@@ -218,7 +227,8 @@ class CardSessionActivity : AppCompatActivity() {
             val overlay = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(12), 0, dp(12), dp(8))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)
+                // v3.3: raised 32dp so the bottom swipe cue never overlaps it.
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
             }
             overlay.addView(makeText(ex.name, 20f, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             overlay.addView(makeText(lastLine, 12.5f, true, Theme.primary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
@@ -247,6 +257,30 @@ class CardSessionActivity : AppCompatActivity() {
             if (partId.isNotBlank()) tagRow.addView(tag(BodyParts.name(partId)))
             tagRow.addView(tag(ex.equipment))
             header.addView(tagRow)
+        }
+        // v3.3 (item 4): persistent swipe cues ON the photo band — the same
+        // band body-map exercises use, so every card type gets them. Left =
+        // Skip, right = Done (solid success green), bottom = Later. They are
+        // click-through decoration: the card's drag handling lives on the
+        // wrap, and non-clickable children never consume its touches. Live
+        // session only — PreviewCardsActivity has its own header builder
+        // and deliberately shows no cues (browse-only, gestures don't log).
+        run {
+            fun swipeCue(text: String, bgColor: Int, gravity: Int, mL: Int, mR: Int, mB: Int): TextView {
+                return TextView(this).apply {
+                    this.text = text; textSize = 11f; setTextColor(Color.WHITE)
+                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                    background = GradientDrawable().apply { setColor(bgColor); cornerRadius = dp(999).toFloat() }
+                    setPadding(dp(10), dp(5), dp(10), dp(5)); maxLines = 1
+                    alpha = cueRestAlpha; isClickable = false; isFocusable = false
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, gravity).apply { setMargins(dp(mL), 0, dp(mR), dp(mB)) }
+                }
+            }
+            val cueBg = 0xCC101826.toInt() // dark translucent slate
+            cueSkip = swipeCue("← ✕ Skip", cueBg, Gravity.START or Gravity.CENTER_VERTICAL, 8, 0, 0)
+            cueDone = swipeCue("Done ✓ →", Theme.success, Gravity.END or Gravity.CENTER_VERTICAL, 0, 8, 0)
+            cueLater = swipeCue("↓ Later", cueBg, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 0, 8)
+            header.addView(cueSkip); header.addView(cueDone); header.addView(cueLater)
         }
         dragCard.addView(header)
         // Essentials under the photo band: variation, then one compact row —
@@ -302,9 +336,9 @@ class CardSessionActivity : AppCompatActivity() {
             if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(slim(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E"))))
             dragCard.addView(how)
         }
-        // v3.1: one small swipe-hint line sits under the button row (Skip /
-        // Done are swipe-only now, so the hint earns its place). "Next up:"
-        // stays — it's informative.
+        // v3.3: the old under-card swipe-hint line is gone — the direction
+        // cues now live on the photo band itself (item 4). "Next up:" below
+        // the button row stays — it's informative.
 
         wrap.addView(dragCard)
         // Direction tint overlay (fades in with drag progress, tinted per direction)
@@ -364,7 +398,7 @@ class CardSessionActivity : AppCompatActivity() {
                         val tx = commitThresholdX(v); val ty = commitThresholdY(v)
                         // Strict commit: distance only (velocity never commits), dominant axis must win clearly.
                         when {
-                            abs(dx) >= tx && abs(dx) >= 1.3f * abs(dy) -> if(dx > 0) animateExitThen(v, 1) { applyDone() } else animateExitThen(v, -1) { applySkipped() }
+                            abs(dx) >= tx && abs(dx) >= 1.3f * abs(dy) -> if(dx > 0) requestDone(v) else animateExitThen(v, -1) { applySkipped() }
                             dy < 0 && abs(dy) >= ty && abs(dy) >= 1.3f * abs(dx) -> animateLogSetLift(v) { logSetDialog() }
                             // v3.1: down-swipe = Do later (same as the Later button).
                             dy > 0 && abs(dy) >= ty && abs(dy) >= 1.3f * abs(dx) -> if (laterAvailable()) animateLaterDrop(v) { doLater() } else snapCardBack(v)
@@ -385,26 +419,18 @@ class CardSessionActivity : AppCompatActivity() {
 
         // v3.1 final card design (user-approved mock): NO Skip and NO Done
         // buttons anywhere — those two actions are swipe-only (left/right).
-        // The only buttons on this screen are Log set (primary) and Later
-        // (secondary) in one slim row; up-swipe also opens Log set and
-        // down-swipe is Later, the same two actions.
+        // v3.3 (item 3): the Later BUTTON is gone too — Later survives as
+        // the down-swipe only. The button row is now a single full-width
+        // "+ Log set" primary (up-swipe opens it as well), and the swipe
+        // hints live on the photo band as cue pills (item 4), so the old
+        // hint line under the row is removed.
         val wrapRef = wrap
         val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val logBtn = makeButton("Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
         (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
         tightButton(logBtn, 48, 12, primary = true)
         btnRow.addView(logBtn)
-        if (laterAvailable()) {
-            val laterBtn = makeSecondaryButton("Later") { animateLaterDrop(wrapRef) { doLater() } }
-            (laterBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
-            tightButton(laterBtn, 48, 12)
-            btnRow.addView(laterBtn)
-        }
         root.addView(btnRow)
-        root.addView(makeText("Swipe ← Skip · → Done · ↓ Later", 11.5f, false, Theme.textSecondary).apply {
-            gravity = Gravity.CENTER
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(18); setMargins(0, dp(2), 0, 0) }
-        })
         val next = deck.getOrNull(index + 1)
         if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")).apply {
             (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
@@ -432,6 +458,16 @@ class CardSessionActivity : AppCompatActivity() {
         downLabel?.alpha = if (!horizontal && dy > 0) progress else 0f
         val active = when { horizontal && dx > 0 -> doneLabel; horizontal && dx < 0 -> skipLabel; !horizontal && dy < 0 -> upLabel; !horizontal && dy > 0 -> downLabel; else -> null }
         active?.let { val s = 0.92f + 0.13f * progress; it.scaleX = s; it.scaleY = s }
+        // v3.3: the on-photo cue pills mirror the same progress — the cue
+        // for the committed direction goes fully opaque and scales up to
+        // ~1.15x; the other two fade back. (Up = Log set has no cue: it
+        // has the button, so all three simply fade.)
+        updateSwipeCues(when {
+            horizontal && dx > 0 -> cueDone
+            horizontal && dx < 0 -> cueSkip
+            !horizontal && dy > 0 -> cueLater
+            else -> null
+        }, progress)
         // Border strengthens toward the direction color; tint washes the card face.
         cardSurface?.background = deckCardDrawable(if (progress > 0.02f) dirColor else null)
         tintOverlay?.let {
@@ -443,6 +479,29 @@ class CardSessionActivity : AppCompatActivity() {
         if (progress >= 1f && !thresholdHapticDone) {
             thresholdHapticDone = true
             v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        }
+    }
+
+    /** v3.3: drive the photo-band cue pills from drag progress (see
+     *  updateDragFeedback). [active] is the cue for the dominant direction,
+     *  or null when dragging up (Log set — button-only, no cue). */
+    private fun updateSwipeCues(active: TextView?, progress: Float) {
+        for (cue in listOf(cueSkip, cueDone, cueLater)) {
+            cue ?: continue
+            if (cue === active) {
+                cue.alpha = cueRestAlpha + (1f - cueRestAlpha) * progress
+                val s = 1f + 0.15f * progress; cue.scaleX = s; cue.scaleY = s
+            } else {
+                cue.alpha = cueRestAlpha * (1f - 0.72f * progress)
+                cue.scaleX = 1f; cue.scaleY = 1f
+            }
+        }
+    }
+
+    /** v3.3: cue pills settle back to their rest state (translucent, 1x). */
+    private fun resetSwipeCues() {
+        for (cue in listOf(cueSkip, cueDone, cueLater)) {
+            cue?.animate()?.alpha(cueRestAlpha)?.scaleX(1f)?.scaleY(1f)?.setDuration(140)?.start()
         }
     }
 
@@ -459,6 +518,7 @@ class CardSessionActivity : AppCompatActivity() {
         upLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
         downLabel?.animate()?.alpha(0f)?.setDuration(140)?.start()
         tintOverlay?.animate()?.alpha(0f)?.setDuration(140)?.start()
+        resetSwipeCues()
         peekNear?.animate()?.scaleX(0.96f)?.scaleY(0.96f)?.translationY(dp(12).toFloat())?.alpha(0.7f)?.setDuration(180)?.start()
         cardSurface?.background = deckCardDrawable()
     }
@@ -515,7 +575,52 @@ class CardSessionActivity : AppCompatActivity() {
         val ex=current() ?: return; snapshot(ex)
         db.setSessionExerciseStatus(ex.id,"skipped")
         Toast.makeText(this,"Skipped ${ex.name}",Toast.LENGTH_SHORT).show()
-        advanceWithRest()
+        // v3.3 (item 1): a skip NEVER rests — straight to the next card.
+        advanceAfterSkip()
+    }
+    /** v3.3 (item 2): the Done gate for the right swipe. Done completes
+     *  instantly UNLESS this is a Main exercise with sets still unlogged —
+     *  then the card snaps back and a confirmation dialog decides. */
+    private fun requestDone(v: View){
+        val ex=current() ?: return
+        if (!doneConfirmNeeded(ex)) { animateExitThen(v, 1) { applyDone() }; return }
+        snapCardBack(v)
+        showDoneConfirm(ex) { animateExitThen(v, 1) { applyDone() } }
+    }
+    /** True only for Main-section exercises with logged sets < planned
+     *  sets. Warm-up and Cool-down/Stretch items are EXEMPT by the user's
+     *  explicit scoping — their Done never asks. Zero logged sets still
+     *  counts (0 < planned), so it asks too. */
+    private fun doneConfirmNeeded(ex: SessionExercise): Boolean {
+        if (!ex.type.equals("Main", true)) return false
+        val sets = db.getSets(ex.id)
+        return sets.count { it.isDone } < sets.size
+    }
+    /** "Mark done?" — Mist-styled confirmation with the per-set picture:
+     *  logged sets show their weight×reps, the rest read "not logged".
+     *  Keep logging dismisses and changes nothing; Mark done proceeds
+     *  with the normal completion (applyDone + the usual advance/rest). */
+    private fun showDoneConfirm(ex: SessionExercise, onConfirm: () -> Unit){
+        val sets = db.getSets(ex.id)
+        val logged = sets.count { it.isDone }
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), dp(4)) }
+        box.addView(makeText("You've logged $logged of ${sets.size} sets for ${ex.name}.", 14f, false, Theme.textPrimary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(4)) })
+        for (s in sets) {
+            val line = if (s.isDone) makeText("Set ${s.setNumber} · ${setText(s)} ✓", 12.5f, true, Theme.success)
+                       else makeText("Set ${s.setNumber} · not logged", 12.5f, false, Theme.textTertiary)
+            (line.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, dp(1))
+            box.addView(line)
+        }
+        val dialog = AlertDialog.Builder(this).setTitle("Mark done?").setView(box)
+            .setNegativeButton("Keep logging", null)
+            .setPositiveButton("Mark done") { _, _ -> onConfirm() }
+            .create()
+        dialog.setOnShowListener {
+            // Mist palette on the system buttons, same treatment as the Rest Ring.
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.apply { setTextColor(Theme.primary); textSize = 15f }
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply { setTextColor(Theme.textSecondary); textSize = 15f }
+        }
+        dialog.show()
     }
     private fun applyDone(){
         val ex=current() ?: return; snapshot(ex)
@@ -537,10 +642,19 @@ class CardSessionActivity : AppCompatActivity() {
         Toast.makeText(this,"Moved ${ex.name} to later",Toast.LENGTH_SHORT).show()
         render()
     }
-    /** Advance to the next pending card. In the Exercises phase, crossing to
+    /** v3.3 (item 1): skip advance — the same index walk as advanceWithRest
+     *  but with NO Rest Ring and no rest prompt, ever. This is the only
+     *  advance applySkipped() calls; the rest code below is unreachable
+     *  from every skip path. */
+    private fun advanceAfterSkip(){
+        index++; moveToPendingFrom(index)
+        render()
+    }
+    /** Advance to the next pending card after REAL work (Done, or logging
+     *  the last set of an exercise). In the Exercises phase, crossing to
      *  a new exercise first shows the Rest Ring for the between-exercises
      *  duration (default 60s, Settings-adjustable) with the next exercise's
-     *  name as the target line (S2/S5). */
+     *  name as the target line (S2/S5). Never called from a skip path. */
     private fun advanceWithRest(){
         index++; moveToPendingFrom(index)
         val nextEx = current()
