@@ -95,6 +95,48 @@ fun Context.deckCardDrawable(borderColor: Int? = null): Drawable {
     return layers
 }
 
+/** Clips a view's children to a rounded-rect outline (v3.1 photo headers:
+ *  the photo fills its card area and must respect the card corners). */
+fun View.roundedClip(radiusDp: Int) {
+    outlineProvider = object : android.view.ViewOutlineProvider() {
+        override fun getOutline(view: View, outline: android.graphics.Outline) {
+            outline.setRoundRect(0, 0, view.width, view.height, view.context.dp(radiusDp).toFloat())
+        }
+    }
+    clipToOutline = true
+}
+
+/** Two-frame photo crossfade (v3.1): free-exercise-db entries ship two
+ *  positions of each movement; loop them — hold ~800ms per frame, ~350ms
+ *  crossfade — with two stacked CENTER_CROP ImageViews (frame 2 on top,
+ *  alpha-animated). No animation/GIF library. Callers must [stop] when the
+ *  screen isn't visible and before the views are discarded. */
+class PhotoLooper(private val topFrame: android.widget.ImageView) {
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var running = false
+    private var showingSecond = false
+    private val tick = object : Runnable {
+        override fun run() {
+            if (!running) return
+            showingSecond = !showingSecond
+            topFrame.animate().alpha(if (showingSecond) 1f else 0f).setDuration(350).start()
+            handler.postDelayed(this, 1150)
+        }
+    }
+    fun start() {
+        if (running) return
+        running = true
+        handler.postDelayed(tick, 800)
+    }
+    fun stop() {
+        running = false
+        handler.removeCallbacks(tick)
+        topFrame.animate().cancel()
+        topFrame.alpha = 0f
+        showingSecond = false
+    }
+}
+
 /** Gradient hero background (primary blue), layered over the same soft shadow. */
 fun Context.heroDrawable(): Drawable {
     val shadowLayer = rounded(Theme.shadow, 20)
@@ -352,7 +394,7 @@ fun AppCompatActivity.bottomNav(selected: String): LinearLayout {
     val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(4), dp(4), dp(4), dp(8)) }
     val tabs = listOf(
         Triple("Home", R.drawable.ic_home, MainActivity::class.java),
-        Triple("Body Parts", R.drawable.ic_list, RoutinesActivity::class.java),
+        Triple("Library", R.drawable.ic_list, RoutinesActivity::class.java),
         Triple("History", R.drawable.ic_history, HistoryActivity::class.java),
         Triple("Settings", R.drawable.ic_settings, SettingsActivity::class.java)
     )

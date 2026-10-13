@@ -8,7 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
-/** v3 Body Parts tab (replaces the old Routines tab): the 11 body parts in
+/** v3 Library tab (named "Body Parts" until v3.1): the 11 body parts in
  *  the same one-page 2-column grid as Home. Tap a part for its warm-ups,
  *  exercises and stretches (from the DB) with per-exercise last performance,
  *  and part-scoped add/edit. */
@@ -26,8 +26,8 @@ class RoutinesActivity : AppCompatActivity() {
     private fun render() {
         val wm = WeekManager.reconcile(this, db)
         val compact = isCompactScreen()
-        val root = tabScaffold("Body Parts")
-        root.addView(screenTitle("Body Parts").apply {
+        val root = tabScaffold("Library")
+        root.addView(screenTitle("Library").apply {
             (layoutParams as LinearLayout.LayoutParams).apply { height = dp(40); setMargins(0, 0, 0, 0) }
             gravity = Gravity.CENTER_VERTICAL
         })

@@ -2,9 +2,11 @@ package com.mahesh.workouttracker
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +20,7 @@ class BodyPartDetailActivity : AppCompatActivity() {
     private var partId: String = ""
     private var page = 0
     private var created = false
+    private val photoLoopers = mutableListOf<PhotoLooper>()
 
     private sealed class Row {
         data class Header(val text: String, val color: Int) : Row()
@@ -34,6 +37,7 @@ class BodyPartDetailActivity : AppCompatActivity() {
     }
 
     override fun onResume() { super.onResume(); if (created) render() }
+    override fun onPause() { super.onPause(); photoLoopers.forEach { it.stop() } }
 
     private fun rows(): List<Row> {
         val all = db.getExercisesForPart(partId)
@@ -51,6 +55,9 @@ class BodyPartDetailActivity : AppCompatActivity() {
     }
 
     private fun render() {
+        // Rows from the previous render are discarded; stop their photo
+        // crossfade loops first (v3.1).
+        photoLoopers.forEach { it.stop() }; photoLoopers.clear()
         val compact = isCompactScreen()
         val root = fitRoot()
         setContentView(root)
@@ -89,23 +96,45 @@ class BodyPartDetailActivity : AppCompatActivity() {
     }
 
     private fun itemRow(e: Exercise, rowH: Int): View {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        // v3.1: the exercise photo is the row's BACKGROUND — a CENTER_CROP
+        // ImageView filling the rounded row (never stretched), crossfade-
+        // looping its two frames where both exist, with a light mist scrim
+        // from the left so the name/meta text stays legible. No photo ->
+        // the body map sits in the row as before.
+        val asset = PhotoLib.assetForExercise(this, e)
+        val bmp: Bitmap? = asset?.let { PhotoLib.bitmap(this, it) }
+        val frame = FrameLayout(this).apply {
             background = cardDrawable(tappable = true)
-            setPadding(dp(8), dp(4), dp(8), dp(4))
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(rowH)).apply { setMargins(0, dp(2), 0, dp(2)) }
+            roundedClip(20)
             isClickable = true
             setOnClickListener { startActivity(Intent(this@BodyPartDetailActivity, ExerciseEditActivity::class.java).putExtra("exerciseId", e.id).putExtra("bodyPart", partId)) }
         }
-        // Photo thumb where one exists; BodyMap otherwise.
-        val asset = PhotoLib.assetForExercise(this, e)
-        val bmp: Bitmap? = asset?.let { PhotoLib.bitmap(this, it) }
         if (bmp != null) {
-            row.addView(ImageView(this).apply {
+            frame.addView(ImageView(this).apply {
                 setImageBitmap(bmp); scaleType = ImageView.ScaleType.CENTER_CROP
-                layoutParams = LinearLayout.LayoutParams(dp(52), dp(rowH - 10)).apply { setMargins(0, 0, dp(8), 0) }
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             })
-        } else {
+            val bmp2 = asset?.let { PhotoLib.secondBitmap(this, it) }
+            if (bmp2 != null) {
+                val iv2 = ImageView(this).apply {
+                    setImageBitmap(bmp2); scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0f
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                }
+                frame.addView(iv2)
+                val looper = PhotoLooper(iv2); photoLoopers.add(looper); looper.start()
+            }
+            frame.addView(View(this).apply {
+                background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(0xE6F7F9FB.toInt(), 0x00F7F9FB))
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            })
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        }
+        if (bmp == null) {
             val muscles = DbHelper.parseMuscles(e.targetMuscles, e.name)
             row.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(30), dp(38)).apply { setMargins(0, 0, dp(8), 0) } })
         }
@@ -122,6 +151,7 @@ class BodyPartDetailActivity : AppCompatActivity() {
         info.addView(meta)
         row.addView(info)
         row.addView(iconView(R.drawable.ic_chevron, 18, Theme.textTertiary))
-        return row
+        frame.addView(row)
+        return frame
     }
 }

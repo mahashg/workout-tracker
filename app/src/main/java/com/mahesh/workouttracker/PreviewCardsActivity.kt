@@ -166,8 +166,8 @@ class PreviewCardsActivity : AppCompatActivity() {
         val last = db.lastPerformedForExercise(ex.name, -1)
         if (last != null) {
             val summary = last.sets.joinToString(", ") { s -> if (s.isBodyweight) "BW x${s.reps}" else "${s.weight} $unit x ${s.reps}" }
-            val effortBit = if (last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort, unit)}" else ""
-            dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit", 12f, false, Theme.textSecondary).apply {
+            // v3.1: no effort readout — the feedback/effort feature is gone.
+            dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary", 12f, false, Theme.textSecondary).apply {
                 (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
             })
         }
