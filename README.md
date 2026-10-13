@@ -593,3 +593,52 @@ visual changes were approved as mockups first.
 
 APK: 11,169,088 bytes. Signing cert unchanged: SHA-1
 0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.
+
+## V3.3 (versionCode 19) — interaction fixes from the approved mockup
+
+DB stays v4 (no schema change). Four items, all from Mahesh's on-device
+v3.2 test:
+
+1. **Skip never rests.** Card mode's skip used to flow through the same
+   advance as Done, so skipping an exercise still popped the 60s
+   between-exercises Rest Ring. Skip now advances via a dedicated
+   `advanceAfterSkip()` (index walk + re-render only — the rest code is
+   unreachable from it). The list view's long-press Skip was audited and
+   was already rest-free (it only writes the status and re-renders).
+   Rest triggers are unchanged for real work: the 30s ring after logging
+   a set with more sets to go, and the 60s ring after completing an
+   exercise via Done (or by logging its last set).
+2. **Done confirmation — Main exercises only.** Swiping Done on a Main
+   exercise with logged sets < planned sets no longer completes
+   silently: the card snaps back and a Mist-styled dialog asks "Mark
+   done?" — "You've logged X of Y sets for <name>", one line per set
+   (logged sets show their weight×reps in success green, the rest read
+   "not logged"), **Keep logging** (dismiss, nothing changes) and
+   **Mark done** (the normal completion, advance/rest included). All
+   sets logged (or none planned) -> Done completes instantly, no
+   dialog. Zero logged sets still asks. **Warm-up and Cool-down/Stretch
+   items are exempt** (the user's explicit scoping): their Done always
+   completes instantly. The gate lives at the right-swipe commit, the
+   only card path that can complete an exercise with sets missing —
+   logging the final set in the logger completes directly, as before.
+3. **Later button removed.** The card button row is now a single
+   full-width "+ Log set" primary. Do later survives as the down-swipe
+   (and the list view's long-press menu is untouched). The
+   "Swipe <- Skip · -> Done · v Later" hint line under the row is gone
+   (item 4 replaces it).
+4. **On-card swipe cues.** Three small pills sit ON the photo band —
+   the same band body-map exercises use, so Warmup, Main and Stretch
+   cards all get them: left-center "← ✕ Skip" (dark translucent),
+   right-center "Done ✓ →" (solid #15803D), bottom-center "↓ Later"
+   (dark translucent). At rest they're at 90% opacity; while dragging,
+   the cue matching the dominant direction goes fully opaque and scales
+   to ~1.15x as displacement approaches the commit threshold while the
+   other two fade back, and everything resets on release. The pills are
+   click-through (the card's drag handling never sees them), and the
+   name + last-time block is raised 32dp (photo scrim deepened to
+   112dp) so the bottom cue never overlaps it. The existing drag
+   direction stamps stay. Preview cards deliberately show NO cues —
+   browsing promises no gestures.
+
+APK: 11,171,584 bytes. Signing cert unchanged: SHA-1
+0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.
