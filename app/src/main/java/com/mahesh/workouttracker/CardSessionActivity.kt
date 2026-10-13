@@ -153,7 +153,7 @@ class CardSessionActivity : AppCompatActivity() {
         val dragCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             // v2.6.1: top padding >= 14dp so the exercise name never touches the band.
-            setPadding(dp(14), dp(14), dp(14), dp(12))
+            setPadding(dp(12), dp(14), dp(12), dp(12))
             background = deckCardDrawable()
             elevation = dp(8).toFloat()
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
@@ -165,16 +165,21 @@ class CardSessionActivity : AppCompatActivity() {
         // in v3.1 it lives in the header overlay below.
         val last=db.lastPerformedForExercise(ex.name, sessionId)
         val lastLine = if (last != null) lastTimeTitle(last) else "First time — no previous record. Start light."
-        // v3.1: the exercise photo is the BACKGROUND of the card header —
-        // a CENTER_CROP ImageView filling a rounded-corner header frame
-        // (never stretched), exercise name + last-time line overlaid at the
-        // bottom on a dark gradient scrim. Where the dataset shipped a
-        // second frame it crossfade-loops (PhotoLooper). No photo -> the
-        // body map gets the same header space on the mist surface.
+        // v3.2 (approved mock): the photo band is aspect-matched to the
+        // bundled photos (3:2) — height = content width x 2/3 — so the
+        // ENTIRE frame is visible: CENTER_CROP in an aspect-matched box
+        // crops nothing and stretches nothing. Both PhotoLooper frames
+        // share the identical container, so the crossfade never shifts.
+        // Tags (body part + equipment) sit top-left over the photo; the
+        // name + last-time line ride the bottom gradient scrim. No photo
+        // -> the body map gets the same band on the mist surface.
         val photoAsset = PhotoLib.assetForSessionExercise(this, db, ex)
         val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
+        val screenWDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+        val rootPadH = if (isCompactScreen()) 28 else 40 // fitRoot horizontal padding, both sides
+        val photoH = ((screenWDp - rootPadH - 24) * 2 / 3).coerceAtLeast(120) // minus dragCard padding 12+12
         val header = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(148)).apply { setMargins(0, 0, 0, dp(6)) }
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(photoH)).apply { setMargins(0, 0, 0, dp(6)) }
             roundedClip(16)
         }
         if (photoBmp != null) {
@@ -206,8 +211,9 @@ class CardSessionActivity : AppCompatActivity() {
             header.addView(overlay)
         } else {
             header.background = roundedBg("#EDF2F7", 16)
+            val mapH = photoH * 3 / 4
             header.addView(BodyMapView(this, muscles, true).apply {
-                layoutParams = FrameLayout.LayoutParams(dp(76), dp(96), Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(14), 0) }
+                layoutParams = FrameLayout.LayoutParams(dp(mapH * 76 / 96), dp(mapH), Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(14), 0) }
             })
             val overlay = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -218,42 +224,82 @@ class CardSessionActivity : AppCompatActivity() {
             overlay.addView(makeText(lastLine, 12.5f, true, Theme.primary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             header.addView(overlay)
         }
+        // Tags top-left over the photo band (v3.2 mock): body part +
+        // equipment as light pills — they replace the old equipment badge
+        // that used to sit under the header.
+        run {
+            val tagRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) }
+            }
+            fun tag(text: String) = TextView(this).apply {
+                this.text = text; textSize = 10f; setTextColor(Color.parseColor("#33475C"))
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                background = GradientDrawable().apply {
+                    setColor(if (photoBmp != null) 0xE6F7F9FB.toInt() else Color.WHITE)
+                    cornerRadius = dp(999).toFloat()
+                    if (photoBmp == null) setStroke(dp(1), Theme.stroke)
+                }
+                setPadding(dp(8), dp(3), dp(8), dp(3)); maxLines = 1
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, dp(6), 0) }
+            }
+            val partId = db.sessionExercisePart(ex)
+            if (partId.isNotBlank()) tagRow.addView(tag(BodyParts.name(partId)))
+            tagRow.addView(tag(ex.equipment))
+            header.addView(tagRow)
+        }
         dragCard.addView(header)
-        // Essentials under the header: badge, variation, do-it, set dots.
-        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) }
-        essInfo.addView(equipmentBadge(ex.equipment))
-        if(ex.variation.isNotBlank()) essInfo.addView(makeText(ex.variation,12f,false,Theme.textSecondary))
-        essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")))
-        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",13f,true))
-        essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")))
-        dragCard.addView(essInfo)
+        // Essentials under the photo band: variation, then one compact row —
+        // Do-it + Sets lines on the left, set-progress dots on the right.
+        // (The equipment badge moved onto the photo as a tag.)
+        if(ex.variation.isNotBlank()) dragCard.addView(makeText(ex.variation,12f,false,Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) } }
+        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+        essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",12.5f,false,Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+        essRow.addView(essInfo)
+        essRow.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(dp(8), 0, 0, 0) }
+        })
+        dragCard.addView(essRow)
 
         // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
-        // Compact posture block: video button, feel line, <=4 posture bullets,
-        // <=2 cue lines, start-light hint. Fits inside the fixed-height card.
+        // v3.2 (approved mock): the posture check moves OUT of the photo
+        // area into its own surface card directly below the essentials row:
+        // flat mist fill + stroke inside the deck card. Bullet/cue caps keep
+        // the fixed-height card from clipping at the ~546dp compact floor
+        // (the v2.5 accepted how-to cap; full content lives in the list
+        // view). Posture content itself is untouched.
         run {
-            val how = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), dp(2), dp(4), 0) }
+            val how = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(16).toFloat(); setStroke(dp(1), Theme.stroke) }
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+            }
+            fun slim(v: TextView, topDp: Int = 1): TextView {
+                (v.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(topDp), 0, dp(1))
+                return v
+            }
             if(ex.youtubeUrl.isNotBlank()) {
                 val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)}
-                (vid.layoutParams as LinearLayout.LayoutParams).height = dp(44)
+                (vid.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, 0, 0, dp(4)) }
                 tightButton(vid, 44, 12, primary = true); vid.setPadding(dp(8), 0, dp(8), 0)
                 how.addView(vid)
             }
-            how.addView(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")))
+            how.addView(slim(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")), 2))
             val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
             if(posture.isNotBlank()){
                 val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                how.addView(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")))
-                // v3: with a photo on the card, trim to 3 checks / 1 cue so the
-                // fixed-height card never clips (posture content itself intact).
-                for(c in items.take(if (photoBmp != null) 3 else 4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+                how.addView(slim(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")), 4))
+                for(c in items.take(if (isCompactScreen()) 2 else 3)) how.addView(slim(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }))
             }
             val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
             if(cues.isNotBlank()){
                 val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                for(c in items.take(if (photoBmp != null) 1 else 2)) how.addView(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                for(c in items.take(1)) how.addView(slim(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }))
             }
-            if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
+            if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(slim(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E"))))
             dragCard.addView(how)
         }
         // v3.1: one small swipe-hint line sits under the button row (Skip /
@@ -343,15 +389,15 @@ class CardSessionActivity : AppCompatActivity() {
         // (secondary) in one slim row; up-swipe also opens Log set and
         // down-swipe is Later, the same two actions.
         val wrapRef = wrap
-        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(46)) }
+        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         val logBtn = makeButton("Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
         (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
-        tightButton(logBtn, 46, 12, primary = true)
+        tightButton(logBtn, 48, 12, primary = true)
         btnRow.addView(logBtn)
         if (laterAvailable()) {
             val laterBtn = makeSecondaryButton("Later") { animateLaterDrop(wrapRef) { doLater() } }
             (laterBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
-            tightButton(laterBtn, 46, 12)
+            tightButton(laterBtn, 48, 12)
             btnRow.addView(laterBtn)
         }
         root.addView(btnRow)
@@ -628,7 +674,6 @@ class CardSessionActivity : AppCompatActivity() {
         }
         sheetRoot.addView(View(this).apply { background = roundedBg("#D6DEE8", 4); layoutParams = LinearLayout.LayoutParams(dp(44), dp(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(2), 0, dp(12)) } })
         sheetRoot.addView(makeText("Log this set", 20f, true))
-        sheetRoot.addView(makeText("Set done - nice! Log this set", 12f, false, Theme.textSecondary))
         sheetRoot.addView(box)
         // S1: one tap fills every set from last time and marks them logged
         // (rows stay editable in the list afterwards). Fewer last-time sets

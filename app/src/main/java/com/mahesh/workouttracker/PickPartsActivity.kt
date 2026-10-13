@@ -1,16 +1,34 @@
 package com.mahesh.workouttracker
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 /** v3 picker: choose today's body parts (multi-select, at least 1), then the
  *  workout is assembled from the per-part JSON-seeded data. Same one-page
- *  2-column grid as Home, with Done / Due / N× state per part (S3). */
+ *  2-column grid as Home.
+ *
+ *  v3.2 five-state card system (approved mockup; NO legend — the treatments
+ *  themselves are the code, and they layer instead of competing):
+ *  - Selected: solid primary fill, white text, white ✓ badge + "Selected"
+ *    pill. Overrides every other treatment.
+ *  - Suggested (pairs with EVERY selected part): pale violet fill, DASHED
+ *    violet border, "✦ Pairs well" pill — never a check mark.
+ *  - Done this week: pale green fill + green border + "✓ Done this week"
+ *    pill (Core: "✓ Done · N×"). The Done pill shows whenever the part is
+ *    done and not selected — on suggested cards too (next to a small ✦
+ *    pill) and on dimmed not-paired cards.
+ *  - Not paired (selection non-empty, doesn't pair with all selected):
+ *    whole card dimmed to alpha 0.45 + "Not paired" pill; still tappable.
+ *  - Plain (nothing selected): default card, v3 Due/Pending pills.
+ *  Recomputed on every render (selection change). */
 class PickPartsActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private val selected = linkedSetOf<String>()
@@ -33,19 +51,11 @@ class PickPartsActivity : AppCompatActivity() {
         val lastTrained = db.lastTrainedDates()
         val counts = db.partCountsInWeek(wm.weekStart)
 
-        // v3.1 compatibility highlighting: with >=1 part picked, the
-        // preferred set = unselected parts compatible with EVERY selected
-        // part (BodyParts.compatibleWith). Preferred cards get a primary
-        // border + "Pairs well" pill; other unselected cards dim but stay
-        // fully selectable. Recomputed on every render (selection change).
-        val preferred: Set<String> = if (selected.isEmpty()) emptySet()
-            else BodyParts.all.filter { p -> p.id !in selected && selected.all { s -> BodyParts.compatible(p.id, s) } }.map { it.id }.toSet()
-
         val cellH = if (compact) 56 else 64
         for (rowParts in BodyParts.all.chunked(2)) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             for (part in rowParts) {
-                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0, part.id in preferred, selected.isNotEmpty() && part.id !in selected && part.id !in preferred), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
             }
             if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
             root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
@@ -63,39 +73,63 @@ class PickPartsActivity : AppCompatActivity() {
         root.addView(btn)
     }
 
-    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int, isPreferred: Boolean, isDimmed: Boolean): View {
+    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
         val isSel = part.id in selected
         val done = countThisWeek > 0
+        // Suggested = unselected and compatible with EVERY selected part.
+        val suggested = !isSel && selected.isNotEmpty() && selected.all { s -> BodyParts.compatible(part.id, s) }
+        val notPaired = !isSel && selected.isNotEmpty() && !suggested
         val days = last?.let { daysSince(it) }
         val due = !part.repeatable && !done && (last == null || (days != null && days >= 7))
+
+        val violet = Color.parseColor("#7C3AED")
+        val violetFill = Color.parseColor("#F5F0FF")
+        val violetPillInk = Color.parseColor("#6D28D9")
+        val greenFill = Color.parseColor("#F0FDF4")
+        val greenStroke = Color.parseColor("#86EFAC")
+
+        // FrameLayout so the Selected ✓ badge can sit on the card's
+        // top-right corner, clear of the name/pill row.
+        val frame = FrameLayout(this)
         val cell = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = cardDrawable(accent = if (isSel || isPreferred) "#2563EB" else null, tappable = true)
+            background = when {
+                isSel -> stateCardDrawable(Theme.primary, tappable = true)
+                suggested -> stateCardDrawable(violetFill, violet, dashed = true, tappable = true)
+                done -> stateCardDrawable(greenFill, greenStroke, tappable = true)
+                else -> cardDrawable(tappable = true)
+            }
             setPadding(dp(10), dp(6), dp(10), dp(5))
-            if (isDimmed) alpha = 0.55f
+            if (notPaired) alpha = 0.45f
             isClickable = true
             setOnClickListener {
                 if (isSel) selected.remove(part.id) else selected.add(part.id)
                 render()
             }
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
         val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        val nameTv = makeText(part.name, 14.5f, true)
+        val nameTv = makeText(part.name, 14.5f, true, if (isSel) Color.WHITE else Theme.textPrimary)
         nameTv.maxLines = 1
+        (nameTv.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, dp(4), 0) }
         top.addView(nameTv)
-        top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        val (pillText, pillBg, pillInk) = when {
-            isSel -> Triple("✓ Picked", "#DBEAFE", Theme.primary)
-            isPreferred -> Triple("Pairs well", "#2563EB", android.graphics.Color.WHITE)
-            part.repeatable -> Triple("${countThisWeek}× this week", "#EDF2F7", Theme.textSecondary)
-            done -> Triple("✓ Done", "#DCFCE7", Theme.success)
-            due -> Triple("Due", "#FEF3C7", Theme.warn)
-            else -> Triple("Pending", "#E2E8F0", Theme.pendingFg)
+        when {
+            isSel -> top.addView(pillView("Selected", "#FFFFFF", Theme.primary))
+            done -> {
+                top.addView(pillView(if (part.repeatable) "✓ Done · ${countThisWeek}×" else "✓ Done this week", "#DCFCE7", Theme.success))
+                // Layering: a done part that also pairs well keeps a small
+                // ✦ marker next to its Done pill (mockup).
+                if (suggested) {
+                    val star = pillView("✦", "#EDE9FE", violetPillInk)
+                    top.addView(star, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(4), 0, 0, 0) })
+                }
+            }
+            notPaired -> top.addView(pillView("Not paired", "#E2E8F0", Theme.pendingFg))
+            suggested -> top.addView(pillView("✦ Pairs well", "#EDE9FE", violetPillInk))
+            part.repeatable -> top.addView(pillView("${countThisWeek}× this week", "#EDF2F7", Theme.textSecondary))
+            due -> top.addView(pillView("Due", "#FEF3C7", Theme.warn))
+            else -> top.addView(pillView("Pending", "#E2E8F0", Theme.pendingFg))
         }
-        top.addView(TextView(this).apply {
-            text = pillText; textSize = 10.5f; setTextColor(pillInk); typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-            background = roundedBg(pillBg, 999); setPadding(dp(7), dp(2), dp(7), dp(2)); maxLines = 1
-        })
         cell.addView(top)
         val lastLine = when {
             last == null -> "Not trained yet"
@@ -104,10 +138,23 @@ class PickPartsActivity : AppCompatActivity() {
             days != null -> "Last · ${DateUtil.display(last)} · ${days}d ago"
             else -> "Last · ${DateUtil.display(last)}"
         }
-        val lastTv = makeText(lastLine, 11f, false, Theme.textSecondary)
+        val lastTv = makeText(lastLine, 11f, false, if (isSel) Color.parseColor("#BFDBFE") else Theme.textSecondary)
         lastTv.maxLines = 1
         lastTv.setPadding(0, dp(2), 0, 0)
+        (lastTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         cell.addView(lastTv)
-        return cell
+        frame.addView(cell)
+        if (isSel) {
+            // White circle with a blue ✓ on the card's top-right corner —
+            // the one unmistakable "this is picked" marker.
+            val badge = TextView(this).apply {
+                text = "✓"; textSize = 12f; setTextColor(Theme.primary); gravity = Gravity.CENTER
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.WHITE); setStroke(dp(1), Theme.primary) }
+                layoutParams = FrameLayout.LayoutParams(dp(20), dp(20), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(5), dp(5), 0) }
+            }
+            frame.addView(badge)
+        }
+        return frame
     }
 }

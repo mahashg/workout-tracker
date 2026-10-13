@@ -137,6 +137,40 @@ class PhotoLooper(private val topFrame: android.widget.ImageView) {
     }
 }
 
+/** State card background (v3.2 picker): same layered shadow + 20dp corners
+ *  as [cardDrawable], but with a caller-chosen fill and stroke — solid or
+ *  DASHED (GradientDrawable dash stroke) — so the picker's Selected /
+ *  Suggested / Done states read as different treatments, not just tints. */
+fun Context.stateCardDrawable(fill: Int, strokeColor: Int? = null, dashed: Boolean = false, tappable: Boolean = false): Drawable {
+    val shadowLayer = rounded(Theme.shadow, 20)
+    val surfaceLayer = GradientDrawable().apply {
+        setColor(fill); cornerRadius = dp(20).toFloat()
+        if (strokeColor != null) {
+            if (dashed) setStroke((1.5f * resources.displayMetrics.density).toInt().coerceAtLeast(2), strokeColor, dp(6).toFloat(), dp(4).toFloat())
+            else setStroke(dp(2), strokeColor)
+        }
+    }
+    val layers = LayerDrawable(arrayOf(shadowLayer, surfaceLayer))
+    layers.setLayerInset(0, dp(2), dp(3), dp(2), 0)
+    layers.setLayerInset(1, 0, 0, 0, dp(4))
+    if (!tappable) return layers
+    val mask = GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(20).toFloat() }
+    val rippleColor = if (fill == Theme.primary) 0x33FFFFFF else 0x222563EB
+    return RippleDrawable(ColorStateList.valueOf(rippleColor), layers, mask)
+}
+
+/** Uniform small state pill (v3.2 polish): one size/padding for every
+ *  state pill in the part grids, picker and build list — 10.5sp medium,
+ *  8x3dp padding, full-round corners. */
+fun Context.pillView(text: String, bg: String, fg: Int, sizeSp: Float = 10.5f): TextView {
+    return TextView(this).apply {
+        this.text = text; textSize = sizeSp; setTextColor(fg)
+        typeface = medium()
+        background = roundedBg(bg, 999); setPadding(dp(8), dp(3), dp(8), dp(3)); maxLines = 1
+        ellipsize = android.text.TextUtils.TruncateAt.END
+    }
+}
+
 /** Gradient hero background (primary blue), layered over the same soft shadow. */
 fun Context.heroDrawable(): Drawable {
     val shadowLayer = rounded(Theme.shadow, 20)
@@ -364,7 +398,7 @@ fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout
     }
     bar.addView(back)
     val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), 0, 0, 0); layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-    val t = makeText(title, 19f, true, Theme.textPrimary)
+    val t = makeText(title, 18f, true, Theme.textPrimary)
     t.maxLines = 1; t.ellipsize = android.text.TextUtils.TruncateAt.END
     (t.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
     titles.addView(t)
