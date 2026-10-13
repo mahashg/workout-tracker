@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- v3.4: Health Connect — write finished workouts (exercise sessions)
+         to the on-device Health Connect store. On-device permission only;
+         no account, no network. -->
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
+    <!-- Lets the app detect the Health Connect provider (availability
+         checks) on devices where package visibility is filtered. -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent>
+    </queries>
     <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:label="@string/app_name" android:theme="@style/Theme.WorkoutTracker">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
@@ -20,5 +32,17 @@
         <activity android:name=".PickPartsActivity" android:exported="false" />
         <activity android:name=".AssembleActivity" android:exported="false" />
         <activity android:name=".BodyPartDetailActivity" android:exported="false" />
+        <!-- v3.4: Health Connect permissions rationale. The system opens
+             this from the Health Connect permission flow (pre-Android 14)
+             and from Health Connect's privacy settings (Android 14+). -->
+        <activity android:name=".HealthRationaleActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

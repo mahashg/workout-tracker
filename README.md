@@ -642,3 +642,79 @@ v3.2 test:
 
 APK: 11,171,584 bytes. Signing cert unchanged: SHA-1
 0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.
+
+## V3.4 (versionCode 20) — Health Connect sync
+
+Wish-list item 1, un-parked 2026-10-13. Finished workouts are written to
+**Health Connect** on the device. No Google sign-in, OAuth, or Cloud
+project is involved — Health Connect permissions are granted on-device,
+the data stays on the phone, and apps the user allows (e.g. Google Fit's
+own Health Connect sync) can read it from there. Direct Google Fit API
+integration is not possible (those APIs closed to new apps in May 2024).
+
+**Opt-in flow.** Settings gains a Health Connect card — toggle "Turn sync
+ON/OFF" backed by the `hc_sync` pref, default OFF — with a status line
+that reflects reality ("Not available on this device" / "Tap to grant
+permission" / "On — workouts sync after you finish them" / "Off"), and a
+"Sync past workouts" backfill button. Turning the toggle on without the
+permission launches the Health Connect permission request for
+ExerciseSessionRecord write; denial drops the toggle back to OFF with a
+toast. Availability is checked via `HealthConnectClient.getSdkStatus`
+(SDK_UNAVAILABLE disables the toggle; PROVIDER_UPDATE_REQUIRED shows an
+update hint). Home also gets a slim "Sync to Health Connect" row: it
+toasts if Health Connect is unavailable, asks before overriding an OFF
+toggle ("Health Connect sync is off." -> Turn on / Not now), requests
+permission if missing, and otherwise upserts all completed workouts and
+toasts the count. On a fresh completion, the Summary screen attempts the
+sync for that session and shows a subtle "Synced to Health Connect ✓"
+line on success only; any failure is silent everywhere — sync can never
+block or break a workout finish.
+
+**What's written** (`HealthSync.kt`). One `ExerciseSessionRecord` per
+completed session: real start time + elapsed duration (falling back to
+the session date + duration), system zone offset, strength-training
+type, title = the session's body-part label from `session_parts`
+("Back + Biceps"; falls back to the routine name), notes = "Week N ·
+Workout Tracker" plus each exercise's heaviest logged set. One
+`ExerciseSegment` per exercise marked done with at least one logged set,
+in session order: segment type mapped best-effort from the exercise
+name (squat, deadlift, bench press, curls, rows, pull-up, lat pulldown,
+leg press/curl/extension, plank, stretching, ...; generic weightlifting
+otherwise — every constant verified present in the resolved AAR),
+repetitions = total reps across the exercise's logged sets.
+`clientRecordId = "wt-session-<sessionId>"` with manual-entry metadata
+makes re-syncs upsert instead of duplicating.
+
+**Two honest approximations.**
+1. *Segment times*: per-exercise timestamps aren't tracked, so the
+   session window is divided evenly across the segments in order.
+2. *Segment weight*: `ExerciseSegment` in this API has **no weight
+   field** (verified with javap), so per-exercise weight can't be a
+   structured value; the heaviest logged set per exercise rides in the
+   session notes instead (bodyweight sets contribute reps only, as
+   specified).
+
+**Dependency + minSdk notes.** The client is
+`androidx.health.connect:connect-client`, but pinned to **1.1.0-alpha08**
+rather than the 1.1.0 stable: the stable's AAR metadata requires
+compileSdk 36 and AGP 8.9.1+, which this project's pinned toolchain
+(compileSdk 34 / AGP 8.5.2) cannot satisfy; alpha08 is the newest
+release built against compileSdk 34, and its full API surface used here
+was verified against the AAR with javap (Kotlin metadata 1.8 — fine for
+the 1.9.24 compiler). The library manifest declares **minSdk 26**, and
+the manifest merger refuses lower, so the app's minSdk moves **24 -> 26**
+(no override hack): Android 7.0/7.1 devices can no longer install the
+app; Android 8.0+ is unaffected. targetSdk stays 34, DB stays v4.
+`hc_sync` also joins the Drive backup prefs subset for consistency.
+
+Housekeeping to fit the new Settings card in the one-page no-scroll
+budget: Units + Beginner Mode now share one Preferences card (same text
+and toggles, 48dp buttons). Compact Settings budget: title 32 +
+Preferences 218 + Rest 68 + Health Connect 96 + Data 114 + margins ~
+536dp <= ~546dp available. Home budget likewise re-run (~537dp) with
+slightly tighter grid cells/hero. Verified: no ScrollView anywhere,
+photos unchanged, signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+
+APK: 12,887,479 bytes (+1,715,895 vs v3.3 — the Health Connect client,
+its protobuf runtime, and coroutines).

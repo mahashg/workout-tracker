@@ -25,10 +25,16 @@ android {
     }
     defaultConfig {
         applicationId = "com.mahesh.workouttracker"
-        minSdk = 24
+        // v3.4: minSdk 24 -> 26. The Health Connect client library's
+        // manifest declares minSdk 26 and the manifest merger refuses
+        // anything lower (no overrideLibrary hack — that would lie to
+        // the merger). Cost: Android 7.0/7.1 (API 24/25) devices can no
+        // longer install the app; Health Connect itself needs API 26+
+        // era hardware anyway. Android 8.0+ is unaffected.
+        minSdk = 26
         targetSdk = 34
-        versionCode = 19
-        versionName = "3.3"
+        versionCode = 20
+        versionName = "3.4"
     }
     buildTypes { getByName("release") { } }
     // v2.9: kotlinx-coroutines (via play-services-auth) and kotlin-stdlib
@@ -36,6 +42,12 @@ android {
     packaging {
         resources {
             excludes += "META-INF/kotlin-project-structure-metadata.json"
+            // v3.4: the KMP jars now in the graph (kotlinx-coroutines,
+            // androidx.annotation 1.8.1) carry Kotlin/Native link-data
+            // and manifest markers under commonMain/ that collide with
+            // each other at packaging; build metadata, never runtime
+            // resources on Android.
+            excludes += "commonMain/**"
         }
     }
     compileOptions {
@@ -51,6 +63,18 @@ dependencies {
     // needed). Resolved into the offline localrepo via
     // ~/workspace/.tooling/resolve.py.
     implementation("com.google.android.gms:play-services-auth:22.0.0")
+    // v3.4: Health Connect client + coroutines for its suspend APIs,
+    // mirrored into the offline localrepo (resolver + manual curl for the
+    // POM hard-range proto artifacts, as with 1.1.0 before it).
+    // Version pinned at 1.1.0-alpha08 ON PURPOSE: the 1.1.0 stable (and
+    // alpha09+/beta01+) AAR metadata demands compileSdk 36 and AGP
+    // 8.9.1+, which this project's pinned toolchain (compileSdk 34,
+    // AGP 8.5.2) cannot satisfy; alpha08 is the newest release built
+    // against compileSdk 34 (minCompileSdk 34, minSdk 26) and its API
+    // surface for everything used here was verified with javap.
+    // NOTE: the library manifest declares minSdk 26 — see defaultConfig.
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha08")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 }
 configurations {
     implementation {
