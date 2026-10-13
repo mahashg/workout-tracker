@@ -18,8 +18,6 @@ import androidx.appcompat.app.AppCompatActivity
 class SessionActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var sessionId: Long = -1
-    private var timer: CountDownTimer? = null
-    private var timerDialog: AlertDialog? = null
     private var timerChip: TimerChipView? = null
     private val howToExpanded = mutableSetOf<Long>()
     private var howToDefaultApplied = false
@@ -32,7 +30,7 @@ class SessionActivity : AppCompatActivity() {
         render()
     }
     override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow() }
-    override fun onDestroy() { super.onDestroy(); timer?.cancel(); timerDialog?.dismiss(); timerChip?.stopTicking() }
+    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking() }
 
     private fun sectionOf(type: String): String = when (type.lowercase()) { "warmup" -> "Warm Up"; "stretch" -> "Cool Down"; else -> "Exercise" }
 
@@ -194,15 +192,16 @@ class SessionActivity : AppCompatActivity() {
         // ---- Accordion expansion: larger weight share, others compress ----
         if (expanded) {
             val exMuscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-            val meta = makeText("${sectionOf(ex.type)} • ${ex.equipment} • ${doItLine(sets)}${if (status == "skipped") " • Skipped" else ""}", 11f, true, Color.parseColor("#92400E"))
+            val partId = db.sessionExercisePart(ex)
+            val partTag = if (partId.isNotBlank()) "${BodyParts.name(partId)} • " else ""
+            val meta = makeText("$partTag${sectionOf(ex.type)} • ${ex.equipment} • ${doItLine(sets)}${if (status == "skipped") " • Skipped" else ""}", 11f, true, Color.parseColor("#92400E"))
             meta.maxLines = 1; meta.ellipsize = android.text.TextUtils.TruncateAt.END
             (meta.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
             card.addView(meta)
             val last = db.lastPerformedForExercise(ex.name, sessionId)
             if (last != null) {
-                val summary = last.sets.joinToString(", ") { s -> if (s.isBodyweight) "BW x${s.reps.ifBlank { "?" }}" else "${s.weight.ifBlank { "?" }} $unit x${s.reps.ifBlank { "?" }}" }
-                val eff = if (last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort, unit)}" else ""
-                val lt = makeText("Last: ${DateUtil.display(last.date)} • $summary$eff", 11f, false, Color.parseColor("#15803D"))
+                // v3: same prominent last-performance format as the card.
+                val lt = makeText(lastTimeTitle(last), 11.5f, true, Theme.primary)
                 lt.maxLines = 1; lt.ellipsize = android.text.TextUtils.TruncateAt.END
                 (lt.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
                 card.addView(lt)
@@ -210,6 +209,27 @@ class SessionActivity : AppCompatActivity() {
                 val ft = makeText("First time", 11f, false, Theme.textSecondary)
                 (ft.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
                 card.addView(ft)
+            }
+            // v3: the three in-workout actions for Exercises (Skip / Do later /
+            // Start = open the set logger), mirroring the card flow.
+            val sessionNow = db.getSession(sessionId)
+            if (ex.type.equals("Main", true) && sessionNow != null && !sessionNow.completed) {
+                val actRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(32)).apply { setMargins(0, dp(2), 0, dp(2)) } }
+                fun actBtn(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(32); setMargins(dp(2), 0, dp(2), 0) }; b.textSize = 11.5f; actRow.addView(b) }
+                actBtn(smallBtn(if (status == "skipped") "Un-skip" else "Skip", 60, 32) {
+                    db.setSessionExerciseStatus(ex.id, if (status == "skipped") "pending" else "skipped")
+                    render(ex.id)
+                })
+                actBtn(smallBtn("Do later", 60, 32) {
+                    db.moveSessionExerciseToEndOfSection(ex.id)
+                    Toast.makeText(this, "Moved ${ex.name} to later", Toast.LENGTH_SHORT).show()
+                    render(ex.id)
+                })
+                actBtn(smallBtn("Start · Log set", 60, 32) {
+                    val firstOpen = db.getSets(ex.id).firstOrNull { !it.isDone } ?: db.getSets(ex.id).firstOrNull()
+                    if (firstOpen != null) editSetDialog(ex, firstOpen, unit) else Toast.makeText(this, "No sets yet — tap + to add one", Toast.LENGTH_SHORT).show()
+                })
+                card.addView(actRow)
             }
             if (sets.isNotEmpty()) {
                 val sum = makeText("Sets: " + sets.joinToString(", ") { s -> (if (s.isBodyweight) "BW" else s.weight.ifBlank { "?" }) + "×" + s.reps.ifBlank { "?" } + if (s.isDone) "✓" else "" }, 11f, false, Theme.textSecondary)
@@ -270,8 +290,24 @@ class SessionActivity : AppCompatActivity() {
     /** Tap-a-set-chip editor: same fields/writes as the old per-set row
      *  (weight, reps, BW, Done + steppers), in a dialog so the one-page list
      *  rows can stay ~40dp. Checking Done starts the 60s rest timer. */
+    private fun cuesOf(ex: SessionExercise): List<String> =
+        ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
+            .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+
     private fun editSetDialog(ex: SessionExercise, set: SessionSet, unit: String) {
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(4)) }
+        // v3: this set's own last-time value as the hint (e.g. "last: 12×12").
+        val lastForSet = db.lastPerformedForExercise(ex.name, sessionId)
+        if (lastForSet != null) {
+            val mySets = db.getSets(ex.id)
+            val pos = mySets.indexOfFirst { it.id == set.id }
+            val ls = lastForSet.sets.getOrNull(pos)
+            if (ls != null) {
+                val hint = makeText("Last time · Set ${set.setNumber}: ${setText(ls)}  (${DateUtil.display(lastForSet.date)})", 12f, true, Theme.primary)
+                (hint.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(4))
+                box.addView(hint)
+            }
+        }
         val wStep = if (unit == "kg") 2.5 else 5.0
         val wEt = EditText(this).apply { setText(set.weight); hint = "weight"; styleEditText(this); textSize = 13f; isEnabled = !set.isBodyweight }
         val rEt = EditText(this).apply { setText(set.reps); hint = "reps"; styleEditText(this); textSize = 13f }
@@ -298,10 +334,27 @@ class SessionActivity : AppCompatActivity() {
             .setTitle("${ex.name} — Set ${set.setNumber}")
             .setView(box)
             .setPositiveButton("Save") { _, _ ->
+                val newlyDone = doneCb.isChecked && !set.isDone
                 db.updateSet(set.copy(weight = wEt.text.toString(), reps = rEt.text.toString(), isBodyweight = bwCb.isChecked, isDone = doneCb.isChecked))
                 db.syncExerciseStatus(ex.id)
-                if (doneCb.isChecked && !set.isDone) startRestTimer()
-                render(ex.id)
+                if (!newlyDone || !ex.type.equals("Main", true)) { render(ex.id); return@setPositiveButton }
+                // S2/S5: auto-start the Rest Ring — between-sets duration with
+                // the next set's last-time target, or between-exercises with
+                // the next exercise's name when this exercise just finished.
+                val setsNow = db.getSets(ex.id)
+                val nextSet = setsNow.firstOrNull { !it.isDone }
+                if (nextSet != null) {
+                    val last = db.lastPerformedForExercise(ex.name, sessionId)
+                    val pos = setsNow.indexOf(nextSet)
+                    val ls = last?.sets?.getOrNull(pos)
+                    RestTimer.show(this, WeekManager.restSetSec(this),
+                        "Next · Set ${nextSet.setNumber}" + if (ls != null) " — last time ${setText(ls)}" else "",
+                        cuesOf(ex)) { render(ex.id) }
+                } else {
+                    val nextEx = db.getSessionExercises(sessionId).firstOrNull { it.type.equals("Main", true) && it.id != ex.id && db.effectiveStatus(it) == "pending" }
+                    if (nextEx != null) RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cuesOf(nextEx)) { render(ex.id) }
+                    else render(ex.id)
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -337,12 +390,5 @@ class SessionActivity : AppCompatActivity() {
         override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
         override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
         override fun afterTextChanged(s: Editable?) { onChange(s?.toString() ?: "") }
-    }
-    private fun startRestTimer() {
-        timer?.cancel(); timerDialog?.dismiss()
-        val tv = TextView(this).apply { text = "60"; textSize = 34f; setTextColor(Theme.textPrimary); setPadding(dp(24), dp(24), dp(24), dp(24)); gravity = Gravity.CENTER }
-        val dlg = AlertDialog.Builder(this).setTitle("Rest 60 sec").setView(tv).setNegativeButton("Skip") { _, _ -> timer?.cancel() }.setPositiveButton("Cancel Timer") { _, _ -> timer?.cancel() }.create()
-        timerDialog = dlg; dlg.show()
-        timer = object : CountDownTimer(60000, 1000) { override fun onTick(ms: Long) { tv.text = "${ms / 1000}" } override fun onFinish() { tv.text = "Done!"; Toast.makeText(this@SessionActivity, "Rest done", Toast.LENGTH_SHORT).show() } }.start()
     }
 }
