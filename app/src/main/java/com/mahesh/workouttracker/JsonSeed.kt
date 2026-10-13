@@ -19,7 +19,12 @@ object JsonSeed {
         val targetReps: String, val targetMuscles: String, val precautions: String,
         val cues: String, val image: String, val url: String, val primary: Boolean,
         val defaultWeight: String, val variation: String, val easier: String,
-        val photo: String, val type: String // "Warmup" | "Main" | "Stretch"
+        val photo: String, val type: String, // "Warmup" | "Main" | "Stretch"
+        /** v3.5: pre-researched Health Connect segment type for this entry
+         *  (an EXERCISE_SEGMENT_TYPE_* constant NAME from the bundled
+         *  config, "" when absent). HealthSync resolves segments from this
+         *  instead of guessing from the exercise name. */
+        val hcType: String = ""
     )
 
     data class PartData(val partId: String, val warmups: List<Entry>, val exercises: List<Entry>, val stretches: List<Entry>) {
@@ -48,7 +53,8 @@ object JsonSeed {
                             image = o.optString("image"), url = o.optString("url"),
                             primary = o.optBoolean("primary", false),
                             defaultWeight = o.optString("defaultWeight"), variation = o.optString("variation"),
-                            easier = o.optString("easier"), photo = o.optString("photo"), type = type
+                            easier = o.optString("easier"), photo = o.optString("photo"), type = type,
+                            hcType = o.optString("hcType")
                         ))
                     }
                     return list

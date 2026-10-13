@@ -213,7 +213,7 @@ class SettingsActivity : AppCompatActivity() {
         dataRow.addView(exportBtn); dataRow.addView(restoreBtn)
         dataCard.addView(dataRow)
         // v2.6.1 copy audit: About is two lines (version + week rule).
-        dataCard.addView(noMargin(caption("Workout Tracker • Version 3.4\nWeek counter advances only after a week with 1+ completed workout."), 2))
+        dataCard.addView(noMargin(caption("Workout Tracker • Version 3.5\nWeek counter advances only after a week with 1+ completed workout."), 2))
         root.addView(dataCard)
     }
 

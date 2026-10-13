@@ -45,6 +45,17 @@ import java.time.ZoneId
  * - Per-exercise timestamps are not tracked by the app, so the session
  *   window is divided evenly across the segments in session order
  *   (approximation, also documented in the README).
+ *
+ * v3.5: segment types are CONFIG-driven. Every catalog entry in
+ * assets/data/<part>.json carries a pre-researched `hcType` (an
+ * EXERCISE_SEGMENT_TYPE_* constant name, chosen against the verified
+ * alpha08 enumeration — see research-health-connect-types.md). At sync
+ * time the segment's exercise is resolved back to its catalog entry
+ * (session exercise -> origin exercise row -> sourceId -> bundled JSON),
+ * so upgrading users get the exact types with no DB migration: the JSON
+ * ships with the APK and is read at sync time. Fallback chain when no
+ * config value resolves (user-added exercises, unrecognized code):
+ * the v3.4 name-keyword map, then generic WEIGHTLIFTING.
  */
 object HealthSync {
     private const val TAG = "HealthSync"
@@ -142,7 +153,7 @@ object HealthSync {
     /** Builds and inserts the record for one completed session. Caller has already checked permission. */
     private suspend fun writeSession(app: Context, db: DbHelper, session: SessionInfo): Boolean {
         val exs = db.getSessionExercises(session.id)
-        data class Seg(val name: String, val type: String, val equipment: String, val reps: Int, val heaviest: Double?)
+        data class Seg(val name: String, val type: String, val equipment: String, val reps: Int, val heaviest: Double?, val hcType: Int?)
         val segs = mutableListOf<Seg>()
         for (ex in exs) {
             if (db.effectiveStatus(ex) != "done") continue
@@ -158,7 +169,7 @@ object HealthSync {
                     if (w != null && w > 0) heaviest = maxOf(heaviest ?: 0.0, w)
                 }
             }
-            segs.add(Seg(ex.name, ex.type, ex.equipment, reps, heaviest))
+            segs.add(Seg(ex.name, ex.type, ex.equipment, reps, heaviest, configSegmentType(app, db, ex)))
         }
         if (segs.isEmpty()) return false
 
@@ -181,7 +192,8 @@ object HealthSync {
             ExerciseSegment(
                 startTime = segStart,
                 endTime = segEnd,
-                segmentType = if (forceGeneric) ExerciseSegment.EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING else segmentTypeFor(s.name, s.type, s.equipment),
+                segmentType = if (forceGeneric) ExerciseSegment.EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING
+                    else s.hcType ?: segmentTypeFor(s.name, s.type, s.equipment),
                 repetitions = s.reps
             )
         }
@@ -230,9 +242,109 @@ object HealthSync {
     }
 
     /**
-     * Best-effort exercise-name -> segment type. Every constant used here
-     * was verified present in the connect-client 1.1.0 AAR (javap).
-     * Anything unrecognized is generic weightlifting.
+     * v3.5 config resolution: session exercise -> origin exercise row ->
+     * sourceId -> bundled JSON entry's `hcType` -> segment type int. When
+     * the origin row is gone (e.g. a deduped canonical row), an exact
+     * catalog name match is tried — the same pattern PhotoLib uses.
+     * Returns null when no config value resolves (user-added exercises,
+     * blank/unrecognized code); the caller then falls back to the
+     * keyword map below. Reading the bundled JSON at sync time is what
+     * lets existing (DB v4) installs pick up the mapping with no
+     * migration and no history loss.
+     */
+    private fun configSegmentType(app: Context, db: DbHelper, se: SessionExercise): Int? {
+        val origin = if (se.originExerciseId > 0) db.getExercise(se.originExerciseId) else null
+        val entry = origin?.sourceId?.takeIf { it.isNotBlank() }?.let { JsonSeed.entryById(app, it) }
+            ?: JsonSeed.entryByName(app, se.name)
+        val code = entry?.hcType?.takeIf { it.isNotBlank() } ?: return null
+        return segmentTypeForCode(code)
+    }
+
+    /**
+     * Constant NAME (as stored in the JSON config) -> segment type int.
+     * Generated from the SAME javap-verified enumeration of the resolved
+     * connect-client 1.1.0-alpha08 AAR as research-health-connect-types.md
+     * — all 68 EXERCISE_SEGMENT_TYPE_* constants, so any code the config
+     * can legally hold resolves locally. Unknown name -> null.
+     */
+    private fun segmentTypeForCode(code: String): Int? = when (code) {
+        "EXERCISE_SEGMENT_TYPE_UNKNOWN" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_UNKNOWN
+        "EXERCISE_SEGMENT_TYPE_ARM_CURL" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_ARM_CURL
+        "EXERCISE_SEGMENT_TYPE_BACK_EXTENSION" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BACK_EXTENSION
+        "EXERCISE_SEGMENT_TYPE_BALL_SLAM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BALL_SLAM
+        "EXERCISE_SEGMENT_TYPE_BARBELL_SHOULDER_PRESS" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BARBELL_SHOULDER_PRESS
+        "EXERCISE_SEGMENT_TYPE_BENCH_PRESS" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BENCH_PRESS
+        "EXERCISE_SEGMENT_TYPE_BENCH_SIT_UP" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BENCH_SIT_UP
+        "EXERCISE_SEGMENT_TYPE_BIKING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BIKING
+        "EXERCISE_SEGMENT_TYPE_BIKING_STATIONARY" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BIKING_STATIONARY
+        "EXERCISE_SEGMENT_TYPE_BURPEE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_BURPEE
+        "EXERCISE_SEGMENT_TYPE_CRUNCH" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_CRUNCH
+        "EXERCISE_SEGMENT_TYPE_DEADLIFT" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DEADLIFT
+        "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_CURL_LEFT_ARM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_CURL_LEFT_ARM
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_CURL_RIGHT_ARM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_CURL_RIGHT_ARM
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_FRONT_RAISE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_FRONT_RAISE
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_LATERAL_RAISE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_LATERAL_RAISE
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_LEFT_ARM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_LEFT_ARM
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_RIGHT_ARM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_RIGHT_ARM
+        "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_TWO_ARM" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_TWO_ARM
+        "EXERCISE_SEGMENT_TYPE_ELLIPTICAL" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_ELLIPTICAL
+        "EXERCISE_SEGMENT_TYPE_FORWARD_TWIST" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_FORWARD_TWIST
+        "EXERCISE_SEGMENT_TYPE_FRONT_RAISE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_FRONT_RAISE
+        "EXERCISE_SEGMENT_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING
+        "EXERCISE_SEGMENT_TYPE_HIP_THRUST" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_HIP_THRUST
+        "EXERCISE_SEGMENT_TYPE_HULA_HOOP" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_HULA_HOOP
+        "EXERCISE_SEGMENT_TYPE_JUMPING_JACK" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_JUMPING_JACK
+        "EXERCISE_SEGMENT_TYPE_JUMP_ROPE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_JUMP_ROPE
+        "EXERCISE_SEGMENT_TYPE_KETTLEBELL_SWING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_KETTLEBELL_SWING
+        "EXERCISE_SEGMENT_TYPE_LATERAL_RAISE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LATERAL_RAISE
+        "EXERCISE_SEGMENT_TYPE_LAT_PULL_DOWN" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LAT_PULL_DOWN
+        "EXERCISE_SEGMENT_TYPE_LEG_CURL" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LEG_CURL
+        "EXERCISE_SEGMENT_TYPE_LEG_EXTENSION" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LEG_EXTENSION
+        "EXERCISE_SEGMENT_TYPE_LEG_PRESS" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LEG_PRESS
+        "EXERCISE_SEGMENT_TYPE_LEG_RAISE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LEG_RAISE
+        "EXERCISE_SEGMENT_TYPE_LUNGE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_LUNGE
+        "EXERCISE_SEGMENT_TYPE_MOUNTAIN_CLIMBER" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_MOUNTAIN_CLIMBER
+        "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT
+        "EXERCISE_SEGMENT_TYPE_PAUSE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_PAUSE
+        "EXERCISE_SEGMENT_TYPE_PILATES" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_PILATES
+        "EXERCISE_SEGMENT_TYPE_PLANK" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_PLANK
+        "EXERCISE_SEGMENT_TYPE_PULL_UP" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_PULL_UP
+        "EXERCISE_SEGMENT_TYPE_PUNCH" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_PUNCH
+        "EXERCISE_SEGMENT_TYPE_REST" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_REST
+        "EXERCISE_SEGMENT_TYPE_ROWING_MACHINE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_ROWING_MACHINE
+        "EXERCISE_SEGMENT_TYPE_RUNNING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_RUNNING
+        "EXERCISE_SEGMENT_TYPE_RUNNING_TREADMILL" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_RUNNING_TREADMILL
+        "EXERCISE_SEGMENT_TYPE_SHOULDER_PRESS" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SHOULDER_PRESS
+        "EXERCISE_SEGMENT_TYPE_SINGLE_ARM_TRICEPS_EXTENSION" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SINGLE_ARM_TRICEPS_EXTENSION
+        "EXERCISE_SEGMENT_TYPE_SIT_UP" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SIT_UP
+        "EXERCISE_SEGMENT_TYPE_SQUAT" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SQUAT
+        "EXERCISE_SEGMENT_TYPE_STAIR_CLIMBING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_STAIR_CLIMBING
+        "EXERCISE_SEGMENT_TYPE_STAIR_CLIMBING_MACHINE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_STAIR_CLIMBING_MACHINE
+        "EXERCISE_SEGMENT_TYPE_STRETCHING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_STRETCHING
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_BACKSTROKE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_BACKSTROKE
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_BREASTSTROKE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_BREASTSTROKE
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_BUTTERFLY" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_BUTTERFLY
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_FREESTYLE" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_FREESTYLE
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_MIXED" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_MIXED
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_OPEN_WATER" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_OPEN_WATER
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_OTHER" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_OTHER
+        "EXERCISE_SEGMENT_TYPE_SWIMMING_POOL" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_SWIMMING_POOL
+        "EXERCISE_SEGMENT_TYPE_UPPER_TWIST" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_UPPER_TWIST
+        "EXERCISE_SEGMENT_TYPE_WALKING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_WALKING
+        "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING
+        "EXERCISE_SEGMENT_TYPE_WHEELCHAIR" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_WHEELCHAIR
+        "EXERCISE_SEGMENT_TYPE_YOGA" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_YOGA
+        else -> null
+    }
+
+    /**
+     * FALLBACK (v3.4 behavior): best-effort exercise-name -> segment type,
+     * used only when the config lookup above resolves nothing (user-added
+     * exercises). Every constant used here was verified present in the
+     * connect-client 1.1.0 AAR (javap). Anything unrecognized is generic
+     * weightlifting.
      */
     private fun segmentTypeFor(name: String, type: String, equipment: String): Int {
         val n = name.lowercase()
