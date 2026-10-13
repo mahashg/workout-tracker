@@ -153,9 +153,19 @@ class CardSessionActivity : AppCompatActivity() {
         cardSurface = dragCard
         dragCardBand(dragCard)
         val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
+        // v3: exercise photo (free-exercise-db, bundled) shown prominently at
+        // the top of the card where one exists; BodyMap is the fallback.
+        val photoAsset = PhotoLib.assetForSessionExercise(this, db, ex)
+        val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
+        if (photoBmp != null) {
+            dragCard.addView(android.widget.ImageView(this).apply {
+                setImageBitmap(photoBmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(104)).apply { setMargins(0, 0, 0, dp(6)) }
+            })
+        }
         // Essentials only up front (approved mockup): name, do-it, dots, badge, map, last done.
         val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(52),dp(64))})
+        if (photoBmp == null) essRow.addView(BodyMapView(this,muscles,true).apply{layoutParams=LinearLayout.LayoutParams(dp(52),dp(64))})
         val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f); setPadding(dp(10),0,0,0) }
         essInfo.addView(equipmentBadge(ex.equipment))
         essInfo.addView(makeText(ex.name,20f,true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0) })
@@ -165,12 +175,11 @@ class CardSessionActivity : AppCompatActivity() {
         essInfo.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")))
         essRow.addView(essInfo)
         dragCard.addView(essRow)
-        // Last done
+        // v3: last performance PROMINENT at the top of the card (user ask).
         val last=db.lastPerformedForExercise(ex.name, sessionId)
         if(last!=null){
-            val summary=last.sets.joinToString(", "){s-> if(s.isBodyweight) "BW x${s.reps}" else "${s.weight} $unit x ${s.reps}"}
-            val effortBit=if(last.effort.isNotBlank()) " • ${last.effort} — ${Beginner.effortSuggestion(last.effort,unit)}" else ""
-            dragCard.addView(makeText("Last done: ${DateUtil.display(last.date)} • $summary$effortBit",12f,false,Theme.textSecondary))
+            dragCard.addView(makeText(lastTimeTitle(last),13.5f,true,Theme.primary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+            if(last.effort.isNotBlank()) dragCard.addView(makeText("Effort last time: ${last.effort} — ${Beginner.effortSuggestion(last.effort,unit)}",11.5f,false,Theme.textSecondary))
         } else dragCard.addView(makeText("First time — no previous record. Start light.",12f,false,Theme.textSecondary))
 
         // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
@@ -189,12 +198,14 @@ class CardSessionActivity : AppCompatActivity() {
             if(posture.isNotBlank()){
                 val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
                 how.addView(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")))
-                for(c in items.take(4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+                // v3: with a photo on the card, trim to 3 checks / 1 cue so the
+                // fixed-height card never clips (posture content itself intact).
+                for(c in items.take(if (photoBmp != null) 3 else 4)) how.addView(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
             }
             val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
             if(cues.isNotBlank()){
                 val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                for(c in items.take(2)) how.addView(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                for(c in items.take(if (photoBmp != null) 1 else 2)) how.addView(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
             }
             if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E")))
             dragCard.addView(how)
@@ -291,6 +302,11 @@ class CardSessionActivity : AppCompatActivity() {
         // Compact secondary row (all previous actions preserved, one 48dp row)
         val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
         fun secBtn(b: android.widget.Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), dp(4), dp(2), 0) }; row2.addView(b) }
+        // v3: visible "Later" button (alongside the swipes) — moves this
+        // exercise to the end of today's remaining list for this section.
+        if (sectionType == "Main" && deck.count { db.effectiveStatus(it) == "pending" } > 1) {
+            secBtn(makeSmallButton("Later") { doLater() })
+        }
         val swap = SwapMap.forExercise(ex.name)
         if (swap != null && sectionType == "Main") {
             secBtn(makeSmallButton("Swap →") {
@@ -393,13 +409,56 @@ class CardSessionActivity : AppCompatActivity() {
         val ex=current() ?: return; snapshot(ex)
         db.setSessionExerciseStatus(ex.id,"skipped")
         Toast.makeText(this,"Skipped ${ex.name}",Toast.LENGTH_SHORT).show()
-        index++; moveToPendingFrom(index); render()
+        advanceWithRest()
     }
     private fun applyDone(){
         val ex=current() ?: return; snapshot(ex)
         for(s in db.getSets(ex.id)){ if(!s.isDone) db.updateSet(s.copy(isDone=true)) }
         db.setSessionExerciseStatus(ex.id,"done")
-        askEffort(ex){ index++; moveToPendingFrom(index); render() }
+        askEffort(ex){ advanceWithRest() }
+    }
+    /** v3 "Do later": current exercise moves to the end of this section's
+     *  remaining list; the next exercise slides in. No status change. */
+    private fun doLater(){
+        val ex=current() ?: return
+        db.moveSessionExerciseToEndOfSection(ex.id)
+        reloadDeck()
+        // Land on the next pending card at/after the old position.
+        val nextIdx = deck.indices.firstOrNull { it >= index && db.effectiveStatus(deck[it]) == "pending" }
+        if (nextIdx != null) index = nextIdx else moveToPending()
+        animateEntryOnNextRender = true
+        Toast.makeText(this,"Moved ${ex.name} to later",Toast.LENGTH_SHORT).show()
+        render()
+    }
+    /** Advance to the next pending card. In the Exercises phase, crossing to
+     *  a new exercise first shows the Rest Ring for the between-exercises
+     *  duration (default 60s, Settings-adjustable) with the next exercise's
+     *  name as the target line (S2/S5). */
+    private fun advanceWithRest(){
+        index++; moveToPendingFrom(index)
+        val nextEx = current()
+        if (sectionType == "Main" && nextEx != null && db.effectiveStatus(nextEx) == "pending") {
+            val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
+                .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+            RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { render() }
+        } else render()
+    }
+    /** S2: after a set is logged with more sets to go, the Rest Ring runs the
+     *  between-sets duration (default 30s) and shows the next set's last-time
+     *  target under the ring. */
+    private fun setRestThen(ex: SessionExercise, after: () -> Unit) {
+        if (sectionType != "Main") { after(); return }
+        val sets = db.getSets(ex.id)
+        val nextSet = sets.firstOrNull { !it.isDone }
+        val last = db.lastPerformedForExercise(ex.name, sessionId)
+        val label = if (nextSet != null) {
+            val pos = sets.indexOf(nextSet)
+            val ls = last?.sets?.getOrNull(pos)
+            "Next · Set ${nextSet.setNumber}" + if (ls != null) " — last time ${setText(ls)}" else ""
+        } else ""
+        val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
+            .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+        RestTimer.show(this, WeekManager.restSetSec(this), label, cues, after)
     }
     private fun moveToPendingFrom(from:Int){
         // index already advanced; if that card is handled, jump to first pending
@@ -428,8 +487,17 @@ class CardSessionActivity : AppCompatActivity() {
         val next=sets.firstOrNull{!it.isDone}
         if(next==null){ applyDone(); return }
         val unit=WeekManager.unit(this)
-        var count=1; var weightVal=next.weight.toDoubleOrNull() ?: 0.0; var repsVal=next.reps.filter{it.isDigit()}.toIntOrNull() ?: 10; var restSec=60; var isBw=next.isBodyweight
+        var count=1; var weightVal=next.weight.toDoubleOrNull() ?: 0.0; var repsVal=next.reps.filter{it.isDigit()}.toIntOrNull() ?: 10; var isBw=next.isBodyweight
         val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; setPadding(dp(16),dp(12),dp(16),dp(4))}
+        // v3: this exercise's last performance, with the next set's own
+        // last-time value called out as the hint that matters mid-workout.
+        val lastForSheet = db.lastPerformedForExercise(ex.name, sessionId)
+        if (lastForSheet != null) {
+            val pos = sets.indexOf(next)
+            val ls = lastForSheet.sets.getOrNull(pos)
+            box.addView(makeText("Last time (${DateUtil.display(lastForSheet.date)}): ${lastTimeLine(lastForSheet)}",12.5f,true,Theme.primary))
+            if (ls != null) box.addView(makeText("Set ${next.setNumber} last time: ${setText(ls)}",12f,false,Theme.textSecondary))
+        }
         // Sets finished stepper
         box.addView(makeText("How many sets finished?",14f,true))
         val countTv=makeText("1 set",22f,true,Color.parseColor("#92400E"))
@@ -459,14 +527,9 @@ class CardSessionActivity : AppCompatActivity() {
         val rChips=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
         for(r in listOf(8,10,12,15)) rChips.addView(makeSmallButton("$r"){repsVal=r; rTv.text="$repsVal reps"})
         box.addView(rChips)
-        // Rest chips
-        box.addView(makeText("Rest before next set",14f,true))
-        val restTv=makeText("60 sec rest",18f,true,Color.parseColor("#0369A1"))
-        val restRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        for(sec in listOf(30,60,90)) restRow.addView(makeSmallButton("${sec}s"){restSec=sec; restTv.text="$sec sec rest"})
-        restRow.addView(makeSmallButton("−"){restSec=(restSec-10).coerceAtLeast(10); restTv.text="$restSec sec rest"})
-        restRow.addView(makeSmallButton("+"){restSec+=10; restTv.text="$restSec sec rest"})
-        box.addView(restRow); box.addView(restTv)
+        // v3: no per-log rest picker — rest durations are the user's Settings
+        // values (30s between sets / 60s between exercises by default) and
+        // the Rest Ring starts automatically after saving (S2/S5).
         val typeEt=EditText(this).apply{hint="…or type weight / reps instead (optional)"; styleEditText(this); textSize=12f}
         box.addView(typeEt)
         // Compress the sheet so it fits a normal phone with no internal scrolling.
@@ -486,6 +549,26 @@ class CardSessionActivity : AppCompatActivity() {
         sheetRoot.addView(makeText("Log this set", 20f, true))
         sheetRoot.addView(makeText("Set done - nice! Log this set", 12f, false, Theme.textSecondary))
         sheetRoot.addView(box)
+        // S1: one tap fills every set from last time and marks them logged
+        // (rows stay editable in the list afterwards). Fewer last-time sets
+        // than today's -> only those are filled.
+        if (lastForSheet != null) {
+            val repeatBtn = makeSecondaryButton("Repeat last time") {
+                snapshot(ex)
+                val mine = db.getSets(ex.id)
+                for ((i, s) in mine.withIndex()) {
+                    val ls = lastForSheet.sets.getOrNull(i) ?: continue
+                    db.updateSet(s.copy(weight = ls.weight, reps = ls.reps, isBodyweight = ls.isBodyweight, isDone = true))
+                }
+                db.syncExerciseStatus(ex.id)
+                sheet.dismiss()
+                val remaining = db.getSets(ex.id).count { !it.isDone }
+                if (remaining == 0) { db.setSessionExerciseStatus(ex.id, "done"); askEffort(ex) { advanceWithRest() } }
+                else setRestThen(ex) { render() }
+            }
+            (repeatBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(2), 0, 0) }
+            sheetRoot.addView(repeatBtn)
+        }
         val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val cancelBtn = makeSecondaryButton("Cancel") { sheet.dismiss() }
         (cancelBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
@@ -499,8 +582,8 @@ class CardSessionActivity : AppCompatActivity() {
             db.syncExerciseStatus(ex.id)
             sheet.dismiss()
             val remaining=db.getSets(ex.id).count{!it.isDone}
-            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); askEffort(ex){ startRest(restSec){ render() } } }
-            else startRest(restSec){ render() }
+            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); askEffort(ex){ advanceWithRest() } }
+            else setRestThen(ex){ render() }
         }
         (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
         saveRow.addView(cancelBtn); saveRow.addView(saveBtn)
@@ -514,15 +597,4 @@ class CardSessionActivity : AppCompatActivity() {
         sheet.show()
     }
 
-    private fun startRest(seconds: Int, after: ()->Unit){
-        if(seconds<=0){ after(); return }
-        var remaining=seconds
-        val dlg=AlertDialog.Builder(this).setTitle("Rest before next set").setMessage("Rest $remaining sec…").setPositiveButton("Skip"){_,_->after()}.setCancelable(false).create()
-        dlg.show(); lbl[0]=dlg
-        object: CountDownTimer(seconds*1000L,1000){
-            override fun onTick(ms: Long){ remaining=(ms/1000).toInt(); if(dlg.isShowing) dlg.setMessage("Rest $remaining sec… ${if(remaining<=10) "Get ready!" else ""}") }
-            override fun onFinish(){ if(dlg.isShowing) dlg.dismiss(); Toast.makeText(this@CardSessionActivity,"Rest done - go!",Toast.LENGTH_SHORT).show(); after() }
-        }.start()
-    }
-    private val lbl=arrayOfNulls<AlertDialog>(1)
 }
