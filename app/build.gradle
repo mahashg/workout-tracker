@@ -27,8 +27,8 @@ android {
         applicationId = "com.mahesh.workouttracker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 15
-        versionName = "2.9.1"
+        versionCode = 16
+        versionName = "3.0"
     }
     buildTypes { getByName("release") { } }
     // v2.9: kotlinx-coroutines (via play-services-auth) and kotlin-stdlib
