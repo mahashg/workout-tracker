@@ -1,0 +1,125 @@
+{
+  "bodyPart": "hamstrings",
+  "warmups": [
+    {
+      "id": "kettlebell-deadlift-light",
+      "name": "Kettlebell Deadlift (Light)",
+      "equipment": "Kettlebell",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "hamstrings,glutes",
+      "precautions": "Feet hip-width, soft bend in knees that stays;Flat back the whole time - spine long, chest up;Push hips BACK - weight slides close to legs",
+      "cues": "Soft knees, push hips back;Flat back, weight close to legs;Stand tall by squeezing glutes",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=kettlebell%20deadlift%20hindi",
+      "primary": true,
+      "variation": "Light hinge pattern"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "leg-curl-machine",
+      "photo": "exercise-images/leg-curl-machine.jpg",
+      "name": "Leg Curl Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
+      "cues": "Hips stay down on the pad;Curl heels toward you with control;Lower slowly all the way",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/watch?v=QolPPQFk8SE",
+      "primary": true,
+      "variation": "Seated/lying leg curl"
+    },
+    {
+      "id": "kb-romanian-deadlift",
+      "photo": "exercise-images/kb-romanian-deadlift.jpg",
+      "name": "KB Romanian Deadlift",
+      "equipment": "Kettlebell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "hamstrings,glutes",
+      "precautions": "Feet hip-width, soft bend in knees that stays;Flat back the whole time - spine long, chest up;Push hips BACK - weight slides close to legs;Stand by squeezing glutes - no leaning back at top",
+      "cues": "Soft knees, push hips back;Flat back, weight close to legs;Stand tall by squeezing glutes",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=kettlebell%20romanian%20deadlift%20hindi",
+      "primary": true,
+      "easier": "Glute Bridge"
+    },
+    {
+      "id": "db-staggered-romanian-deadlift",
+      "photo": "exercise-images/db-staggered-romanian-deadlift.jpg",
+      "name": "DB Staggered Romanian Deadlift",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "hamstrings,glutes",
+      "precautions": "Feet hip-width, soft bend in knees that stays;Flat back the whole time - spine long, chest up;Push hips BACK - weight slides close to legs;Stand by squeezing glutes - no leaning back at top",
+      "cues": "Soft knees, push hips back;Flat back, weight close to legs;Stand tall by squeezing glutes",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/watch?v=zSKeYOuv_60",
+      "primary": true,
+      "easier": "Glute Bridge"
+    },
+    {
+      "id": "seated-leg-curl",
+      "photo": "exercise-images/seated-leg-curl.jpg",
+      "name": "Seated Leg Curl",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Back flat on seat pad, grip handles to stay still;Knees lined up with machine pivot point;Pad rests on back of ankles, not calves;No lifting hips off seat during the curl",
+      "cues": "Sit tall, pad behind ankles;Curl heels down and back;Return slowly to the stretch",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=Seated+Leg+Curl+form",
+      "primary": false
+    },
+    {
+      "id": "lying-leg-curl",
+      "photo": "exercise-images/lying-leg-curl.jpg",
+      "name": "Lying Leg Curl",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Hips pressed flat into the pad the whole time;Knees lined up with machine pivot point;Curl smoothly - no jerking from lower back;Lower slowly until legs nearly straight",
+      "cues": "Lie face-down, pad at ankles;Curl heels toward glutes;Lower slowly with control",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=Lying+Leg+Curl+form",
+      "primary": false
+    },
+    {
+      "id": "cable-pull-through",
+      "photo": "exercise-images/cable-pull-through.jpg",
+      "name": "Cable Pull-Through",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings,glutes",
+      "precautions": "Face away from cable, feet hip-width, soft knees;Flat back the whole time - spine long, chest up;Push hips BACK toward the machine to lower;Stand by squeezing glutes - no leaning back",
+      "cues": "Rope between legs, hinge back;Snap hips forward tall;Keep arms straight and relaxed",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=Cable+Pull-Through+form",
+      "primary": false
+    }
+  ],
+  "stretches": [
+    {
+      "id": "hamstring-stretch",
+      "photo": "exercise-images/hamstring-stretch.jpg",
+      "name": "Hamstring Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "hamstrings",
+      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/watch?v=ZeSAX3QlZxQ",
+      "primary": true,
+      "defaultWeight": "BW"
+    }
+  ]
+}
