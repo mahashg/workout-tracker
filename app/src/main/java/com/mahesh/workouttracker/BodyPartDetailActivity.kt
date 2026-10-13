@@ -91,7 +91,7 @@ class BodyPartDetailActivity : AppCompatActivity() {
         val addBtn = makeSecondaryButton("+ Add exercise") {
             startActivity(Intent(this, ExerciseEditActivity::class.java).putExtra("exerciseId", -1L).putExtra("bodyPart", partId))
         }
-        tightButton(addBtn, if (compact) 46 else 50, 12)
+        tightButton(addBtn, if (compact) 48 else 50, 12)
         root.addView(addBtn)
     }
 
@@ -139,15 +139,20 @@ class BodyPartDetailActivity : AppCompatActivity() {
             row.addView(BodyMapView(this, muscles).apply { layoutParams = LinearLayout.LayoutParams(dp(30), dp(38)).apply { setMargins(0, 0, dp(8), 0) } })
         }
         val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+        // v3.2 polish: factory 4dp text margins stripped and meta raised to
+        // the 12sp body floor — name ~19 + meta ~17 + row padding 8 = 44dp,
+        // comfortably inside the 54/58dp row.
         val nm = makeText(e.name, 14f, true)
         nm.maxLines = 1; nm.ellipsize = android.text.TextUtils.TruncateAt.END
+        (nm.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         info.addView(nm)
         val last = db.lastPerformedForExercise(e.name, -1)
         val meta = makeText(
             if (last != null) "${e.equipment} · ${e.defaultSets}×${e.targetReps} · Last: ${lastTimeLine(last)}"
             else "${e.equipment} · ${e.defaultSets}×${e.targetReps}",
-            11f, false, Theme.textSecondary)
+            12f, false, Theme.textSecondary)
         meta.maxLines = 1; meta.ellipsize = android.text.TextUtils.TruncateAt.END
+        (meta.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, 0)
         info.addView(meta)
         row.addView(info)
         row.addView(iconView(R.drawable.ic_chevron, 18, Theme.textTertiary))

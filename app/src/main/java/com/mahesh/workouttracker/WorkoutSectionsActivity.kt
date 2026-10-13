@@ -88,16 +88,21 @@ class WorkoutSectionsActivity : AppCompatActivity() {
         root.addView(sectionBox)
         val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
 
-        // Fixed finish bar
+        // Fixed finish bar. v3.2 polish: tightButton strips the factory
+        // minHeight (56/52) so both buttons render at exactly 48dp like
+        // every other screen's action row, and the all-handled green uses
+        // the same 12dp corner radius as the primary style it replaces.
         val footRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val listBtn = makeSecondaryButton("View as list") { startActivity(Intent(this, SessionActivity::class.java).apply { putExtra("sessionId", sessionId) }) }
         (listBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(0, dp(4), dp(4), 0) }
+        tightButton(listBtn, 48, 12)
         val finishBtn = makeButton("Finish Workout") {
             if (!allHandled) { AlertDialog.Builder(this).setTitle("Finish early?").setMessage("Some exercises are not done or skipped yet. Finish anyway?").setPositiveButton("Finish") { _, _ -> doFinish() }.setNegativeButton("Keep going", null).show() }
             else doFinish()
         }
         (finishBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1.2f; height = dp(48); setMargins(dp(4), dp(4), 0, 0) }
-        if (allHandled) finishBtn.background = roundedBg("#15803D", 16)
+        tightButton(finishBtn, 48, 12, primary = true)
+        if (allHandled) finishBtn.background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.parseColor("#15803D")); cornerRadius = dp(12).toFloat() }
         footRow.addView(listBtn); footRow.addView(finishBtn)
         root.addView(footRow)
     }

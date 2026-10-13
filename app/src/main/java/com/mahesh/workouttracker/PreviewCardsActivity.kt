@@ -89,7 +89,7 @@ class PreviewCardsActivity : AppCompatActivity() {
 
         if (deck.isEmpty()) {
             root.addView(slimHeader("Preview", ""))
-            root.addView(makeText("No exercises yet — add some in Routines.", 16f, false, Theme.textSecondary))
+            root.addView(makeText("No exercises yet.", 16f, false, Theme.textSecondary))
             return
         }
         val ex = current()!!
@@ -310,7 +310,7 @@ class PreviewCardsActivity : AppCompatActivity() {
             setOnClickListener { finish() }
         }
         bar.addView(back)
-        val t = makeText(title, 17f, true, Theme.textPrimary)
+        val t = makeText(title, 18f, true, Theme.textPrimary)
         t.maxLines = 1; t.ellipsize = android.text.TextUtils.TruncateAt.END
         (t.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(10), 0, 0, 0) }
         bar.addView(t)

@@ -159,7 +159,7 @@ class SessionActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER
                 background = roundedBg(if (set.isDone) "#15803D" else "#EDF2F7", 10)
                 setPadding(0, 0, 0, 0)
-                layoutParams = LinearLayout.LayoutParams(dp(26), dp(22)).apply { setMargins(dp(1), 0, dp(1), 0) }
+                layoutParams = LinearLayout.LayoutParams(dp(30), dp(26)).apply { setMargins(dp(1), 0, dp(1), 0) }
                 isClickable = true
                 setOnClickListener { editSetDialog(ex, set, unit) }
             }
@@ -168,10 +168,13 @@ class SessionActivity : AppCompatActivity() {
         top.addView(chipRow)
         // Compact controls: reorder, add/remove set. v2.6: no how-to toggle
         // button — tapping the row itself expands/collapses (accordion).
-        if (idx > 0) top.addView(smallBtn("↑", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx - 1]); render(ex.id) })
-        if (idx < exs.size - 1) top.addView(smallBtn("↓", 22, 22) { db.swapSessionExerciseOrder(ex, exs[idx + 1]); render(ex.id) })
-        top.addView(smallBtn("+", 22, 22) { db.addSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
-        top.addView(smallBtn("−", 22, 22) { db.removeLastSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
+        // v3.2 polish: 30x28 hit boxes (were 22x22) — still short of the
+        // 48dp ideal, a deliberate density trade-off of the one-page list
+        // Mahesh asked for in v2.5.1 (13 rows must share one screen).
+        if (idx > 0) top.addView(smallBtn("↑", 30, 28) { db.swapSessionExerciseOrder(ex, exs[idx - 1]); render(ex.id) })
+        if (idx < exs.size - 1) top.addView(smallBtn("↓", 30, 28) { db.swapSessionExerciseOrder(ex, exs[idx + 1]); render(ex.id) })
+        top.addView(smallBtn("+", 30, 28) { db.addSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
+        top.addView(smallBtn("−", 30, 28) { db.removeLastSet(ex.id); db.syncExerciseStatus(ex.id); render(ex.id) })
         if (Beginner.beginnerMode(this)) {
             // Chevron is a passive affordance only (not a button).
             top.addView(makeText(if (expanded) "▴" else "▾", 13f, true, Theme.textTertiary).apply {
@@ -339,10 +342,10 @@ class SessionActivity : AppCompatActivity() {
         fun stepperRow(label: String, et: EditText, minus: () -> Unit, plus: () -> Unit): LinearLayout {
             val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
             r.addView(TextView(this).apply { text = label; textSize = 12f; setTextColor(Theme.textSecondary); layoutParams = LinearLayout.LayoutParams(dp(52), LinearLayout.LayoutParams.WRAP_CONTENT) })
-            r.addView(smallBtn("−", 36, 36) { minus() })
+            r.addView(smallBtn("−", 40, 40) { minus() })
             et.layoutParams = LinearLayout.LayoutParams(0, dp(40), 1f)
             r.addView(et)
-            r.addView(smallBtn("+", 36, 36) { plus() })
+            r.addView(smallBtn("+", 40, 40) { plus() })
             return r
         }
         box.addView(stepperRow("Weight", wEt,
@@ -384,8 +387,8 @@ class SessionActivity : AppCompatActivity() {
 
     private fun addActionBar(root: LinearLayout, completed: Boolean) {
         val session = db.getSession(sessionId) ?: return
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)) }
-        fun ab(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(44); setMargins(dp(2), 0, dp(2), 0) }; b.textSize = 12f; row.addView(b) }
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
+        fun ab(b: Button) { (b.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(48); setMargins(dp(2), 0, dp(2), 0) }; b.textSize = 12f; row.addView(b) }
         ab(makeSmallButton("Save Order") {
             db.saveSessionOrderAsDefault(sessionId, session.routineId); Toast.makeText(this, "Saved as default order", Toast.LENGTH_SHORT).show()
         })
@@ -403,7 +406,7 @@ class SessionActivity : AppCompatActivity() {
             AlertDialog.Builder(this).setTitle("Discard session?").setMessage("Delete this session and its sets?")
                 .setPositiveButton("Discard") { _, _ -> WorkoutTimer.clear(this, sessionId); db.deleteSession(sessionId); finish() }.setNegativeButton("Cancel", null).show()
         }
-        (discard.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(dp(2), dp(4), dp(2), 0) }
+        (discard.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(dp(2), dp(4), dp(2), 0) }
         discard.textSize = 12f
         root.addView(discard)
     }

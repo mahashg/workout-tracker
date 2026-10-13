@@ -108,10 +108,7 @@ class MainActivity : AppCompatActivity() {
             due -> Triple("Due", "#FEF3C7", Theme.warn)
             else -> Triple("Pending", "#E2E8F0", Theme.pendingFg)
         }
-        top.addView(TextView(this).apply {
-            text = pillText; textSize = 10.5f; setTextColor(pillInk); typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-            background = roundedBg(pillBg, 999); setPadding(dp(7), dp(2), dp(7), dp(2)); maxLines = 1
-        })
+        top.addView(pillView(pillText, pillBg, pillInk))
         cell.addView(top)
         val lastLine = when {
             last == null -> "Not trained yet"

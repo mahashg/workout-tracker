@@ -89,10 +89,17 @@ class SummaryActivity : AppCompatActivity() {
         val perCard = cardLayout()
         perCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(92)).apply { setMargins(0, 0, 0, 0) }
         perCard.setPadding(dp(12), dp(8), dp(12), dp(8))
-        perCard.addView(overline("By section"))
+        // v3.2 polish: the three section lines were 14sp bodyText with the
+        // factory 4dp margins — ~109dp of content in a 92dp card, so the
+        // last line could clip. Lines are now 13sp with stripped margins:
+        // padding 16 + overline 15 + 3 x 19 = 88dp <= 92 by construction.
+        perCard.addView(overline("By section").apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(2)) })
         for (label in listOf("Warm Up" to "Warmup", "Exercise" to "Main", "Cool Down" to "Stretch")) {
             val list = exs.filter { it.type.equals(label.second, true) }; if (list.isEmpty()) continue
-            perCard.addView(bodyText("${label.first}: ${list.count { db.effectiveStatus(it) == "done" }} done, ${list.count { db.effectiveStatus(it) == "skipped" }} skipped, ${list.count { db.effectiveStatus(it) == "pending" }} not done"))
+            perCard.addView(makeText("${label.first}: ${list.count { db.effectiveStatus(it) == "done" }} done, ${list.count { db.effectiveStatus(it) == "skipped" }} skipped, ${list.count { db.effectiveStatus(it) == "pending" }} not done", 13f, false).apply {
+                maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, dp(1))
+            })
         }
         root.addView(perCard)
 

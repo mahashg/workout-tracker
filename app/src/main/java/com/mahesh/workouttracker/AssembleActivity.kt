@@ -124,13 +124,13 @@ class AssembleActivity : AppCompatActivity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             background = cardDrawable()
-            setPadding(dp(8), dp(4), dp(6), dp(4))
+            setPadding(dp(10), dp(4), dp(10), dp(4))
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(rowH)).apply { setMargins(0, dp(2), 0, dp(2)) }
         }
         val cb = CheckBox(this).apply {
             isChecked = e.id in checked
             buttonTintList = android.content.res.ColorStateList.valueOf(Theme.primary)
-            layoutParams = LinearLayout.LayoutParams(dp(36), dp(36))
+            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
             setOnCheckedChangeListener { _, on -> if (on) checked.add(e.id) else checked.remove(e.id); render() }
         }
         row.addView(cb)
@@ -139,29 +139,25 @@ class AssembleActivity : AppCompatActivity() {
         val nm = makeText(e.name, 14f, true)
         nm.maxLines = 1; nm.ellipsize = android.text.TextUtils.TruncateAt.END
         nameRow.addView(nm, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        nameRow.addView(TextView(this).apply {
-            text = BodyParts.name(e.bodyPart); textSize = 10f; setTextColor(Theme.accentSky)
-            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-            background = roundedBg("#E0F2FE", 999); setPadding(dp(6), dp(1), dp(6), dp(1)); maxLines = 1
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(6), 0, 0, 0) }
-        })
+        val partTag = pillView(BodyParts.name(e.bodyPart), "#E0F2FE", Theme.accentSky, 10f)
+        nameRow.addView(partTag, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(6), 0, 0, 0) })
         info.addView(nameRow)
         val last = db.lastPerformedForExercise(e.name, -1)
         val meta = makeText(
             if (last != null) "${e.equipment} · ${e.defaultSets}×${e.targetReps} · Last: ${lastTimeLine(last)}"
             else "${e.equipment} · ${e.defaultSets}×${e.targetReps} · First time",
-            11f, false, Theme.textSecondary)
+            12f, false, Theme.textSecondary)
         meta.maxLines = 1; meta.ellipsize = android.text.TextUtils.TruncateAt.END
         info.addView(meta)
         row.addView(info)
         val up = makeSmallButton("↑") { move(index, -1) }
-        tightButton(up, 34, 10)
-        (up.layoutParams as LinearLayout.LayoutParams).apply { width = dp(36); setMargins(dp(2), 0, 0, 0) }
+        tightButton(up, 40, 10)
+        (up.layoutParams as LinearLayout.LayoutParams).apply { width = dp(40); setMargins(dp(2), 0, 0, 0) }
         up.isEnabled = index > 0; up.alpha = if (index > 0) 1f else 0.35f
         row.addView(up)
         val down = makeSmallButton("↓") { move(index, 1) }
-        tightButton(down, 34, 10)
-        (down.layoutParams as LinearLayout.LayoutParams).apply { width = dp(36); setMargins(dp(2), 0, 0, 0) }
+        tightButton(down, 40, 10)
+        (down.layoutParams as LinearLayout.LayoutParams).apply { width = dp(40); setMargins(dp(2), 0, 0, 0) }
         down.isEnabled = index < mains.size - 1; down.alpha = if (index < mains.size - 1) 1f else 0.35f
         row.addView(down)
         return row
