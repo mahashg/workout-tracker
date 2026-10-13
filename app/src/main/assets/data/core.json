@@ -1,0 +1,80 @@
+{
+  "bodyPart": "core",
+  "warmups": [],
+  "exercises": [
+    {
+      "id": "dead-bug",
+      "photo": "exercise-images/dead-bug.jpg",
+      "name": "Dead Bug",
+      "equipment": "Bodyweight",
+      "sets": 2,
+      "targetReps": "10",
+      "targetMuscles": "core",
+      "precautions": "Entire lower back gently pressed into floor - no gap;Only opposite arm+leg move - torso completely still;Move very slowly - 3 seconds out, 3 back;Breathe out slowly as you reach",
+      "cues": "Low back gently pressed to floor;Move opposite arm and leg slowly;Breathe out as you reach",
+      "image": "core",
+      "url": "https://www.youtube.com/watch?v=v1mKeDKbyQI",
+      "primary": true,
+      "defaultWeight": "BW"
+    },
+    {
+      "id": "plank",
+      "photo": "exercise-images/plank.jpg",
+      "name": "Plank",
+      "equipment": "Bodyweight",
+      "sets": 2,
+      "targetReps": "40 sec",
+      "targetMuscles": "core",
+      "precautions": "Body one straight line - hips not sagging or high;Elbows under shoulders, forearms flat;Squeeze glutes and thighs hard the whole time;Head neutral - look at floor, breathe steadily",
+      "cues": "Body in one straight line;Squeeze glutes and core;Breathe steadily, hips level",
+      "image": "core",
+      "url": "https://www.youtube.com/watch?v=xKQwZCjbp-g",
+      "primary": true,
+      "defaultWeight": "BW",
+      "easier": "Knee Plank"
+    },
+    {
+      "id": "cable-crunch",
+      "photo": "exercise-images/cable-crunch.jpg",
+      "name": "Cable Crunch",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "core",
+      "precautions": "Kneel tall facing cable, hips stay back and still;Rope by your ears - arms locked, they never pull;Curl ribs toward pelvis - spine rounds like a C;Lower back stays put - only your torso curls",
+      "cues": "Kneel, rope behind head;Curl down ribs-to-pelvis;Rise slowly to tall kneeling",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Cable+Crunch+form",
+      "primary": false
+    },
+    {
+      "id": "russian-twist",
+      "photo": "exercise-images/russian-twist.jpg",
+      "name": "Russian Twist",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "20 (10 ea)",
+      "targetMuscles": "core",
+      "precautions": "Sit tall, knees bent, heels lightly on floor;Lean back slightly with a LONG straight back - never rounded;Rotate from ribs - shoulders turn, hips stay still;Move slowly - momentum does no work here",
+      "cues": "Sit tall, lean back a little;Turn shoulders side to side;Tap floor lightly each side",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Russian+Twist+form",
+      "primary": false
+    },
+    {
+      "id": "mountain-climbers",
+      "photo": "exercise-images/mountain-climbers.jpg",
+      "name": "Mountain Climbers",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "30 sec",
+      "targetMuscles": "core",
+      "precautions": "Plank position - body one straight line head-to-heels;Hands directly under shoulders, arms straight;Hips stay level - no bouncing up and down;Knees drive toward chest, feet land softly",
+      "cues": "Start in strong plank;Drive knees in alternately;Keep hips low and steady",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Mountain+Climbers+form",
+      "primary": false
+    }
+  ],
+  "stretches": []
+}
