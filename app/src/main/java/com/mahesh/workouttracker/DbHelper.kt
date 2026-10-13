@@ -12,7 +12,7 @@ import java.util.Calendar
 import java.util.Locale
 
 data class Routine(val id: Long, val name: String, val focus: String, val weekday: Int, val youtubeUrl: String, val notes: String)
-data class Exercise(val id: Long, val routineId: Long, val name: String, val type: String, val equipment: String, val defaultSets: Int, val targetReps: String, val defaultWeight: String, val variation: String, val youtubeUrl: String, val sortOrder: Int, val targetMuscles: String = "", val cues: String = "", val postureCheck: String = "")
+data class Exercise(val id: Long, val routineId: Long, val name: String, val type: String, val equipment: String, val defaultSets: Int, val targetReps: String, val defaultWeight: String, val variation: String, val youtubeUrl: String, val sortOrder: Int, val targetMuscles: String = "", val cues: String = "", val postureCheck: String = "", val bodyPart: String = "", val sourceId: String = "")
 data class SessionInfo(val id: Long, val routineId: Long, val routineName: String, val focus: String, val date: String, val weekNumber: Int, val weekStart: String, val completed: Boolean, val startedAt: Long = 0, val elapsedSec: Int = 0, val endedAt: Long = 0)
 data class SessionExercise(val id: Long, val sessionId: Long, val originExerciseId: Long, val name: String, val type: String, val equipment: String, val variation: String, val youtubeUrl: String, val sortOrder: Int, val targetMuscles: String = "", val status: String = "pending", val cues: String = "", val effort: String = "", val postureCheck: String = "")
 data class SessionSet(val id: Long, val sessionExerciseId: Long, val setNumber: Int, val weight: String, val reps: String, val isBodyweight: Boolean, val isDone: Boolean)
@@ -47,13 +47,14 @@ object DateUtil {
     fun dayName(weekday: Int): String = if (weekday in 0..6) dayNames[weekday] else "Unassigned"
 }
 
-class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "workout.db", null, 3) {
+class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "workout.db", null, 4) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE routines(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,focus TEXT,weekday INTEGER,youtubeUrl TEXT,notes TEXT)")
-        db.execSQL("CREATE TABLE exercises(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,name TEXT,type TEXT,equipment TEXT,defaultSets INTEGER,targetReps TEXT,defaultWeight TEXT,variation TEXT,youtubeUrl TEXT,sortOrder INTEGER,targetMuscles TEXT,cues TEXT,postureCheck TEXT)")
+        db.execSQL("CREATE TABLE exercises(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,name TEXT,type TEXT,equipment TEXT,defaultSets INTEGER,targetReps TEXT,defaultWeight TEXT,variation TEXT,youtubeUrl TEXT,sortOrder INTEGER,targetMuscles TEXT,cues TEXT,postureCheck TEXT,bodyPart TEXT,sourceId TEXT)")
         db.execSQL("CREATE TABLE sessions(id INTEGER PRIMARY KEY AUTOINCREMENT,routineId INTEGER,routineName TEXT,focus TEXT,date TEXT,weekNumber INTEGER,weekStart TEXT,completed INTEGER,startedAt INTEGER,elapsedSec INTEGER DEFAULT 0,endedAt INTEGER)")
         db.execSQL("CREATE TABLE session_exercises(id INTEGER PRIMARY KEY AUTOINCREMENT,sessionId INTEGER,originExerciseId INTEGER,name TEXT,type TEXT,equipment TEXT,variation TEXT,youtubeUrl TEXT,sortOrder INTEGER,targetMuscles TEXT,status TEXT,cues TEXT,effort TEXT,postureCheck TEXT)")
         db.execSQL("CREATE TABLE session_sets(id INTEGER PRIMARY KEY AUTOINCREMENT,sessionExerciseId INTEGER,setNumber INTEGER,weight TEXT,reps TEXT,isBodyweight INTEGER,isDone INTEGER)")
+        db.execSQL("CREATE TABLE session_parts(sessionId INTEGER,bodyPart TEXT)")
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
@@ -72,6 +73,14 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
             try { db.execSQL("ALTER TABLE sessions ADD COLUMN startedAt INTEGER") } catch (e: Exception) {}
             try { db.execSQL("ALTER TABLE sessions ADD COLUMN elapsedSec INTEGER DEFAULT 0") } catch (e: Exception) {}
             try { db.execSQL("ALTER TABLE sessions ADD COLUMN endedAt INTEGER") } catch (e: Exception) {}
+        }
+        if (oldVersion < 4) {
+            // v3.0 app format: body-part scoped exercises + per-session parts.
+            // ALTERs/new table only — every existing row is preserved. The
+            // bodyPart/sourceId backfill happens in JsonSeed.applyV3IfNeeded.
+            try { db.execSQL("ALTER TABLE exercises ADD COLUMN bodyPart TEXT") } catch (e: Exception) {}
+            try { db.execSQL("ALTER TABLE exercises ADD COLUMN sourceId TEXT") } catch (e: Exception) {}
+            try { db.execSQL("CREATE TABLE IF NOT EXISTS session_parts(sessionId INTEGER,bodyPart TEXT)") } catch (e: Exception) {}
         }
     }
 
@@ -96,26 +105,42 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
     }
     fun deleteExercisesForRoutine(routineId: Long) { writableDatabase.delete("exercises","routineId=?",arrayOf(routineId.toString())) }
 
-    private fun exerciseFrom(c: android.database.Cursor): Exercise = Exercise(c.getLong(0),c.getLong(1),c.getString(2)?:"",c.getString(3)?:"Main",c.getString(4)?:"None",c.getInt(5),c.getString(6)?:"",c.getString(7)?:"",c.getString(8)?:"",c.getString(9)?:"",c.getInt(10), if (c.columnCount>11) c.getString(11)?:"" else "", if (c.columnCount>12) c.getString(12)?:"" else "", if (c.columnCount>13) c.getString(13)?:"" else "")
+    private fun exerciseFrom(c: android.database.Cursor): Exercise = Exercise(c.getLong(0),c.getLong(1),c.getString(2)?:"",c.getString(3)?:"Main",c.getString(4)?:"None",c.getInt(5),c.getString(6)?:"",c.getString(7)?:"",c.getString(8)?:"",c.getString(9)?:"",c.getInt(10), if (c.columnCount>11) c.getString(11)?:"" else "", if (c.columnCount>12) c.getString(12)?:"" else "", if (c.columnCount>13) c.getString(13)?:"" else "", if (c.columnCount>14) c.getString(14)?:"" else "", if (c.columnCount>15) c.getString(15)?:"" else "")
     fun getExercises(routineId: Long): List<Exercise> {
         val list = mutableListOf<Exercise>()
-        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck FROM exercises WHERE routineId=? ORDER BY sortOrder,id", arrayOf(routineId.toString())).use { c ->
+        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck,bodyPart,sourceId FROM exercises WHERE routineId=? ORDER BY sortOrder,id", arrayOf(routineId.toString())).use { c ->
             while (c.moveToNext()) list.add(exerciseFrom(c))
         }
         return list
     }
     fun getExercise(id: Long): Exercise? {
-        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck FROM exercises WHERE id=?", arrayOf(id.toString())).use { c ->
+        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck,bodyPart,sourceId FROM exercises WHERE id=?", arrayOf(id.toString())).use { c ->
             if (c.moveToFirst()) return exerciseFrom(c)
         }
         return null
     }
+    /** v3: all exercises belonging to one body part (canonical JSON-seeded rows
+     *  plus anything the user added/backfilled into that part). */
+    fun getExercisesForPart(bodyPart: String): List<Exercise> {
+        val list = mutableListOf<Exercise>()
+        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck,bodyPart,sourceId FROM exercises WHERE bodyPart=? ORDER BY sortOrder,id", arrayOf(bodyPart)).use { c ->
+            while (c.moveToNext()) list.add(exerciseFrom(c))
+        }
+        return list
+    }
+    fun getAllExercises(): List<Exercise> {
+        val list = mutableListOf<Exercise>()
+        readableDatabase.rawQuery("SELECT id,routineId,name,type,equipment,defaultSets,targetReps,defaultWeight,variation,youtubeUrl,sortOrder,targetMuscles,cues,postureCheck,bodyPart,sourceId FROM exercises ORDER BY id", null).use { c ->
+            while (c.moveToNext()) list.add(exerciseFrom(c))
+        }
+        return list
+    }
     fun insertExercise(e: Exercise): Long {
-        val v = ContentValues().apply { put("routineId",e.routineId); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("defaultSets",e.defaultSets); put("targetReps",e.targetReps); put("defaultWeight",e.defaultWeight); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",e.sortOrder); put("targetMuscles",e.targetMuscles); put("cues",e.cues); put("postureCheck",e.postureCheck) }
+        val v = ContentValues().apply { put("routineId",e.routineId); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("defaultSets",e.defaultSets); put("targetReps",e.targetReps); put("defaultWeight",e.defaultWeight); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",e.sortOrder); put("targetMuscles",e.targetMuscles); put("cues",e.cues); put("postureCheck",e.postureCheck); put("bodyPart",e.bodyPart); put("sourceId",e.sourceId) }
         return writableDatabase.insert("exercises", null, v)
     }
     fun updateExercise(e: Exercise) {
-        val v = ContentValues().apply { put("routineId",e.routineId); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("defaultSets",e.defaultSets); put("targetReps",e.targetReps); put("defaultWeight",e.defaultWeight); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",e.sortOrder); put("targetMuscles",e.targetMuscles); put("cues",e.cues); put("postureCheck",e.postureCheck) }
+        val v = ContentValues().apply { put("routineId",e.routineId); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("defaultSets",e.defaultSets); put("targetReps",e.targetReps); put("defaultWeight",e.defaultWeight); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",e.sortOrder); put("targetMuscles",e.targetMuscles); put("cues",e.cues); put("postureCheck",e.postureCheck); put("bodyPart",e.bodyPart); put("sourceId",e.sourceId) }
         writableDatabase.update("exercises", v, "id=?", arrayOf(e.id.toString()))
     }
     fun deleteExercise(id: Long) { writableDatabase.delete("exercises","id=?",arrayOf(id.toString())) }
@@ -149,18 +174,100 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         val v = ContentValues().apply { put("routineId",routine.id); put("routineName",routine.name); put("focus",routine.focus); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0); put("startedAt",nowMs); put("elapsedSec",0); put("endedAt",0L) }
         val sessionId = db.insert("sessions", null, v)
         val exs = getExercises(routine.id)
-        for ((idx, e) in exs.withIndex()) {
-            val ev = ContentValues().apply { put("sessionId",sessionId); put("originExerciseId",e.id); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",idx); put("targetMuscles",e.targetMuscles); put("status","pending"); put("cues",e.cues); put("effort",""); put("postureCheck",e.postureCheck) }
-            val seId = db.insert("session_exercises", null, ev)
-            val recentWeight = mostRecentWeight(e.name) ?: e.defaultWeight
-            val isBw = e.equipment.equals("Bodyweight", true) || e.defaultWeight.equals("BW", true)
-            val setsCount = if (e.type.equals("Warmup",true) || e.type.equals("Stretch",true)) 1 else maxOf(1, e.defaultSets)
-            for (s in 1..setsCount) {
-                val sv = ContentValues().apply { put("sessionExerciseId",seId); put("setNumber",s); put("weight", if (isBw) "" else recentWeight); put("reps", e.targetReps); put("isBodyweight", if (isBw) 1 else 0); put("isDone",0) }
-                db.insert("session_sets", null, sv)
-            }
-        }
+        for ((idx, e) in exs.withIndex()) insertSessionExercise(db, sessionId, e, idx)
         return sessionId
+    }
+
+    /** Copies one Exercise into a session with its sets pre-filled from the
+     *  most recent logged weight (falling back to the exercise default). */
+    private fun insertSessionExercise(db: SQLiteDatabase, sessionId: Long, e: Exercise, idx: Int) {
+        val ev = ContentValues().apply { put("sessionId",sessionId); put("originExerciseId",e.id); put("name",e.name); put("type",e.type); put("equipment",e.equipment); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",idx); put("targetMuscles",e.targetMuscles); put("status","pending"); put("cues",e.cues); put("effort",""); put("postureCheck",e.postureCheck) }
+        val seId = db.insert("session_exercises", null, ev)
+        val recentWeight = mostRecentWeight(e.name) ?: e.defaultWeight
+        val isBw = e.equipment.equals("Bodyweight", true) || e.defaultWeight.equals("BW", true)
+        val setsCount = if (e.type.equals("Warmup",true) || e.type.equals("Stretch",true)) 1 else maxOf(1, e.defaultSets)
+        for (s in 1..setsCount) {
+            val sv = ContentValues().apply { put("sessionExerciseId",seId); put("setNumber",s); put("weight", if (isBw) "" else recentWeight); put("reps", e.targetReps); put("isBodyweight", if (isBw) 1 else 0); put("isDone",0) }
+            db.insert("session_sets", null, sv)
+        }
+    }
+
+    /** v3: create a session from an assembled pick-parts workout. [items] is
+     *  the final ordered list (warm-ups + chosen exercises + stretches).
+     *  Legacy columns are kept for History: routineName is the display label
+     *  ("Back + Biceps"), focus the comma-joined part ids; the authoritative
+     *  part list lives in session_parts. */
+    fun createAssembledSession(label: String, partIds: List<String>, items: List<Exercise>, weekNumber: Int, weekStart: String): Long {
+        val db = writableDatabase
+        val todayStr = DateUtil.fmt(DateUtil.today())
+        val nowMs = System.currentTimeMillis()
+        val v = ContentValues().apply { put("routineId",-1L); put("routineName",label); put("focus",partIds.joinToString(",")); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0); put("startedAt",nowMs); put("elapsedSec",0); put("endedAt",0L) }
+        val sessionId = db.insert("sessions", null, v)
+        for (p in partIds) {
+            val pv = ContentValues().apply { put("sessionId", sessionId); put("bodyPart", p) }
+            db.insert("session_parts", null, pv)
+        }
+        for ((idx, e) in items.withIndex()) insertSessionExercise(db, sessionId, e, idx)
+        return sessionId
+    }
+
+    // ---------- session_parts (v3) ----------
+    fun getSessionParts(sessionId: Long): List<String> {
+        val list = mutableListOf<String>()
+        readableDatabase.rawQuery("SELECT bodyPart FROM session_parts WHERE sessionId=?", arrayOf(sessionId.toString())).use { c ->
+            while (c.moveToNext()) (c.getString(0) ?: "").takeIf { it.isNotBlank() }?.let { list.add(it) }
+        }
+        return list
+    }
+    fun insertSessionPart(sessionId: Long, bodyPart: String) {
+        val v = ContentValues().apply { put("sessionId", sessionId); put("bodyPart", bodyPart) }
+        writableDatabase.insert("session_parts", null, v)
+    }
+    fun sessionsWithParts(): Set<Long> {
+        val out = mutableSetOf<Long>()
+        readableDatabase.rawQuery("SELECT DISTINCT sessionId FROM session_parts", null).use { c ->
+            while (c.moveToNext()) out.add(c.getLong(0))
+        }
+        return out
+    }
+    /** Latest completed-training date per body part (yyyy-MM-dd), from session_parts. */
+    fun lastTrainedDates(): Map<String, String> {
+        val out = mutableMapOf<String, String>()
+        readableDatabase.rawQuery("SELECT sp.bodyPart, MAX(s.date) FROM session_parts sp JOIN sessions s ON sp.sessionId=s.id WHERE s.completed=1 GROUP BY sp.bodyPart", null).use { c ->
+            while (c.moveToNext()) { val p = c.getString(0) ?: ""; val d = c.getString(1) ?: ""; if (p.isNotBlank() && d.isNotBlank()) out[p] = d }
+        }
+        return out
+    }
+    /** Completed-session count per body part inside one Sun–Sat week. */
+    fun partCountsInWeek(weekStart: String): Map<String, Int> {
+        val out = mutableMapOf<String, Int>()
+        readableDatabase.rawQuery("SELECT sp.bodyPart, COUNT(*) FROM session_parts sp JOIN sessions s ON sp.sessionId=s.id WHERE s.completed=1 AND s.weekStart=? GROUP BY sp.bodyPart", arrayOf(weekStart)).use { c ->
+            while (c.moveToNext()) { val p = c.getString(0) ?: ""; if (p.isNotBlank()) out[p] = c.getInt(1) }
+        }
+        return out
+    }
+    /** The body part a session exercise belongs to: its origin exercise's
+     *  part, else the primary parsed muscle, else "". */
+    fun sessionExercisePart(se: SessionExercise): String {
+        if (se.originExerciseId > 0) {
+            val origin = getExercise(se.originExerciseId)
+            if (origin != null && origin.bodyPart.isNotBlank()) return origin.bodyPart
+        }
+        return parseMuscles(se.targetMuscles, se.name).firstOrNull() ?: ""
+    }
+    /** "Do later": move a session exercise to the end of its own section
+     *  (Warmup/Main/Stretch) by rotating the section's sortOrder values. */
+    fun moveSessionExerciseToEndOfSection(sessionExerciseId: Long) {
+        val me = getSessionExercisesForOne(sessionExerciseId) ?: return
+        val section = getSessionExercises(me.sessionId).filter { it.type.equals(me.type, true) }
+        if (section.size <= 1) return
+        val orders = section.map { it.sortOrder }
+        val rotated = section.filter { it.id != me.id } + listOf(me)
+        val db = writableDatabase
+        for ((i, se) in rotated.withIndex()) {
+            val v = ContentValues().apply { put("sortOrder", orders[i]) }
+            db.update("session_exercises", v, "id=?", arrayOf(se.id.toString()))
+        }
     }
     fun mostRecentWeight(exerciseName: String): String? {
         val sql = "SELECT ss.weight FROM session_sets ss JOIN session_exercises se ON ss.sessionExerciseId=se.id JOIN sessions s ON se.sessionId=s.id WHERE lower(trim(se.name))=lower(trim(?)) AND ss.weight IS NOT NULL AND ss.weight != '' ORDER BY s.date DESC, s.id DESC, ss.setNumber ASC LIMIT 1"
@@ -345,6 +452,8 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         if (prefs.contains("beginnerMode")) p.put("beginnerMode", prefs.getBoolean("beginnerMode", true))
         if (prefs.contains("weekNumber")) p.put("weekNumber", prefs.getInt("weekNumber", 1))
         if (prefs.contains("weekStart")) p.put("weekStart", prefs.getString("weekStart", "") ?: "")
+        if (prefs.contains("restSetSec")) p.put("restSetSec", prefs.getInt("restSetSec", 30))
+        if (prefs.contains("restExerciseSec")) p.put("restExerciseSec", prefs.getInt("restExerciseSec", 60))
         val root = JSONObject()
         root.put("format", 1)
         root.put("appVersion", appVersionName(context))
@@ -400,6 +509,8 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
             if (p.has("beginnerMode")) e.putBoolean("beginnerMode", p.optBoolean("beginnerMode", true))
             if (p.has("weekNumber")) e.putInt("weekNumber", p.optInt("weekNumber", 1))
             if (p.has("weekStart")) e.putString("weekStart", p.optString("weekStart", ""))
+            if (p.has("restSetSec")) e.putInt("restSetSec", p.optInt("restSetSec", 30))
+            if (p.has("restExerciseSec")) e.putInt("restExerciseSec", p.optInt("restExerciseSec", 60))
             e.apply()
         }
         return counts
@@ -409,7 +520,7 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?" } catch (e: Exception) { "?" }
 
     companion object {
-        private val BACKUP_TABLES = listOf("routines", "exercises", "sessions", "session_exercises", "session_sets")
+        private val BACKUP_TABLES = listOf("routines", "exercises", "sessions", "session_exercises", "session_sets", "session_parts")
         fun parseMuscles(targetMuscles: String, nameHint: String = ""): Set<String> {
             val out = linkedSetOf<String>()
             val raw = (targetMuscles.ifBlank { deriveMuscles(nameHint) }).lowercase(Locale.US)
