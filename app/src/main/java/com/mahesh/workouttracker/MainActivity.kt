@@ -8,7 +8,10 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.PermissionController
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -16,11 +19,20 @@ import java.util.Locale
 /** v3 Home: the Week N scoreboard over body parts (the fixed 5-day routine
  *  assignment is retired). Start Workout -> pick today's parts -> assembled
  *  flat list. In-progress resume behavior is unchanged.
- *  Budget (compact): title 40 + hero ~86 + grid 6x(54+5) + start 50 + gaps
- *  ≈ 545 <= ~546 available at a 640dp viewport. */
+ *  Budget (compact): title 40 + hero ~76 + grid 6x(48+2) + sync row 52 +
+ *  start 48 + gaps ≈ 537 <= ~546 available at a 640dp viewport. (v3.4:
+ *  the Health Connect sync row joined the page; the grid cells and hero
+ *  were tightened to fund it — nothing clips.) */
 class MainActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var created = false
+
+    // v3.4: Home Health Connect sync button state.
+    private var hcSyncRunning = false
+    private val hcPermLauncher = registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
+        if (granted.contains(HealthSync.WRITE_PERMISSION)) doHomeSync()
+        else Toast.makeText(this, "Health Connect permission not granted", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,36 +64,92 @@ class MainActivity : AppCompatActivity() {
         })
         // Week hero (blue gradient, same family as v2.6): Week N + range + bar.
         val hero = heroCard()
-        hero.setPadding(dp(16), dp(10), dp(16), dp(10))
+        hero.setPadding(dp(16), dp(8), dp(16), dp(6))
         val titleRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         titleRow.addView(makeText("Week ${wm.weekNumber}", if (compact) 21f else 23f, true, Color.WHITE))
         titleRow.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
         titleRow.addView(makeText(weekRangeLabel(wm.weekStart), 12.5f, false, 0xD9FFFFFF.toInt()))
         hero.addView(titleRow)
         hero.addView(segmentedWeekProgress(nonRepeatable.map { counts.containsKey(it.id) }).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(8), 0, 0) }
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(6), 0, 0) }
         })
         hero.addView(makeText("$doneCount of ${nonRepeatable.size} body parts done this week", 12.5f, false, 0xD9FFFFFF.toInt()).apply {
-            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, 0)
         })
         root.addView(hero)
 
         // Body-part grid: 2 columns x 6 rows, one page, no scrolling.
-        val cellH = if (compact) 54 else 62
+        val cellH = if (compact) 48 else 62
         for (rowParts in BodyParts.all.chunked(2)) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             for (part in rowParts) {
                 row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
             }
             if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
-            root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
+            root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(1), 0, dp(1)) })
         }
 
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        // v3.4 (addition A): slim Health Connect sync row above Start.
+        val hcBtn = makeSecondaryButton(if (hcSyncRunning) "Syncing…" else "Sync to Health Connect") { onHcSyncTap() }
+        tightButton(hcBtn, 48, 14, primary = false)
+        hcBtn.isEnabled = !hcSyncRunning
+        (hcBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
+        root.addView(hcBtn)
         val inProgress = db.getSessions().firstOrNull { !it.completed }
         val startBtn = makeButton(if (inProgress != null) "Resume Workout" else "Start Workout") { startWorkout() }
-        tightButton(startBtn, if (compact) 50 else 54, 14, primary = true)
+        tightButton(startBtn, if (compact) 48 else 54, 14, primary = true)
         root.addView(startBtn)
+    }
+
+    /** Home sync button flow (v3.4 addition A): unavailable -> toast;
+     *  toggle off -> ask first (never silently override his off switch);
+     *  permission missing -> request it; otherwise upsert all completed
+     *  workouts and toast the count. Runs off the UI thread; the button
+     *  is disabled while a sync is in flight. */
+    private fun onHcSyncTap() {
+        if (hcSyncRunning) return
+        when (HealthSync.sdkStatus(this)) {
+            HealthConnectClient.SDK_UNAVAILABLE ->
+                Toast.makeText(this, "Health Connect isn't available on this device", Toast.LENGTH_SHORT).show()
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED ->
+                Toast.makeText(this, "Health Connect needs an update on this device", Toast.LENGTH_SHORT).show()
+            else -> {
+                if (!HealthSync.isEnabled(this)) {
+                    AlertDialog.Builder(this)
+                        .setMessage("Health Connect sync is off.")
+                        .setPositiveButton("Turn on") { _, _ -> HealthSync.setEnabled(this, true); continueHcFlow() }
+                        .setNegativeButton("Not now", null)
+                        .show()
+                } else continueHcFlow()
+            }
+        }
+    }
+
+    private fun continueHcFlow() {
+        HealthSync.checkWritePermission(this) { granted ->
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (granted) doHomeSync() else hcPermLauncher.launch(setOf(HealthSync.WRITE_PERMISSION))
+            }
+        }
+    }
+
+    private fun doHomeSync() {
+        hcSyncRunning = true; render()
+        HealthSync.syncAllCompleted(this, db) { written, total ->
+            runOnUiThread {
+                hcSyncRunning = false
+                if (!isFinishing) {
+                    Toast.makeText(this, when {
+                        total == 0 -> "No completed workouts to sync yet"
+                        written == 0 -> "Couldn't sync — check Health Connect permission"
+                        else -> "Synced $written workouts to Health Connect"
+                    }, Toast.LENGTH_LONG).show()
+                    render()
+                }
+            }
+        }
     }
 
     private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {

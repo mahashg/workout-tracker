@@ -146,6 +146,22 @@ class SummaryActivity : AppCompatActivity() {
         // Filler keeps the buttons pinned to the bottom of the fixed screen.
         // v2.6.1 copy audit: "Every workout counts — see you next session." filler removed; stats only.
         root.addView(LinearLayout(this).apply { layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f) })
+        // v3.4 (addition B): on a FRESH completion, attempt the Health
+        // Connect sync for this session (toggle + permission + availability
+        // all checked inside HealthSync; silent on any failure — nothing
+        // may interrupt the celebration). On success only, this one subtle
+        // line appears. GONE until then, so the layout is unchanged.
+        val hcLine = caption("Synced to Health Connect ✓").apply {
+            gravity = Gravity.CENTER
+            visibility = android.view.View.GONE
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(22)).apply { setMargins(0, 0, 0, dp(2)) }
+        }
+        root.addView(hcLine)
+        if (celebrate) {
+            HealthSync.syncSession(this, db, sessionId) { ok ->
+                if (ok) runOnUiThread { if (!isFinishing && !isDestroyed) hcLine.visibility = android.view.View.VISIBLE }
+            }
+        }
         val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         if (celebrate) {
             val homeBtn = makeButton("Back to Home") { goHome() }
