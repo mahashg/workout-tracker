@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "arm-circles",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "photo": "exercise-images/arm-circles.jpg",
       "name": "Arm Circles",
       "equipment": "Bodyweight",
@@ -18,6 +19,7 @@
     },
     {
       "id": "kettlebell-halo",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Kettlebell Halo",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -32,6 +34,7 @@
     },
     {
       "id": "scap-push-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Scap Push-up",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -49,6 +52,7 @@
   "exercises": [
     {
       "id": "shoulder-press-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SHOULDER_PRESS",
       "photo": "exercise-images/shoulder-press-machine.jpg",
       "name": "Shoulder Press Machine",
       "equipment": "Machine",
@@ -63,6 +67,7 @@
     },
     {
       "id": "single-arm-kb-press",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SHOULDER_PRESS",
       "photo": "exercise-images/single-arm-kb-press.jpg",
       "name": "Single-Arm KB Press",
       "equipment": "Kettlebell",
@@ -79,6 +84,7 @@
     },
     {
       "id": "db-lateral-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_LATERAL_RAISE",
       "photo": "exercise-images/db-lateral-raise.jpg",
       "name": "DB Lateral Raise",
       "equipment": "Dumbbell",
@@ -93,6 +99,7 @@
     },
     {
       "id": "reverse-pec-deck",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/reverse-pec-deck.jpg",
       "name": "Reverse Pec Deck",
       "equipment": "Machine",
@@ -108,6 +115,7 @@
     },
     {
       "id": "pike-push-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Pike Push-up",
       "equipment": "Bodyweight",
       "sets": 2,
@@ -124,6 +132,7 @@
     },
     {
       "id": "db-shoulder-press",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SHOULDER_PRESS",
       "photo": "exercise-images/db-shoulder-press.jpg",
       "name": "DB Shoulder Press",
       "equipment": "Dumbbell",
@@ -138,6 +147,7 @@
     },
     {
       "id": "cable-lateral-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LATERAL_RAISE",
       "photo": "exercise-images/cable-lateral-raise.jpg",
       "name": "Cable Lateral Raise",
       "equipment": "Machine",
@@ -152,6 +162,7 @@
     },
     {
       "id": "face-pull",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/face-pull.jpg",
       "name": "Face Pull",
       "equipment": "Machine",
@@ -168,6 +179,7 @@
   "stretches": [
     {
       "id": "cross-body-shoulder-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Cross-Body Shoulder Stretch",
       "equipment": "Bodyweight",
       "sets": 1,

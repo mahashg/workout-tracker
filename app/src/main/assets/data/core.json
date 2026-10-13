@@ -4,6 +4,7 @@
   "exercises": [
     {
       "id": "dead-bug",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "photo": "exercise-images/dead-bug.jpg",
       "name": "Dead Bug",
       "equipment": "Bodyweight",
@@ -19,6 +20,7 @@
     },
     {
       "id": "plank",
+      "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
       "photo": "exercise-images/plank.jpg",
       "name": "Plank",
       "equipment": "Bodyweight",
@@ -35,6 +37,7 @@
     },
     {
       "id": "cable-crunch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
       "photo": "exercise-images/cable-crunch.jpg",
       "name": "Cable Crunch",
       "equipment": "Machine",
@@ -49,6 +52,7 @@
     },
     {
       "id": "russian-twist",
+      "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
       "photo": "exercise-images/russian-twist.jpg",
       "name": "Russian Twist",
       "equipment": "Bodyweight",
@@ -63,6 +67,7 @@
     },
     {
       "id": "mountain-climbers",
+      "hcType": "EXERCISE_SEGMENT_TYPE_MOUNTAIN_CLIMBER",
       "photo": "exercise-images/mountain-climbers.jpg",
       "name": "Mountain Climbers",
       "equipment": "Bodyweight",

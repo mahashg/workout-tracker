@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "rowing-machine-warm-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ROWING_MACHINE",
       "photo": "exercise-images/rowing-machine-warm-up.jpg",
       "name": "Rowing Machine Warm-up",
       "equipment": "Machine",
@@ -18,6 +19,7 @@
     },
     {
       "id": "cat-cow",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/cat-cow.jpg",
       "name": "Cat-Cow",
       "equipment": "Bodyweight",
@@ -33,6 +35,7 @@
     },
     {
       "id": "scapula-pulls",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Scapula Pulls",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -50,6 +53,7 @@
   "exercises": [
     {
       "id": "lat-pulldown",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LAT_PULL_DOWN",
       "photo": "exercise-images/lat-pulldown.jpg",
       "name": "Lat Pulldown",
       "equipment": "Machine",
@@ -65,6 +69,7 @@
     },
     {
       "id": "seated-cable-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/seated-cable-row.jpg",
       "name": "Seated Cable Row",
       "equipment": "Machine",
@@ -79,6 +84,7 @@
     },
     {
       "id": "single-arm-kb-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/single-arm-kb-row.jpg",
       "name": "Single-Arm KB Row",
       "equipment": "Kettlebell",
@@ -93,6 +99,7 @@
     },
     {
       "id": "inverted-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/inverted-row.jpg",
       "name": "Inverted Row",
       "equipment": "Bodyweight",
@@ -109,6 +116,7 @@
     },
     {
       "id": "chest-supported-db-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW",
       "photo": "exercise-images/chest-supported-db-row.jpg",
       "name": "Chest-Supported DB Row",
       "equipment": "Dumbbell",
@@ -123,6 +131,7 @@
     },
     {
       "id": "straight-arm-pulldown",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/straight-arm-pulldown.jpg",
       "name": "Straight-Arm Pulldown",
       "equipment": "Machine",
@@ -137,6 +146,7 @@
     },
     {
       "id": "back-extension",
+      "hcType": "EXERCISE_SEGMENT_TYPE_BACK_EXTENSION",
       "photo": "exercise-images/back-extension.jpg",
       "name": "Back Extension",
       "equipment": "Bodyweight",
@@ -153,6 +163,7 @@
   "stretches": [
     {
       "id": "lat-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Lat Stretch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -167,6 +178,7 @@
     },
     {
       "id": "childs-pose",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/childs-pose.jpg",
       "name": "Child's Pose",
       "equipment": "Bodyweight",
@@ -182,6 +194,7 @@
     },
     {
       "id": "cobra-pose",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Cobra Pose",
       "equipment": "Bodyweight",
       "sets": 1,

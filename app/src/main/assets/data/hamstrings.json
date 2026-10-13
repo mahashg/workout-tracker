@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "kettlebell-deadlift-light",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "name": "Kettlebell Deadlift (Light)",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -19,6 +20,7 @@
   "exercises": [
     {
       "id": "leg-curl-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_CURL",
       "photo": "exercise-images/leg-curl-machine.jpg",
       "name": "Leg Curl Machine",
       "equipment": "Machine",
@@ -34,6 +36,7 @@
     },
     {
       "id": "kb-romanian-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "photo": "exercise-images/kb-romanian-deadlift.jpg",
       "name": "KB Romanian Deadlift",
       "equipment": "Kettlebell",
@@ -49,6 +52,7 @@
     },
     {
       "id": "db-staggered-romanian-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "photo": "exercise-images/db-staggered-romanian-deadlift.jpg",
       "name": "DB Staggered Romanian Deadlift",
       "equipment": "Dumbbell",
@@ -64,6 +68,7 @@
     },
     {
       "id": "seated-leg-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_CURL",
       "photo": "exercise-images/seated-leg-curl.jpg",
       "name": "Seated Leg Curl",
       "equipment": "Machine",
@@ -78,6 +83,7 @@
     },
     {
       "id": "lying-leg-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_CURL",
       "photo": "exercise-images/lying-leg-curl.jpg",
       "name": "Lying Leg Curl",
       "equipment": "Machine",
@@ -92,6 +98,7 @@
     },
     {
       "id": "cable-pull-through",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/cable-pull-through.jpg",
       "name": "Cable Pull-Through",
       "equipment": "Machine",
@@ -108,6 +115,7 @@
   "stretches": [
     {
       "id": "hamstring-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/hamstring-stretch.jpg",
       "name": "Hamstring Stretch",
       "equipment": "Bodyweight",

@@ -4,6 +4,7 @@
   "exercises": [
     {
       "id": "db-bicep-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
       "photo": "exercise-images/db-bicep-curl.jpg",
       "name": "DB Bicep Curl",
       "equipment": "Dumbbell",
@@ -18,6 +19,7 @@
     },
     {
       "id": "db-hammer-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
       "photo": "exercise-images/db-hammer-curl.jpg",
       "name": "DB Hammer Curl",
       "equipment": "Dumbbell",
@@ -32,6 +34,7 @@
     },
     {
       "id": "cable-bicep-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
       "photo": "exercise-images/cable-bicep-curl.jpg",
       "name": "Cable Bicep Curl",
       "equipment": "Machine",
@@ -46,6 +49,7 @@
     },
     {
       "id": "incline-db-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
       "photo": "exercise-images/incline-db-curl.jpg",
       "name": "Incline DB Curl",
       "equipment": "Dumbbell",
@@ -60,6 +64,7 @@
     },
     {
       "id": "machine-preacher-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
       "photo": "exercise-images/machine-preacher-curl.jpg",
       "name": "Machine Preacher Curl",
       "equipment": "Machine",
@@ -76,6 +81,7 @@
   "stretches": [
     {
       "id": "doorway-bicep-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/doorway-bicep-stretch.jpg",
       "name": "Doorway Bicep Stretch",
       "equipment": "Bodyweight",

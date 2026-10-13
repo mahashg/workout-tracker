@@ -4,6 +4,7 @@
   "exercises": [
     {
       "id": "standing-calf-raise-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/standing-calf-raise-machine.jpg",
       "name": "Standing Calf Raise Machine",
       "equipment": "Machine",
@@ -18,6 +19,7 @@
     },
     {
       "id": "seated-calf-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/seated-calf-raise.jpg",
       "name": "Seated Calf Raise",
       "equipment": "Machine",
@@ -32,6 +34,7 @@
     },
     {
       "id": "single-leg-calf-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/single-leg-calf-raise.jpg",
       "name": "Single-Leg Calf Raise",
       "equipment": "Bodyweight",
@@ -48,6 +51,7 @@
   "stretches": [
     {
       "id": "standing-calf-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/standing-calf-stretch.jpg",
       "name": "Standing Calf Stretch",
       "equipment": "Bodyweight",

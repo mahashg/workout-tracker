@@ -4,6 +4,7 @@
   "exercises": [
     {
       "id": "db-shrug",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/db-shrug.jpg",
       "name": "DB Shrug",
       "equipment": "Dumbbell",
@@ -18,6 +19,7 @@
     },
     {
       "id": "cable-shrug",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/cable-shrug.jpg",
       "name": "Cable Shrug",
       "equipment": "Machine",
@@ -32,6 +34,7 @@
     },
     {
       "id": "farmers-carry",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/farmers-carry.jpg",
       "name": "Farmer's Carry",
       "equipment": "Dumbbell",
@@ -46,6 +49,7 @@
     },
     {
       "id": "kb-high-pull-light",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/kb-high-pull-light.jpg",
       "name": "KB High Pull (Light)",
       "equipment": "Kettlebell",
@@ -62,6 +66,7 @@
   "stretches": [
     {
       "id": "neck-trapezius-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/neck-trapezius-stretch.jpg",
       "name": "Neck Trapezius Stretch",
       "equipment": "Bodyweight",

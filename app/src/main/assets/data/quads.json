@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "stationary-bike",
+      "hcType": "EXERCISE_SEGMENT_TYPE_BIKING_STATIONARY",
       "photo": "exercise-images/stationary-bike.jpg",
       "name": "Stationary Bike",
       "equipment": "Machine",
@@ -18,6 +19,7 @@
     },
     {
       "id": "incline-walk",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WALKING",
       "photo": "exercise-images/incline-walk.jpg",
       "name": "Incline Walk",
       "equipment": "Machine",
@@ -33,6 +35,7 @@
     },
     {
       "id": "bodyweight-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "photo": "exercise-images/bodyweight-squat.jpg",
       "name": "Bodyweight Squat",
       "equipment": "Bodyweight",
@@ -48,6 +51,7 @@
     },
     {
       "id": "leg-swings",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Leg Swings",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -64,6 +68,7 @@
   "exercises": [
     {
       "id": "leg-press",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_PRESS",
       "photo": "exercise-images/leg-press.jpg",
       "name": "Leg Press",
       "equipment": "Machine",
@@ -79,6 +84,7 @@
     },
     {
       "id": "kb-goblet-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "photo": "exercise-images/kb-goblet-squat.jpg",
       "name": "KB Goblet Squat",
       "equipment": "Kettlebell",
@@ -94,6 +100,7 @@
     },
     {
       "id": "db-walking-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "photo": "exercise-images/db-walking-lunge.jpg",
       "name": "DB Walking Lunge",
       "equipment": "Dumbbell",
@@ -109,6 +116,7 @@
     },
     {
       "id": "leg-extension",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_EXTENSION",
       "photo": "exercise-images/leg-extension.jpg",
       "name": "Leg Extension",
       "equipment": "Machine",
@@ -124,6 +132,7 @@
     },
     {
       "id": "kb-step-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/kb-step-up.jpg",
       "name": "KB Step-Up",
       "equipment": "Kettlebell",
@@ -139,6 +148,7 @@
     },
     {
       "id": "wall-sit",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Wall Sit",
       "equipment": "Bodyweight",
       "sets": 2,
@@ -154,6 +164,7 @@
     },
     {
       "id": "hack-squat-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "photo": "exercise-images/hack-squat-machine.jpg",
       "name": "Hack Squat Machine",
       "equipment": "Machine",
@@ -168,6 +179,7 @@
     },
     {
       "id": "bulgarian-split-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "photo": "exercise-images/bulgarian-split-squat.jpg",
       "name": "Bulgarian Split Squat",
       "equipment": "Bodyweight",
@@ -182,6 +194,7 @@
     },
     {
       "id": "stationary-db-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "photo": "exercise-images/stationary-db-lunge.jpg",
       "name": "Stationary DB Lunge",
       "equipment": "Dumbbell",
@@ -198,6 +211,7 @@
   "stretches": [
     {
       "id": "standing-quadriceps-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/standing-quadriceps-stretch.jpg",
       "name": "Standing Quadriceps Stretch",
       "equipment": "Bodyweight",
@@ -213,6 +227,7 @@
     },
     {
       "id": "couch-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/couch-stretch.jpg",
       "name": "Couch Stretch",
       "equipment": "Bodyweight",

@@ -4,6 +4,7 @@
   "exercises": [
     {
       "id": "cable-triceps-pushdown",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
       "photo": "exercise-images/cable-triceps-pushdown.jpg",
       "name": "Cable Triceps Pushdown",
       "equipment": "Machine",
@@ -18,6 +19,7 @@
     },
     {
       "id": "db-overhead-triceps-extension",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_TWO_ARM",
       "photo": "exercise-images/db-overhead-triceps-extension.jpg",
       "name": "DB Overhead Triceps Extension",
       "equipment": "Dumbbell",
@@ -32,6 +34,7 @@
     },
     {
       "id": "diamond-push-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/diamond-push-up.jpg",
       "name": "Diamond Push-up",
       "equipment": "Bodyweight",
@@ -48,6 +51,7 @@
     },
     {
       "id": "bench-dip",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/bench-dip.jpg",
       "name": "Bench Dip",
       "equipment": "Bodyweight",
@@ -62,6 +66,7 @@
     },
     {
       "id": "db-triceps-kickback",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SINGLE_ARM_TRICEPS_EXTENSION",
       "photo": "exercise-images/db-triceps-kickback.jpg",
       "name": "DB Triceps Kickback",
       "equipment": "Dumbbell",
@@ -76,6 +81,7 @@
     },
     {
       "id": "db-skull-crusher",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
       "photo": "exercise-images/db-skull-crusher.jpg",
       "name": "DB Skull Crusher",
       "equipment": "Dumbbell",
@@ -92,6 +98,7 @@
   "stretches": [
     {
       "id": "overhead-triceps-stretch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "photo": "exercise-images/overhead-triceps-stretch.jpg",
       "name": "Overhead Triceps Stretch",
       "equipment": "Bodyweight",

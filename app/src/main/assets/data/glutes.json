@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "glute-bridge-activation",
+      "hcType": "EXERCISE_SEGMENT_TYPE_HIP_THRUST",
       "photo": "exercise-images/glute-bridge-activation.jpg",
       "name": "Glute Bridge Activation",
       "equipment": "Bodyweight",
@@ -21,6 +22,7 @@
   "exercises": [
     {
       "id": "kb-swing-light",
+      "hcType": "EXERCISE_SEGMENT_TYPE_KETTLEBELL_SWING",
       "photo": "exercise-images/kb-swing-light.jpg",
       "name": "KB Swing (light)",
       "equipment": "Kettlebell",
@@ -37,6 +39,7 @@
     },
     {
       "id": "cable-glute-kickback",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/cable-glute-kickback.jpg",
       "name": "Cable Glute Kickback",
       "equipment": "Machine",
@@ -52,6 +55,7 @@
     },
     {
       "id": "hip-thrust-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_HIP_THRUST",
       "photo": "exercise-images/hip-thrust-machine.jpg",
       "name": "Hip Thrust Machine",
       "equipment": "Machine",
@@ -67,6 +71,7 @@
     },
     {
       "id": "glute-bridge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_HIP_THRUST",
       "photo": "exercise-images/glute-bridge.jpg",
       "name": "Glute Bridge",
       "equipment": "Bodyweight",
@@ -82,6 +87,7 @@
     },
     {
       "id": "hip-abduction-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "photo": "exercise-images/hip-abduction-machine.jpg",
       "name": "Hip Abduction Machine",
       "equipment": "Machine",
@@ -96,6 +102,7 @@
     },
     {
       "id": "kb-sumo-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "photo": "exercise-images/kb-sumo-squat.jpg",
       "name": "KB Sumo Squat",
       "equipment": "Kettlebell",
@@ -110,6 +117,7 @@
     },
     {
       "id": "fire-hydrant",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Fire Hydrant",
       "equipment": "Bodyweight",
       "sets": 3,
@@ -125,6 +133,7 @@
   "stretches": [
     {
       "id": "pigeon-pose",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Pigeon Pose",
       "equipment": "Bodyweight",
       "sets": 1,
