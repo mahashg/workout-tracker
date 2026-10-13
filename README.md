@@ -510,3 +510,86 @@ are NOT pushed to GitHub (text-only connector).
 APK: 11,166,828 bytes (+3,337,491 vs v3.0's 7,829,337 — the 81 second
 frames). Signing cert unchanged: SHA-1
 0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.
+
+## V3.2 (versionCode 18) — picker states, full-frame photo, polish pass
+
+DB stays v4 (no schema change). From Mahesh's on-device v3.1 test; both
+visual changes were approved as mockups first.
+
+1. **Picker five-state system** (PickPartsActivity) — no legend row; the
+   card treatments are the code, and they layer instead of competing:
+   - **Selected**: solid primary fill (#2563EB), white name, last-line in
+     #BFDBFE, white circle with blue ✓ on the card's top-right corner,
+     "Selected" pill (white bg, blue text). Overrides everything.
+   - **Suggested** (unselected, compatible with EVERY selected part):
+     pale violet fill #F5F0FF with a 1.5dp DASHED violet border (#7C3AED,
+     GradientDrawable dash stroke) and an "✦ Pairs well" pill (#EDE9FE /
+     #6D28D9). Never a check mark.
+   - **Done this week**: pale green fill #F0FDF4, green border #86EFAC,
+     "✓ Done this week" pill (#DCFCE7 / #15803D); Core shows
+     "✓ Done · N×" with its week count.
+   - **Not paired** (selection non-empty, doesn't pair with all
+     selected): whole card at alpha 0.45 + "Not paired" pill; still
+     fully tappable.
+   - **Plain** (nothing selected): default card, v3 Due/Pending pills.
+   Layering: the Done pill renders whenever the part is done and not
+   selected — on suggested cards (beside a small "✦" pill) and on dimmed
+   not-paired cards; the suggested outline applies whenever paired; the
+   dim applies whenever not paired. Recomputed on every selection
+   change. Home/Library grids keep their existing Done/Pending/Due
+   presentation. New helpers in Ui.kt: `stateCardDrawable` (layered
+   shadow card with custom fill + solid/dashed stroke) and `pillView`
+   (one uniform 10.5sp / 8x3dp small pill, now used by the picker, Home,
+   Library and the build list's part tag).
+
+2. **Full-frame photo** (CardSessionActivity, all three section types —
+   one shared header builder). The photo band's height is now the card
+   content width × 2/3, aspect-matched to the bundled 3:2 photos, so the
+   ENTIRE frame is visible — CENTER_CROP in an aspect-matched box crops
+   nothing and stretches nothing (fitXY grep stays 0). Both PhotoLooper
+   frames keep identical containers. Layout per the approved mock: body
+   part + equipment tags top-left over the photo; the bottom gradient
+   scrim carries the exercise name + last-time line; the posture check
+   moves OUT of the photo area into its own flat surface card (mist fill
+   + stroke, 16dp corners) directly below the essentials row; then the
+   Log set / Later row (now exactly 48dp) and the swipe hint line. The
+   equipment badge that sat under the header is gone (it's a photo tag
+   now); Do-it + Sets + progress dots form one compact essentials row.
+   No-photo exercises get the same 3:2 band with a larger body map.
+   Posture caps inside the card are height-aware (compact screens: 2
+   bullets / 1 cue; else 3 / 1) so the fixed-height card does not clip
+   at the ~546dp compact floor — the v2.5-accepted how-to cap; the full
+   content remains in the list view. Library part-detail rows keep their
+   v3.1 background treatment (per the brief). Card-screen budget re-run
+   at the compact floor: topBar 56 + progress card 96 + deck (flex) +
+   buttons 48 + hint 20 + next-up 20; the deck flex absorbs the taller
+   photo band on short screens while name/last-time/tags/buttons/hint
+   are always fully visible.
+
+3. **Page-by-page visual polish pass** — every screen audited against:
+   12dp screen padding, 8/12dp rhythm, 20dp card radius + Theme stroke,
+   height budgets at the ~546dp floor, titles 18sp bold, body ≥12sp,
+   secondary #5A6B80 / meta #8494A7, touch targets ≥48dp, uniform pills,
+   scrims only under text on photos. Fixes: topBar titles 19→18sp;
+   build-list checkbox 36→40dp and reorder buttons 34→40dp, row padding
+   symmetric, meta 11→12sp; Sections footer buttons now tightButton'd to
+   exactly 48dp (factory minHeight was inflating them) and the
+   all-handled green matches the 12dp button radius; list view set
+   chips 26×22→30×26dp, row reorder/set buttons 22→30×28dp (still under
+   48 — the deliberate one-page-list density trade-off from v2.5.1),
+   action bars 44→48dp, set-editor steppers 36→40dp; Summary "By
+   section" lines 14sp→13sp with stripped margins (content 88dp ≤ the
+   92dp card — the third line could clip before); Library detail meta
+   11→12sp with normalized margins, Add button 46→48dp; Settings rest
+   steppers 30×32→36×36 (Rest card 72→78dp), Data buttons 44→48dp
+   (card 116→120dp; Settings compact total ≈522dp ≤ 546); Exercise
+   Library group chips 40→42dp in 44dp rows; Rest Ring stroke width is
+   now density-correct 10dp (was a raw 26px) and its dialog buttons
+   take the app palette; Preview header title 17→18sp and the empty
+   state no longer references the retired "Routines" name; the log-set
+   sheet drops its duplicated subtitle line. Home, History list and
+   Workout Detail reviewed — already consistent with the checklist
+   (their pills now come from the shared `pillView`).
+
+APK: 11,169,088 bytes. Signing cert unchanged: SHA-1
+0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE.

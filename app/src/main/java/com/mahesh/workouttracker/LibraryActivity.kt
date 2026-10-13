@@ -24,19 +24,20 @@ class LibraryActivity : AppCompatActivity() {
         root.addView(topBar("Exercise Library", "33 moves"))
 
         // Group switcher: wrapping chip rows (selected group highlighted).
-        // Explicit 126dp (3 rows x 42dp) so the card region budget is known.
-        val chipBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(126)) }
+        // Explicit 132dp (3 rows x 44dp; chips 42dp tall, v3.2 polish) so
+        // the card region budget is known.
+        val chipBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(132)) }
         var chipRow: LinearLayout? = null
         for ((i, g) in groups.withIndex()) {
             if (i % 4 == 0) {
-                chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(42)) }
+                chipRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)) }
                 chipBox.addView(chipRow)
             }
             val selected = i == groupIndex
             val chip = makeSmallButton(g) { groupIndex = i; render() }
             chip.textSize = 12f
             if (selected) { chip.setTextColor(Theme.onPrimary); chip.background = roundedBg("#2563EB", 12) }
-            (chip.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(40); setMargins(dp(2), dp(2), dp(2), dp(2)) }
+            (chip.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; height = dp(42); setMargins(dp(2), dp(1), dp(2), dp(1)) }
             chipRow!!.addView(chip)
         }
         root.addView(chipBox)

@@ -26,8 +26,11 @@ class RestRingView(context: Context) : View(context) {
     var totalMs: Long = 60_000
     var remainingMs: Long = 60_000
     var goPop: Boolean = false
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 26f; color = 0xFFE2E8F0.toInt(); strokeCap = Paint.Cap.ROUND }
-    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 26f; strokeCap = Paint.Cap.ROUND }
+    // v3.2 polish: stroke width is density-correct (10dp) — it was a raw
+    // 26px, which rendered thinner on high-density screens than designed.
+    private val strokePx = context.dp(10).toFloat()
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = strokePx; color = 0xFFE2E8F0.toInt(); strokeCap = Paint.Cap.ROUND }
+    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = strokePx; strokeCap = Paint.Cap.ROUND }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER; isFakeBoldText = true }
     private val arc = RectF()
 
@@ -83,7 +86,7 @@ object RestTimer {
             if (cleanCues.isNotEmpty()) text = "While you rest — ${cleanCues[0]}"
         }
         val col = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL; setPadding(activity.dp(20), activity.dp(18), activity.dp(20), activity.dp(8))
+            orientation = LinearLayout.VERTICAL; setPadding(activity.dp(20), activity.dp(18), activity.dp(20), activity.dp(16))
             addView(ring); addView(nextTv); addView(cueTv)
         }
         val dialog = AlertDialog.Builder(activity).setView(col)
@@ -119,6 +122,10 @@ object RestTimer {
             }.start()
         }
         dialog.setOnShowListener {
+            // v3.2 polish: the system dialog buttons take the app palette
+            // (primary for +15s, secondary for Skip rest) at a readable size.
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.apply { setTextColor(Theme.primary); textSize = 15f }
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply { setTextColor(Theme.textSecondary); textSize = 15f }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val elapsed = System.currentTimeMillis() - startedAt
                 val left = (total - elapsed).coerceAtLeast(0) + 15_000

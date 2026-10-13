@@ -63,10 +63,7 @@ class RoutinesActivity : AppCompatActivity() {
         top.addView(nameTv)
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
         val count = db.getExercisesForPart(part.id).count { it.type == "Main" }
-        top.addView(TextView(this).apply {
-            text = "$count exercises"; textSize = 10.5f; setTextColor(Theme.textSecondary)
-            background = roundedBg("#EDF2F7", 999); setPadding(dp(7), dp(2), dp(7), dp(2)); maxLines = 1
-        })
+        top.addView(pillView("$count exercises", "#EDF2F7", Theme.textSecondary))
         cell.addView(top)
         val lastLine = when {
             part.repeatable && done -> "Trained ${countThisWeek}× this week"
