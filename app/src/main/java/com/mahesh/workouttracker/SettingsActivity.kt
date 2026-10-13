@@ -64,10 +64,11 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun render() {
         val root = tabScaffold("Settings")
-        // Explicit card budgets (v2.5.1; v2.9's simpler Google card shrinks
-        // the signed-out state — compact sums: signed-out 34+106+106+118+74+56
-        // = 494dp, signed-in 34+106+106+144+74+56 = 520dp, both under the
-        // ~546dp available at a 640dp viewport; bottom nav always visible).
+        // Explicit card budgets (v2.5.1; v3 adds the Rest Timer card and
+        // folds About into the Data card — compact sums: signed-out
+        // 32+98+98+64+114+100 = 506dp, signed-in 32+98+98+64+136+100 = 528dp,
+        // plus ~20dp of card margins, under the ~546dp available at a 640dp
+        // viewport; bottom nav always visible).
         val compactSet = isCompactScreen()
         fun budgetCard(h: Int): LinearLayout {
             val c = cardLayout()
@@ -87,12 +88,12 @@ class SettingsActivity : AppCompatActivity() {
             (b.layoutParams as LinearLayout.LayoutParams).height = dp(h)
         }
         root.addView(screenTitle("Settings").apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(if (compactSet) 34 else 40); setMargins(0, 0, 0, 0) }
+            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(if (compactSet) 32 else 40); setMargins(0, 0, 0, 0) }
             gravity = android.view.Gravity.CENTER_VERTICAL
         })
 
         val unit = WeekManager.unit(this)
-        val unitCard = budgetCard(if (compactSet) 106 else 116)
+        val unitCard = budgetCard(if (compactSet) 98 else 108)
         unitCard.addView(noMargin(overline("Units")))
         unitCard.addView(noMargin(cardTitle("Weight unit: $unit")))
         unitCard.addView(noMargin(caption("Applies to labels and CSV.")))
@@ -100,49 +101,76 @@ class SettingsActivity : AppCompatActivity() {
             WeekManager.setUnit(this, if (unit=="lb") "kg" else "lb"); render()
         }
         (unitBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
-        fixBtn(unitBtn, 44)
+        fixBtn(unitBtn, 40)
         unitCard.addView(unitBtn)
         root.addView(unitCard)
 
         val beginnerOn = Beginner.beginnerMode(this)
-        val begCard = budgetCard(if (compactSet) 106 else 116)
+        val begCard = budgetCard(if (compactSet) 98 else 108)
         begCard.addView(noMargin(overline("Beginner Mode")))
         begCard.addView(noMargin(cardTitle("Beginner Mode: ${if(beginnerOn) "ON" else "OFF"}")))
         begCard.addView(noMargin(caption("Posture checks and form cues on every exercise."), 1))
         val begBtn = makeSecondaryButton(if(beginnerOn) "Turn Beginner Mode OFF" else "Turn Beginner Mode ON") { Beginner.setBeginnerMode(this, !beginnerOn); render() }
         (begBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
-        fixBtn(begBtn, 44)
+        fixBtn(begBtn, 40)
         begCard.addView(begBtn)
         root.addView(begCard)
 
+        // Rest Timer card (v3): the Rest Ring auto-starts when a set is
+        // logged — 30s between sets / 60s between exercises by default,
+        // both adjustable here and carried in the Drive backup prefs.
+        val restCard = budgetCard(if (compactSet) 64 else 72)
+        restCard.addView(noMargin(overline("Rest Timer")))
+        val restRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(38)) }
+        fun restGroup(label: String, value: Int, step: Int, onChange: (Int) -> Unit) {
+            val g = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+            g.addView(noMargin(makeText(label, 11.5f, false, Theme.textSecondary)))
+            val minus = makeSmallButton("−") { onChange(value - step) }
+            minus.minWidth = 0; minus.minHeight = 0; minus.setPadding(0, 0, 0, 0)
+            (minus.layoutParams as LinearLayout.LayoutParams).apply { width = dp(30); height = dp(32); setMargins(dp(4), 0, dp(2), 0) }
+            g.addView(minus)
+            val vTv = makeText("${value}s", 14.5f, true)
+            vTv.gravity = android.view.Gravity.CENTER
+            (vTv.layoutParams as LinearLayout.LayoutParams).apply { width = dp(38); setMargins(0, 0, 0, 0) }
+            g.addView(vTv)
+            val plus = makeSmallButton("+") { onChange(value + step) }
+            plus.minWidth = 0; plus.minHeight = 0; plus.setPadding(0, 0, 0, 0)
+            (plus.layoutParams as LinearLayout.LayoutParams).apply { width = dp(30); height = dp(32); setMargins(dp(2), 0, 0, 0) }
+            g.addView(plus)
+            restRow.addView(g)
+        }
+        val restSet = WeekManager.restSetSec(this)
+        val restEx = WeekManager.restExerciseSec(this)
+        restGroup("Between sets", restSet, 5) { v -> WeekManager.setRestSecs(this, v.coerceIn(0, 300), restEx); render() }
+        restGroup("Between exercises", restEx, 15) { v -> WeekManager.setRestSecs(this, restSet, v.coerceIn(0, 600)); render() }
+        restCard.addView(restRow)
+        root.addView(restCard)
+
         val signedIn = GoogleAuth.isSignedIn(this)
         root.addView(googleCard(
-            if (signedIn) (if (compactSet) 144 else 158) else (if (compactSet) 118 else 128),
+            if (signedIn) (if (compactSet) 136 else 150) else (if (compactSet) 114 else 124),
             ::fixBtn, ::noMargin))
 
-        // Training-week rule folded into About (keeps this screen one page tall).
-        val dataCard = budgetCard(if (compactSet) 74 else 84)
+        // Data card; About (version + week rule) is folded in at the bottom
+        // (keeps this screen one page tall).
+        val dataCard = budgetCard(if (compactSet) 100 else 110)
         dataCard.addView(noMargin(overline("Your Data")))
         val dataRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)) }
         val exportBtn = makeButton("Export CSV") { launchExport() }
         (exportBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, dp(4), dp(4), 0) }
         fixBtn(exportBtn, 44)
         val restoreBtn = makeSecondaryButton("Restore Preloaded") {
-            AlertDialog.Builder(this).setTitle("Restore routines?").setMessage("This replaces current routines/exercises with the preloaded v2 5 (with form links and warm-up/stretch items), but does NOT delete history sessions.")
-                .setPositiveButton("Restore") { _, _ -> Seed.restore(db); Seed.markV2Applied(this); Toast.makeText(this,"Routines restored", Toast.LENGTH_SHORT).show() }
+            AlertDialog.Builder(this).setTitle("Restore preloaded exercises?").setMessage("This resets the exercise library to the preloaded body-part data — edits to preloaded exercises are undone, exercises you added yourself stay, and history is NOT deleted.")
+                .setPositiveButton("Restore") { _, _ -> Seed.restore(db); Seed.markV2Applied(this); JsonSeed.restoreDefaults(this, db); Toast.makeText(this,"Preloaded exercises restored", Toast.LENGTH_SHORT).show(); render() }
                 .setNegativeButton("Cancel", null).show()
         }
         (restoreBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(4), dp(4), 0, 0) }
         fixBtn(restoreBtn, 44)
         dataRow.addView(exportBtn); dataRow.addView(restoreBtn)
         dataCard.addView(dataRow)
-        root.addView(dataCard)
-
-        val aboutCard = budgetCard(if (compactSet) 56 else 64)
-        aboutCard.addView(noMargin(overline("About")))
         // v2.6.1 copy audit: About is two lines (version + week rule).
-        aboutCard.addView(noMargin(caption("Workout Tracker • Version 2.9.1\nWeek counter advances only after a week with 1+ completed workout."), 2))
-        root.addView(aboutCard)
+        dataCard.addView(noMargin(caption("Workout Tracker • Version 3.0\nWeek counter advances only after a week with 1+ completed workout."), 2))
+        root.addView(dataCard)
     }
 
     /** Google Backup card (v2.9): GIS sign-in state, Drive backup/restore.
@@ -170,7 +198,7 @@ class SettingsActivity : AppCompatActivity() {
             card.addView(row)
             val signOutBtn = makeSecondaryButton("Sign out") { doSignOut() }
             (signOutBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
-            fixBtn(signOutBtn, 36)
+            fixBtn(signOutBtn, 30)
             card.addView(signOutBtn)
         } else {
             card.addView(noMargin(caption("Sign in with Google to back up your workouts to Drive. The app is identified by the Android client registered for this package and signing key — nothing to paste or set up here."), 3))
