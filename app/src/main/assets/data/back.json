@@ -158,6 +158,35 @@
       "image": "back",
       "url": "https://www.youtube.com/results?search_query=Back+Extension+form",
       "primary": false
+    },
+    {
+      "id": "mid-row-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/mid-row-machine.jpg",
+      "name": "Mid Row Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "back",
+      "precautions": "Adjust the seat so the handles line up with your chest;Chest stays against the pad the whole set;Pull by driving your elbows back - squeeze your shoulder blades;Keep shoulders down - do not shrug toward your ears",
+      "cues": "Chest on the pad;Drive elbows back, squeeze blades;Return slowly to a stretch",
+      "image": "back",
+      "url": "https://www.youtube.com/results?search_query=Mid+Row+Machine+form",
+      "primary": false
+    },
+    {
+      "id": "back-extension-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_BACK_EXTENSION",
+      "name": "Back Extension Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "back,glutes",
+      "precautions": "Back flat against the pad the whole set;Push back by extending from your lower back and hips - never jerk;Stop when your body is one straight line - do not over-arch;Keep feet on the footrests and return slowly",
+      "cues": "Back flat on the pad;Push back to a straight line;Return slowly with control",
+      "image": "back",
+      "url": "https://www.youtube.com/results?search_query=Back+Extension+Machine+form",
+      "primary": false
     }
   ],
   "stretches": [

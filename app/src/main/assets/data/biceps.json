@@ -76,6 +76,21 @@
       "image": "biceps",
       "url": "https://www.youtube.com/results?search_query=Machine+Preacher+Curl+form",
       "primary": false
+    },
+    {
+      "id": "bicep-curl-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+      "photo": "exercise-images/bicep-curl-machine.jpg",
+      "name": "Bicep Curl Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "biceps",
+      "precautions": "Adjust the seat so your upper arms rest fully on the pad;Elbows in line with the machine's pivot point;Curl without lifting your elbows off the pad;Lower slowly to straight arms - do not rest the stack between reps",
+      "cues": "Arms flat on the pad;Curl handles up smoothly;Lower slowly to full stretch",
+      "image": "biceps",
+      "url": "https://www.youtube.com/results?search_query=Bicep+Curl+Machine+form",
+      "primary": false
     }
   ],
   "stretches": [

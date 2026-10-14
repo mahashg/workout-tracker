@@ -79,6 +79,20 @@
       "image": "core",
       "url": "https://www.youtube.com/results?search_query=Mountain+Climbers+form",
       "primary": false
+    },
+    {
+      "id": "torso-rotation-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "name": "Torso Rotation Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "core",
+      "precautions": "Sit with knees secured against the pads;Grip the handles and rotate by twisting from your waist - not by pulling with your arms;Move slowly and return with control;Keep the range comfortable - stop before any pinch in your lower back",
+      "cues": "Twist from your waist, not arms;Rotate slowly to each side;Control the return",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Torso+Rotation+Machine+form",
+      "primary": false
     }
   ],
   "stretches": []

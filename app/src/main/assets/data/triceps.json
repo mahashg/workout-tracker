@@ -93,6 +93,36 @@
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=DB+Skull+Crusher+form",
       "primary": false
+    },
+    {
+      "id": "seated-dip-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/seated-dip-machine.jpg",
+      "name": "Seated Dip Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "triceps,chest",
+      "precautions": "Adjust the seat so the dip handles are level with your chest;Keep shoulders down away from your ears the whole set;Torso stays still and upright - only your arms press;Press until arms are nearly straight - do not slam elbows locked",
+      "cues": "Shoulders down, chest tall;Press handles down smoothly;Control the way back up",
+      "image": "triceps",
+      "url": "https://www.youtube.com/results?search_query=Seated+Dip+Machine+form",
+      "primary": false
+    },
+    {
+      "id": "triceps-extension-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
+      "photo": "exercise-images/triceps-extension-machine.jpg",
+      "name": "Triceps Extension Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "triceps",
+      "precautions": "Back stays against the pad the whole set;Elbows pinned in place - only your forearms move;Press the handles forward until arms are nearly straight - do not lock out hard;Return slowly - do not let the stack slam",
+      "cues": "Elbows pinned, back on pad;Press forward to straight arms;Lower slowly with control",
+      "image": "triceps",
+      "url": "https://www.youtube.com/results?search_query=Triceps+Extension+Machine+form",
+      "primary": false
     }
   ],
   "stretches": [

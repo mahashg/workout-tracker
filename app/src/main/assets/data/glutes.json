@@ -128,6 +128,37 @@
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=Fire+Hydrant+form",
       "primary": false
+    },
+    {
+      "id": "hip-adduction-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/hip-adduction-machine.jpg",
+      "name": "Hip Adduction Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "glutes",
+      "precautions": "Back against the pad, feet on the footrests;Knee pads rest on the INSIDE of your legs;Squeeze your legs together from your inner thighs - go slow both ways;Start with a comfortable range - do not force the wide stretch position",
+      "cues": "Sit tall, pads inside knees;Squeeze legs together slowly;Open slowly to a mild stretch",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=Hip+Adduction+Machine+form",
+      "primary": false
+    },
+    {
+      "id": "glute-kickback-machine",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/glute-kickback-machine.jpg",
+      "name": "Glute Kickback Machine",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "glutes",
+      "precautions": "One knee stays on the support pad, hands gripping the handles;Hips stay square - no twisting as you lift;Lift by squeezing your glute - not by arching your lower back;Raise the free leg rearward and return slowly",
+      "cues": "Hips square, knee on pad;Press heel back, squeeze glute;Return slowly, then switch sides",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=Glute+Kickback+Machine+form",
+      "primary": false,
+      "easier": "Glute Bridge"
     }
   ],
   "stretches": [

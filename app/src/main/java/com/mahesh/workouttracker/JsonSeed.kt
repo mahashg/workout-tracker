@@ -1,6 +1,7 @@
 package com.mahesh.workouttracker
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
@@ -76,9 +77,47 @@ object JsonSeed {
 
     fun applyV3IfNeeded(context: Context, db: DbHelper) {
         val prefs = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
-        if (prefs.getBoolean("v3SeedApplied", false)) return
-        applyV3(context, db)
-        prefs.edit().putBoolean("v3SeedApplied", true).apply()
+        if (!prefs.getBoolean("v3SeedApplied", false)) {
+            applyV3(context, db)
+            prefs.edit().putBoolean("v3SeedApplied", true).apply()
+        }
+        applyV36AdditionsIfNeeded(context, db, prefs)
+    }
+
+    /** v3.6: one-time ADDITIVE catalog step. Installs seeded before v3.6
+     *  never re-run [applyV3], so catalog entries added to the JSONs later
+     *  (the 8 gym machines) would never reach them. This inserts any
+     *  bundled entry whose sourceId is missing from the exercises table —
+     *  checked per entry, so nothing is ever duplicated or overwritten,
+     *  and user-added rows (sourceId="") and all history are untouched.
+     *  Gated by its own one-time pref; on a fresh install [applyV3] has
+     *  just inserted everything, so this finds nothing to add. The v3
+     *  catalog UI offers no delete for catalog rows, so on an upgraded
+     *  install a missing sourceId can only mean "added to the bundled
+     *  catalog after this install was seeded". */
+    private fun applyV36AdditionsIfNeeded(context: Context, db: DbHelper, prefs: SharedPreferences) {
+        if (prefs.getBoolean("v36CatalogApplied", false)) return
+        insertMissingEntries(context, db)
+        prefs.edit().putBoolean("v36CatalogApplied", true).apply()
+    }
+
+    /** Inserts every bundled catalog entry whose id is not already present
+     *  as an exercises.sourceId. Insert-only: existing rows are never
+     *  modified. Shared by the v3 seed (step 3) and the v3.6 additive step. */
+    private fun insertMissingEntries(context: Context, db: DbHelper) {
+        val present = db.getAllExercises().map { it.sourceId }.toSet()
+        for (pd in loadAll(context)) {
+            var order = 0
+            for (entry in pd.all) {
+                val myOrder = order++
+                if (entry.id in present) continue
+                db.insertExercise(Exercise(
+                    0, -1, entry.name, entry.type, entry.equipment, entry.sets,
+                    entry.targetReps, entry.defaultWeight, entry.variation, entry.url,
+                    myOrder, entry.targetMuscles, entry.cues, entry.precautions, pd.partId, entry.id
+                ))
+            }
+        }
     }
 
     /** Settings "Restore Preloaded": drop the canonical JSON-seeded rows and
@@ -125,19 +164,7 @@ object JsonSeed {
             if (!seen.add(e.sourceId)) db.deleteExercise(e.id)
         }
         // 3) Insert the JSON entries that are not in the DB yet.
-        val present = db.getAllExercises().map { it.sourceId }.toSet()
-        for (pd in parts) {
-            var order = 0
-            for (entry in pd.all) {
-                val myOrder = order++
-                if (entry.id in present) continue
-                db.insertExercise(Exercise(
-                    0, -1, entry.name, entry.type, entry.equipment, entry.sets,
-                    entry.targetReps, entry.defaultWeight, entry.variation, entry.url,
-                    myOrder, entry.targetMuscles, entry.cues, entry.precautions, pd.partId, entry.id
-                ))
-            }
-        }
+        insertMissingEntries(context, db)
         // 4) Backfill session_parts for pre-v3 sessions (their parts are
         //    derived from their exercises) so Home's last-trained/done state
         //    reaches back into existing history.
