@@ -718,3 +718,70 @@ photos unchanged, signing cert unchanged
 
 APK: 12,887,479 bytes (+1,715,895 vs v3.3 — the Health Connect client,
 its protobuf runtime, and coroutines).
+
+## V3.5 (versionCode 21) — config-driven Health Connect exercise types
+
+V3.4 picked each Health Connect segment's type at runtime by guessing
+from the exercise NAME (a keyword map). It worked — a dumbbell press
+synced as a dumbbell press — but Mahesh asked for it to be exact:
+pre-research the correct type for every exercise, store it in the
+config, and sync from the stored value.
+
+**Where the mapping lives.** Every entry in
+`assets/data/<part>.json` (94 entries: exercises + warm-ups + stretches
+across the 11 parts) now carries an **`hcType`** field — the NAME of a
+Health Connect `EXERCISE_SEGMENT_TYPE_*` constant (e.g.
+`EXERCISE_SEGMENT_TYPE_BENCH_PRESS`). The only edit made to the JSON
+content is adding that field; every other field is byte-for-byte
+unchanged (verified programmatically against the pre-change files).
+The full research — the verified constant list, the per-exercise
+mapping table with rationales, and the coverage numbers — lives in
+**`research-health-connect-types.md`**.
+
+**Ground truth.** The constant list (68 values, 0–67) was enumerated
+with `javap -constants` on `ExerciseSegment` from the resolved
+connect-client **1.1.0-alpha08** AAR — not from documentation. The API
+has notable gaps (no push-up, dip, fly, shrug, calf-raise, or generic
+row constant; the only row is `DUMBBELL_ROW`; presses map to
+`BENCH_PRESS`), and those gaps were NOT papered over with
+wrong-movement types.
+
+**Coverage: 47 specific / 47 generic of 94.** Specific = a constant
+naming the exercise's movement (ARM_CURL ×5, BENCH_PRESS ×3, SQUAT ×6,
+DEADLIFT ×3, LEG_CURL ×3, HIP_THRUST ×3, LAT_PULL_DOWN, LEG_PRESS, …).
+Generic = the most honest category where no movement constant exists:
+WEIGHTLIFTING ×27 (rows, calf raises, push-ups, flies, dips, shrugs,
+face pull, …), STRETCHING ×14 (every stretch + Cat-Cow),
+OTHER_WORKOUT ×6 (scap pulls, dead bug, fire hydrant, leg swings, arm
+circles, KB halo). The full generic list is named in the research doc.
+
+**How sync resolves a type now** (`HealthSync.configSegmentType`):
+session exercise → its origin `exercises` row → `sourceId` →
+`JsonSeed.entryById` → the entry's `hcType` → an int via
+`segmentTypeForCode`, a name→constant table in HealthSync generated
+from the SAME verified enumeration (all 68 names resolve). If the
+origin row is gone (e.g. a deduped canonical row), an exact catalog
+name match is tried (the pattern PhotoLib already used). Fallbacks,
+in order: the v3.4 name-keyword map, then generic WEIGHTLIFTING —
+which is also what user-added exercises (no `sourceId`) get.
+
+**No DB change (still v4), and upgrades are covered.** Because the
+lookup reads the *bundled* JSON at sync time keyed by `sourceId`, an
+existing install whose DB was seeded by an older version picks up the
+exact types the first time it syncs after upgrading — no reseed, no
+migration, no history loss. Fresh installs seed the same JSON
+(including `hcType`, parsed into `JsonSeed.Entry`) as before.
+Everything else about Health Connect is unchanged: record shape,
+notes/weight handling, even segment-time split, clientRecordId
+upserts, the generic-retry insert, and the Settings/Home/Summary
+behavior.
+
+Verified: build successful; every JSON parses and every `hcType`
+value was script-checked against the verified constant set (in the
+source files and inside the built APK); no ScrollView, no fitXY;
+signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+APK: 12,892,027 bytes (+4,548 vs v3.4 — the JSON fields and the
+resolver table). On-device sync behavior is unchanged in shape, but
+as with v3.4 the final proof of any given exercise's label is
+Mahesh's phone.
