@@ -18,8 +18,7 @@ import androidx.health.connect.client.PermissionController
  *  squircle icon + name + one-line desc + its control (segment,
  *  toggle, steppers); Export / Restore are two icon tiles; no
  *  full-width text buttons remain. ALL behavior is the pre-v3.9
- *  behavior, re-skinned only: the unit pref, the beginner pref (the
- *  same one the Workout page row flips), the rest-timer prefs/steps,
+ *  behavior, re-skinned only: the unit pref, the rest-timer prefs/steps,
  *  the full Health Connect flow (opt-in toggle, tap-to-grant,
  *  denial drops the pref back off, PROVIDER_UPDATE status, manual
  *  backfill), the CSV export, and the v3.8.3 upsert Restore with its
@@ -96,9 +95,12 @@ class SettingsActivity : AppCompatActivity() {
         })
 
         // Theme (v3.9 addition): the M3 palette is the default; Mist
-        // is the opt-in. Changing it applies immediately — palette
-        // swap + a CLEAR_TASK relaunch to Home so no screen keeps
-        // rendering the old palette.
+        // is the opt-in. v3.9.1: changing it re-themes IN PLACE —
+        // swap Palettes.current and recreate THIS activity, staying
+        // on Settings (the v3.9 CLEAR_TASK relaunch to Home was
+        // jarring). Palette tokens are read at view-build time, so
+        // the rebuilt page is fully re-paletted, and activities
+        // opened afterwards read the new palette at their creation.
         val themeName = AppTheme.name(this)
         root.addView(iconCard("🎨", IconTints.PINK, "Theme", "App colors",
             segControl(listOf("Material", "Mist"), if (themeName == "mist") 1 else 0) { idx ->
@@ -106,10 +108,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (chosen != AppTheme.name(this)) {
                     AppTheme.set(this, chosen)
                     Palettes.apply(this)
-                    startActivity(Intent(this, MainActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    })
-                    finish()
+                    recreate()
                 }
             }))
 
@@ -120,10 +119,9 @@ class SettingsActivity : AppCompatActivity() {
                 WeekManager.setUnit(this, if (idx == 0) "kg" else "lb"); render()
             }))
 
-        // Beginner Mode: same pref as the Workout page's slim row.
-        val beginnerOn = Beginner.beginnerMode(this)
-        root.addView(iconCard("🐣", IconTints.YOLK, "Beginner Mode", "Posture checks on every exercise",
-            toggleSwitch(beginnerOn) { on -> Beginner.setBeginnerMode(this, on); render() }))
+        // v3.9.1: no Beginner Mode row — Beginner is always ON and
+        // the option is gone (Beginner.beginnerMode() is hard-true;
+        // posture checks render unconditionally).
 
         // Rest Timer: header row + the steppers row inside the same
         // card. Same prefs and steps as v3.8.3 (sets ±5 in 0..300,
@@ -235,24 +233,27 @@ class SettingsActivity : AppCompatActivity() {
                 orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
                 background = GradientDrawable().apply { setColor(Theme.surface); cornerRadius = dp(14).toFloat(); setStroke(dp(1), Theme.stroke) }
                 elevation = dp(2).toFloat()
-                setPadding(dp(10), dp(12), dp(10), dp(10))
+                setPadding(dp(8), dp(9), dp(8), dp(9))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(marginLeft), 0, dp(marginRight), 0) }
                 isClickable = true
                 setOnClickListener { onClick() }
             }
-            t.addView(doorIcon(emoji, tint, 54, 26f))
-            val lb = makeText(label, 13.5f, true)
+            // v3.9.1: smaller tiles (40dp bubble, tighter padding) and
+            // tray glyphs — 📤 out-tray = export/send out, 📥 in-tray
+            // = restore/bring in.
+            t.addView(doorIcon(emoji, tint, 40, 20f))
+            val lb = makeText(label, 13f, true)
             lb.gravity = Gravity.CENTER
-            (lb.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(7), 0, 0)
+            (lb.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(5), 0, 0)
             t.addView(lb)
             return t
         }
-        tiles.addView(tile("⬆", IconTints.BLUE, "Export CSV", 0, 4) { launchExport() })
-        tiles.addView(tile("↺", IconTints.WARM, "Restore", 4, 0) { confirmRestore() })
+        tiles.addView(tile("📤", IconTints.BLUE, "Export CSV", 0, 4) { launchExport() })
+        tiles.addView(tile("📥", IconTints.WARM, "Restore", 4, 0) { confirmRestore() })
         root.addView(tiles)
 
         // About: version + the week rule, allowed to wrap fully.
-        val about = caption("Workout Tracker · Version 3.9\nWeek counter advances only after a week with 1+ completed workout.")
+        val about = caption("Workout Tracker · Version 3.9.1\nWeek counter advances only after a week with 1+ completed workout.")
         (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
         root.addView(about)
     }

@@ -1,7 +1,9 @@
 package com.mahesh.workouttracker
 
 import android.content.Intent
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -23,7 +25,8 @@ import androidx.recyclerview.widget.RecyclerView
  * lives on. Picking body parts creates the session immediately with
  * ALL of its exercises; the hub lists every one of them in three
  * tinted section bands — Warm-Up / Workout / Cool-Down — with a
- * per-row Pass (skip, never a rest), drag reorder within a section,
+ * left-swipe Pass on pending rows (skip, never a rest; v3.9.1 — it
+ * replaced the per-row Pass button), drag reorder within a section,
  * and tap-to-start cards. It replaces both the old assemble page and
  * the sections screen in the start/resume flow (those stay in the
  * codebase, dormant).
@@ -267,9 +270,19 @@ class WorkoutHubActivity : AppCompatActivity() {
 
     // ---------- drag reorder (within a section only) ----------
 
-    private inner class HubDragCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
+    private inner class HubDragCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
         override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
             if (viewHolder is BandHolder) 0 else super.getDragDirs(recyclerView, viewHolder)
+        /** v3.9.1: LEFT swipe = Pass (Mahesh's request — it replaces
+         *  the per-row Pass button). Swipe is offered ONLY on rows
+         *  still pending — the exact set the Pass button showed for;
+         *  bands and handled rows get no swipe at all. Drag stays
+         *  handle-driven (below), so the two never fight. */
+        override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            val row = viewHolder as? RowHolder ?: return 0
+            val item = adapter?.items?.getOrNull(row.bindingAdapterPosition) as? HubItem.Row ?: return 0
+            return if (db.effectiveStatus(item.ex) == "pending") ItemTouchHelper.LEFT else 0
+        }
         override fun isLongPressDragEnabled(): Boolean = false
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
             val ad = adapter ?: return false
@@ -280,7 +293,33 @@ class WorkoutHubActivity : AppCompatActivity() {
             // never a swap target, so a drag can never cross sections.
             return ad.moveRow(from, to)
         }
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) { /* swipe disabled */ }
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            // The IDENTICAL write the Pass button performed: status
+            // "skipped" via passExercise (never a rest, no advance
+            // side effects), then the full re-render it always did —
+            // so a swiped row renders exactly like a button-passed one.
+            val item = adapter?.items?.getOrNull(viewHolder.bindingAdapterPosition) as? HubItem.Row ?: return
+            if (db.effectiveStatus(item.ex) == "pending") passExercise(item.ex)
+        }
+        /** Swipe cue: as the row slides left, a pending-toned panel
+         *  with "✕ PASS" is revealed behind its right edge — the same
+         *  grey/✕ treatment a passed row wears afterwards. */
+        override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
+            if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX < 0 && viewHolder is RowHolder) {
+                val v = viewHolder.itemView
+                val bg = rectBg(Theme.pendingBg, 12)
+                bg.setBounds((v.right + dX).toInt(), v.top, v.right, v.bottom)
+                bg.draw(c)
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Theme.pendingFg; textSize = dp(12).toFloat(); textAlign = Paint.Align.RIGHT
+                    typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                }
+                val label = "✕ PASS"
+                val baseline = (v.top + v.bottom) / 2f - (paint.descent() + paint.ascent()) / 2f
+                c.drawText(label, (v.right - dp(16)).toFloat(), baseline, paint)
+            }
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+        }
     }
 
     // ---------- adapter ----------
@@ -367,16 +406,9 @@ class WorkoutHubActivity : AppCompatActivity() {
             }
             col.addView(holder.lastTv)
             row.addView(col)
-            holder.passBtn = TextView(this@WorkoutHubActivity).apply {
-                text = "Pass"; textSize = 12f; setTextColor(Theme.textSecondary)
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                gravity = Gravity.CENTER
-                background = rectBg(Color.WHITE, 8, Color.parseColor("#CBD8E4"), 1)
-                setPadding(dp(11), dp(5), dp(11), dp(5))
-                isClickable = true
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            }
-            row.addView(holder.passBtn)
+            // v3.9.1: no Pass button — LEFT swipe on a pending row is
+            // the Pass now (HubDragCallback); the reclaimed width goes
+            // to the name/last-time column.
             holder.handle = TextView(this@WorkoutHubActivity).apply {
                 text = "⋮⋮"; textSize = 16f; setTextColor(Color.parseColor("#94A3B8"))
                 gravity = Gravity.CENTER
@@ -448,8 +480,6 @@ class WorkoutHubActivity : AppCompatActivity() {
                 val reps = sets.firstOrNull()?.reps?.takeIf { it.isNotBlank() }
                 if (reps != null) "New exercise · ${sets.size} × $reps" else "New exercise"
             }
-            holder.passBtn.visibility = if (status == "pending") View.VISIBLE else View.GONE
-            holder.passBtn.setOnClickListener { passExercise(ex) }
             holder.row.setOnClickListener { openCard(ex) }
             holder.handle.setOnTouchListener { _, ev ->
                 if (ev.action == MotionEvent.ACTION_DOWN) hubTouchHelper?.startDrag(holder)
@@ -468,6 +498,5 @@ private class RowHolder(val row: LinearLayout) : RecyclerView.ViewHolder(row) {
     lateinit var nameTv: TextView
     lateinit var tagPill: TextView
     lateinit var lastTv: TextView
-    lateinit var passBtn: TextView
     lateinit var handle: TextView
 }
