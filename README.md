@@ -785,3 +785,70 @@ APK: 12,892,027 bytes (+4,548 vs v3.4 — the JSON fields and the
 resolver table). On-device sync behavior is unchanged in shape, but
 as with v3.4 the final proof of any given exercise's label is
 Mahesh's phone.
+
+## V3.6 (versionCode 22) — the gym's Hoist machines join the catalog
+
+Mahesh photographed the Hoist ROC-IT selectorized machines at his
+24 Hour Fitness (15 unique machines) and asked for any missing ones
+to be added. **Already supported (7, untouched):** Seated Leg Curl,
+Chest Press Machine, Shoulder Press Machine, Lying Leg Curl (his
+"Prone Leg Curl"), Hip Abduction Machine (his "Outer Thigh"), Leg
+Extension, Leg Press. **Added (8)** as full catalog entries
+(Machine, 3 × 10-12, `primary: false`, Beginner posture checks adapted
+from each machine's own placard, YouTube *search* URLs — no invented
+video IDs):
+
+| New entry | File | hcType |
+|---|---|---|
+| Torso Rotation Machine | core.json | UPPER_TWIST |
+| Mid Row Machine | back.json | WEIGHTLIFTING |
+| Back Extension Machine | back.json | BACK_EXTENSION |
+| Seated Dip Machine | triceps.json | WEIGHTLIFTING |
+| Triceps Extension Machine | triceps.json | DOUBLE_ARM_TRICEPS_EXTENSION |
+| Bicep Curl Machine | biceps.json | ARM_CURL |
+| Hip Adduction Machine | glutes.json | WEIGHTLIFTING |
+| Glute Kickback Machine | glutes.json | WEIGHTLIFTING |
+
+hcTypes come from the same verified 68-constant table (see
+`research-health-connect-types.md`, which gains a v3.6 section): the
+generics are the API's gaps, not shortcuts — there is no dip or
+machine-row constant, and the only row constant is DUMBBELL_ROW.
+Catalog is now 102 entries; a scripted semantic diff against the
+pre-change JSONs proves the 94 existing entries are byte-content
+unchanged (pure additions).
+
+**Photos** (same free-exercise-db pipeline, both frames, candidates
+visually checked — full table in `research-exercise-images.md`):
+matched for 6 — Mid Row (Leverage Iso Row), Seated Dip (Dip Machine,
+shared with Assisted Dip (Chest): same machine, different emphasis),
+Triceps Extension Machine, Bicep Curl Machine, Hip Adduction (Thigh
+Adductor), Glute Kickback Machine (bodyweight Glute Kickback — the
+same kneeling hip-extension movement as the Glute Master).
+**Photo-less on purpose (2):** Torso Rotation Machine (the only
+candidate is a standing exercise-ball twist whose first frame is a
+neutral pose — it would teach the wrong setup for a seated machine)
+and Back Extension Machine (no seated machine entry exists; the
+bench photo belongs to Back Extension and shows a different
+position). Both fall back to the body map, never a wrong movement.
+
+**Additive seed — existing installs actually get the new machines.**
+Installs seeded before v3.6 never re-run the v3 seed, so
+`JsonSeed.applyV3IfNeeded` now falls through to a one-time v3.6 step
+(gated by the new `v36CatalogApplied` pref) that calls the same
+insert-only helper the v3 seed uses: any bundled entry whose
+`sourceId` is absent from the exercises table is inserted — checked
+per entry, so nothing is duplicated or overwritten, user-added rows
+and history are untouched, and no DB schema change was needed (still
+v4). On a fresh install the v3 seed has just inserted everything, so
+the step finds nothing to add (verified by code inspection: the
+helper's only write is `insertExercise` for ids not in the present
+sourceId set; the step runs at most once per install thanks to the
+pref gate, and the v3 catalog UI has no delete path for catalog rows,
+so a missing sourceId can only mean a later catalog addition).
+
+Verified: offline build successful; `aapt` versionCode 22 / "3.6";
+the built APK's JSONs carry all 102 entries with the 8 new hcTypes,
+and 174 exercise-image assets (162 + 12 new); no ScrollView, no
+fitXY; signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+APK: 13,532,093 bytes (+640,066 vs v3.5 — the 12 new photo frames).
