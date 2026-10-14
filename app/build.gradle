@@ -33,8 +33,8 @@ android {
         // era hardware anyway. Android 8.0+ is unaffected.
         minSdk = 26
         targetSdk = 34
-        versionCode = 22
-        versionName = "3.6"
+        versionCode = 23
+        versionName = "3.7"
     }
     buildTypes { getByName("release") { } }
     // v2.9: kotlinx-coroutines (via play-services-auth) and kotlin-stdlib
@@ -58,6 +58,12 @@ android {
 }
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
+    // v3.7: RecyclerView for the two approved scrolling surfaces — the
+    // hub's exercise list (drag reorder within a section) and the card
+    // screen's horizontal exercise strip. 1.3.2 is the release paired
+    // with appcompat 1.7.0; mirrored into the offline localrepo via
+    // ~/workspace/.tooling/resolve.py (extra-roots.txt).
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
     // v2.9/v2.9.1: Google Identity Services Authorization API
     // (client-side only; no google-services plugin / google-services.json
     // needed). Resolved into the offline localrepo via

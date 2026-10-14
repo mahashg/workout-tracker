@@ -202,7 +202,9 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Workout in progress")
             .setMessage("${inProgress.routineName} is in progress. Resume it, view its cards, or discard it and start a new workout?")
             .setPositiveButton("Resume workout") { _, _ ->
-                startActivity(Intent(this, WorkoutSectionsActivity::class.java).putExtra("sessionId", inProgress.id))
+                // v3.7: resume opens the hub (the sections screen left
+                // the start/resume flow with the assemble page).
+                startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", inProgress.id))
             }
             .setNeutralButton("View cards") { _, _ ->
                 // Cards open at the first section that still has pending work.

@@ -62,15 +62,57 @@ class PickPartsActivity : AppCompatActivity() {
         }
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
         val n = selected.size
-        val btn = makeButton(if (n == 0) "Pick at least 1 body part" else "Build workout · $n part${if (n == 1) "" else "s"}") {
+        // v3.7: no assemble/select page any more — Start creates the
+        // session IMMEDIATELY with every exercise for the picked parts
+        // and opens the hub, where each exercise can be started or
+        // passed on individually (Mahesh: "start with all workout and
+        // let one select or pass on specific one").
+        val btn = makeButton(if (n == 0) "Pick at least 1 body part" else "Start workout · $n part${if (n == 1) "" else "s"}") {
             if (selected.isEmpty()) return@makeButton
             val ordered = BodyParts.ids.filter { it in selected }
-            startActivity(Intent(this, AssembleActivity::class.java).putExtra("parts", ordered.joinToString(",")))
+            startSessionWithAll(ordered)
         }
         tightButton(btn, if (compact) 50 else 54, 14, primary = true)
         btn.isEnabled = n > 0
         btn.alpha = if (n > 0) 1f else 0.5f
         root.addView(btn)
+    }
+
+    private fun equipRank(equipment: String): Int = when (equipment.lowercase()) {
+        "machine" -> 0; "dumbbell" -> 1; "kettlebell" -> 2; "bodyweight" -> 3; else -> 4
+    }
+
+    /** v3.7 hub-flow session creation: warm-ups and stretches are the
+     *  deduped union across the picked parts (same keying the assemble
+     *  page used); the Main list is EVERY exercise for the parts —
+     *  primaries and non-primaries — in equipment clusters (Machine →
+     *  Dumbbell → Kettlebell → Bodyweight, stable sort keeps JSON order
+     *  inside a cluster). Nothing is pre-filtered: passing on an
+     *  exercise happens on the hub, per exercise. */
+    private fun startSessionWithAll(partIds: List<String>) {
+        val warm = LinkedHashMap<String, Exercise>()
+        val stretch = LinkedHashMap<String, Exercise>()
+        val mainAll = mutableListOf<Exercise>()
+        for (pid in partIds) {
+            for (e in db.getExercisesForPart(pid)) {
+                val key = e.sourceId.ifBlank { "name:" + e.name.lowercase() }
+                when (e.type) {
+                    "Warmup" -> warm.putIfAbsent(key, e)
+                    "Stretch" -> stretch.putIfAbsent(key, e)
+                    else -> mainAll.add(e)
+                }
+            }
+        }
+        val items = mutableListOf<Exercise>()
+        items.addAll(warm.values)
+        items.addAll(mainAll.sortedBy { equipRank(it.equipment) })
+        items.addAll(stretch.values)
+        if (items.isEmpty()) return
+        val wm = WeekManager.reconcile(this, db)
+        val label = partIds.joinToString(" + ") { BodyParts.name(it) }
+        val sessionId = db.createAssembledSession(label, partIds, items, wm.weekNumber, wm.weekStart)
+        startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", sessionId))
+        finish()
     }
 
     private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
