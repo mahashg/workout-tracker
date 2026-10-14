@@ -317,77 +317,38 @@ class SessionActivity : AppCompatActivity() {
         return card
     }
 
-    /** Tap-a-set-chip editor: same fields/writes as the old per-set row
-     *  (weight, reps, BW, Done + steppers), in a dialog so the one-page list
-     *  rows can stay ~40dp. Checking Done starts the 60s rest timer. */
     private fun cuesOf(ex: SessionExercise): List<String> =
         ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
             .split(";").map { it.trim() }.filter { it.isNotEmpty() }
 
+    /** v3.9: the set editor is the shared [SetLogger] sheet now (mock
+     *  frame 6) — every set of the exercise in one sheet. The old
+     *  single-set dialog's side effects are preserved 1:1 through the
+     *  commit hook: the sheet's writes go through db.updateSet +
+     *  db.syncExerciseStatus as before, and a NEWLY logged set on a
+     *  Main exercise starts the Rest Ring — the between-sets duration
+     *  with the next set's last-time target while sets remain, or the
+     *  between-exercises duration naming the next pending Main
+     *  exercise when this one just finished. Un-logging or value-only
+     *  edits never rest, exactly as the old dialog behaved. */
     private fun editSetDialog(ex: SessionExercise, set: SessionSet, unit: String) {
-        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(4)) }
-        // v3: this set's own last-time value as the hint (e.g. "last: 12×12").
-        val lastForSet = db.lastPerformedForExercise(ex.name, sessionId)
-        if (lastForSet != null) {
-            val mySets = db.getSets(ex.id)
-            val pos = mySets.indexOfFirst { it.id == set.id }
-            val ls = lastForSet.sets.getOrNull(pos)
-            if (ls != null) {
-                val hint = makeText("Last time · Set ${set.setNumber}: ${setText(ls)}  (${DateUtil.display(lastForSet.date)})", 12f, true, Theme.primary)
-                (hint.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(4))
-                box.addView(hint)
+        SetLogger.show(this, db, sessionId, ex, onSnapshot = {}) { res ->
+            if (res.newlyLogged == 0 || !ex.type.equals("Main", true)) { render(ex.id); return@show }
+            val setsNow = db.getSets(ex.id)
+            val nextSet = setsNow.firstOrNull { !it.isDone }
+            if (nextSet != null) {
+                val last = db.lastPerformedForExercise(ex.name, sessionId)
+                val pos = setsNow.indexOf(nextSet)
+                val ls = last?.sets?.getOrNull(pos)
+                RestTimer.show(this, WeekManager.restSetSec(this),
+                    "Next · Set ${nextSet.setNumber}" + if (ls != null) " — last time ${setText(ls)}" else "",
+                    cuesOf(ex)) { render(ex.id) }
+            } else {
+                val nextEx = db.getSessionExercises(sessionId).firstOrNull { it.type.equals("Main", true) && it.id != ex.id && db.effectiveStatus(it) == "pending" }
+                if (nextEx != null) RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cuesOf(nextEx)) { render(ex.id) }
+                else render(ex.id)
             }
         }
-        val wStep = if (unit == "kg") 2.5 else 5.0
-        val wEt = EditText(this).apply { setText(set.weight); hint = "weight"; styleEditText(this); textSize = 13f; isEnabled = !set.isBodyweight }
-        val rEt = EditText(this).apply { setText(set.reps); hint = "reps"; styleEditText(this); textSize = 13f }
-        val bwCb = CheckBox(this).apply { text = "Bodyweight (BW)"; setTextColor(Theme.textPrimary); textSize = 12f; isChecked = set.isBodyweight }
-        val doneCb = CheckBox(this).apply { text = "Done"; setTextColor(Theme.textPrimary); textSize = 13f; isChecked = set.isDone }
-        bwCb.setOnCheckedChangeListener { _, checked -> wEt.isEnabled = !checked }
-        fun stepperRow(label: String, et: EditText, minus: () -> Unit, plus: () -> Unit): LinearLayout {
-            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-            r.addView(TextView(this).apply { text = label; textSize = 12f; setTextColor(Theme.textSecondary); layoutParams = LinearLayout.LayoutParams(dp(52), LinearLayout.LayoutParams.WRAP_CONTENT) })
-            r.addView(smallBtn("−", 40, 40) { minus() })
-            et.layoutParams = LinearLayout.LayoutParams(0, dp(40), 1f)
-            r.addView(et)
-            r.addView(smallBtn("+", 40, 40) { plus() })
-            return r
-        }
-        box.addView(stepperRow("Weight", wEt,
-            { val v = ((wEt.text.toString().toDoubleOrNull() ?: 0.0) - wStep).coerceAtLeast(0.0); wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) },
-            { val v = (wEt.text.toString().toDoubleOrNull() ?: 0.0) + wStep; wEt.setText(if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()) }))
-        box.addView(stepperRow("Reps", rEt,
-            { val v = ((rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) - 1).coerceAtLeast(0); rEt.setText(v.toString()) },
-            { val v = (rEt.text.toString().filter { it.isDigit() }.toIntOrNull() ?: 0) + 1; rEt.setText(v.toString()) }))
-        box.addView(bwCb); box.addView(doneCb)
-        AlertDialog.Builder(this)
-            .setTitle("${ex.name} — Set ${set.setNumber}")
-            .setView(box)
-            .setPositiveButton("Save") { _, _ ->
-                val newlyDone = doneCb.isChecked && !set.isDone
-                db.updateSet(set.copy(weight = wEt.text.toString(), reps = rEt.text.toString(), isBodyweight = bwCb.isChecked, isDone = doneCb.isChecked))
-                db.syncExerciseStatus(ex.id)
-                if (!newlyDone || !ex.type.equals("Main", true)) { render(ex.id); return@setPositiveButton }
-                // S2/S5: auto-start the Rest Ring — between-sets duration with
-                // the next set's last-time target, or between-exercises with
-                // the next exercise's name when this exercise just finished.
-                val setsNow = db.getSets(ex.id)
-                val nextSet = setsNow.firstOrNull { !it.isDone }
-                if (nextSet != null) {
-                    val last = db.lastPerformedForExercise(ex.name, sessionId)
-                    val pos = setsNow.indexOf(nextSet)
-                    val ls = last?.sets?.getOrNull(pos)
-                    RestTimer.show(this, WeekManager.restSetSec(this),
-                        "Next · Set ${nextSet.setNumber}" + if (ls != null) " — last time ${setText(ls)}" else "",
-                        cuesOf(ex)) { render(ex.id) }
-                } else {
-                    val nextEx = db.getSessionExercises(sessionId).firstOrNull { it.type.equals("Main", true) && it.id != ex.id && db.effectiveStatus(it) == "pending" }
-                    if (nextEx != null) RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cuesOf(nextEx)) { render(ex.id) }
-                    else render(ex.id)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     private fun addActionBar(root: LinearLayout, completed: Boolean) {
