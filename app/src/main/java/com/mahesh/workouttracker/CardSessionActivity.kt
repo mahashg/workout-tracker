@@ -86,7 +86,7 @@ class CardSessionActivity : AppCompatActivity() {
         render()
     }
 
-    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() } }
+    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() }; cancelInterstitial() }
     override fun onResume() {
         super.onResume(); photoLoopers.forEach { it.start() }
         // v3.7: returning to the card (e.g. back from the form video)
@@ -94,7 +94,7 @@ class CardSessionActivity : AppCompatActivity() {
         // status changes. The first resume is onCreate's own render.
         if (firstResume) firstResume = false else if (::db.isInitialized && sessionId > 0) render()
     }
-    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking(); photoLoopers.forEach { it.stop() } }
+    override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking(); photoLoopers.forEach { it.stop() }; cancelInterstitial() }
 
     /** Do-later applies while another pending exercise remains in this section. */
     private fun laterAvailable(): Boolean = deck.count { db.effectiveStatus(it) == "pending" } > 1
@@ -115,13 +115,17 @@ class CardSessionActivity : AppCompatActivity() {
         // Views from the previous render are discarded below; stop their
         // photo crossfade loops first (v3.1).
         photoLoopers.forEach { it.stop() }; photoLoopers.clear()
+        // v3.9.2: any render supersedes a pending section interstitial
+        // (renderInterstitial below re-arms its own countdown).
+        cancelInterstitial()
         reloadDeck()
         if(index !in deck.indices){
-            // v3.7: the deck is exhausted. If a LATER section still has
-            // pending exercises, the mock's transition card takes over;
+            // The deck is exhausted. If a LATER section still has
+            // pending exercises, the v3.9.2 auto-advancing interstitial
+            // takes over (it replaced the v3.7 transition card);
             // otherwise the plain completion state (fixed, no scrolling).
             val nextType = nextSectionWithPending()
-            if (nextType != null) { renderTransition(nextType); return }
+            if (nextType != null) { renderInterstitial(nextType); return }
             val root=fitRoot(); setContentView(root)
             root.addView(topBar(sectionLabel(sectionType), "Section complete"))
             root.addView(makeText("${sectionLabel(sectionType)} complete!",26f,true,Color.parseColor("#15803D")))
@@ -524,9 +528,10 @@ class CardSessionActivity : AppCompatActivity() {
     /** To the hub overview, wherever this card was opened from
      *  (CLEAR_TOP reuses the hub below us when there is one, and
      *  creates it when the card came from elsewhere). Since v3.8.2 the
-     *  hub is an optional overview, not the flow's home: the ☰ chip,
-     *  the transition's "See All Exercises" and the completion state's
-     *  "All Exercises" come here; Start / Resume / Done never do. */
+     *  hub is an optional overview, not the flow's home: the ☰ chip
+     *  on every card and the completion state's "All Exercises" come
+     *  here; Start / Resume / Done never do. (v3.9.2 removed the
+     *  transition card, the third caller this used to list.) */
     private fun navigateToHub() {
         startActivity(Intent(this, WorkoutHubActivity::class.java).apply {
             putExtra("sessionId", sessionId)
@@ -537,8 +542,8 @@ class CardSessionActivity : AppCompatActivity() {
 
     /** The first section AFTER the current one (Warm-Up → Workout →
      *  Cool-Down) that still has pending exercises, or null. Drives the
-     *  transition card; Cool-Down (or a fully-handled session) returns
-     *  null and lands on the plain completion state instead. */
+     *  section interstitial; Cool-Down (or a fully-handled session)
+     *  returns null and lands on the plain completion state instead. */
     private fun nextSectionWithPending(): String? {
         val order = listOf("Warmup", "Main", "Stretch")
         val all = db.getSessionExercises(sessionId)
@@ -550,126 +555,112 @@ class CardSessionActivity : AppCompatActivity() {
         return null
     }
 
-    /** v3.7 transition card (approved mock screen 2), shown when a card
-     *  action resolves the LAST pending exercise of a section and the
-     *  next section still has work: big green check, counts, an UP-NEXT
-     *  card for the next section's first pending exercise, Start /
-     *  See All Exercises, and the 3-dot section progress. */
-    private fun renderTransition(nextType: String) {
+    // ---- v3.9.2: section interstitial (replaces the v3.7 transition card) ----
+
+    private val interstitialHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var interstitialStep: Runnable? = null
+    private var interstitialTarget: String? = null
+    private var interstitialCount = 0
+
+    /** Kill any pending countdown advance. Called at the top of
+     *  render() (any render supersedes the interstitial;
+     *  renderInterstitial re-arms its own countdown), from
+     *  onPause/onDestroy, and by the advance itself before it
+     *  fires — so the interstitial can never double-advance or
+     *  fire into a dead screen. */
+    private fun cancelInterstitial() {
+        interstitialStep?.let { interstitialHandler.removeCallbacks(it) }
+        interstitialStep = null
+        interstitialTarget = null
+    }
+
+    /** v3.9.2 (Mahesh): finishing a section no longer parks the user
+     *  on a transition card with buttons. Instead a full-page
+     *  message — the next section's icon + "Starting <Section>" —
+     *  counts down 3-2-1 in the Movie deck's countdown language
+     *  (170dp primary circle, 96sp number with the pop, 800ms per
+     *  number, ~2.4s total) and then advances on its own to the
+     *  next section's first pending card. A tap anywhere skips the
+     *  wait. No buttons anywhere on the page; the old card's counts,
+     *  UP-NEXT card, Start / See All Exercises and Undo are gone
+     *  with it (Undo still lives on the completion state, and the
+     *  hub stays one tap away on every card's chip). The end of
+     *  Cool-Down is untouched — render()'s completion state.
+     *
+     *  Rest composition: no rest is ever SCHEDULED across a section
+     *  boundary — advanceWithRest shows the Rest Ring only when the
+     *  SAME section still has pending work (pendingLeft == 0 goes
+     *  straight to render()), so the interstitial neither starts
+     *  nor cancels one, and there is no pending advance callback to
+     *  lose. An earlier rest still counting in the engine while the
+     *  interstitial is up (ring hidden, then a strip jump finished
+     *  the section) expires into advanceToPending, whose v3.8.2
+     *  stale-target guard just calls render() — which cancels and
+     *  rebuilds the interstitial — and once the next section's
+     *  first card renders, its top-bar REST chip binds to the
+     *  still-running engine exactly as before. */
+    private fun renderInterstitial(nextType: String) {
+        cancelInterstitial()
+        interstitialTarget = nextType
+        interstitialCount = 3
+        drawInterstitial(nextType)
+        scheduleInterstitialStep(nextType)
+    }
+
+    private fun drawInterstitial(nextType: String) {
         val root = fitRoot(); setContentView(root)
-        val done = deck.count { db.effectiveStatus(it) == "done" }
-        val skipped = deck.count { db.effectiveStatus(it) == "skipped" }
-        val nextList = db.getSessionExercises(sessionId).filter { it.type.equals(nextType, true) }
-        val nextPending = nextList.filter { db.effectiveStatus(it) == "pending" }
-        val first = nextPending.firstOrNull()
+        // Tap anywhere = skip the wait (the page has no buttons).
+        root.isClickable = true
+        root.setOnClickListener { advanceFromInterstitial(nextType) }
+        val toMain = nextType.equals("Main", true)
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
-        val check = TextView(this).apply {
-            text = "✓"; textSize = 34f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
-            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
-            layoutParams = LinearLayout.LayoutParams(dp(74), dp(74)).apply { gravity = Gravity.CENTER_HORIZONTAL }
-        }
-        root.addView(check)
-        root.addView(makeText("${displaySectionName(sectionType)} complete", 23f, true, Theme.textPrimary).apply {
-            gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
+        root.addView(makeText(if (toMain) "\uD83C\uDFCB\uFE0F" else "\uD83E\uDDD8", 64f, false).apply { gravity = Gravity.CENTER })
+        root.addView(makeText(if (toMain) "Starting Workout" else "Starting Cool Down", 28f, true, Theme.textPrimary).apply {
+            gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(10), 0, 0)
         })
-        val sess = db.getSession(sessionId)
-        val elapsedTxt = if (sess != null) " · ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, sess))}" else ""
-        root.addView(makeText("$done done · $skipped passed$elapsedTxt", 13.5f, false, Theme.textSecondary).apply {
-            gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0)
+        // The countdown circle — the Movie deck's, verbatim in look:
+        // 170dp primary oval, 96sp white number, Overshoot pop.
+        val circleWrap = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(170), dp(170)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(26), 0, 0) }
+        }
+        circleWrap.addView(View(this).apply {
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.primary) }
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         })
-        // UP-NEXT card (mock): kicker + first pending exercise of the
-        // next section with its photo thumb and last-time line.
-        if (first != null) {
-            val card = cardLayout()
-            (card.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(16), 0, dp(4))
-            card.setPadding(dp(14), dp(12), dp(14), dp(12))
-            card.addView(makeText("UP NEXT — ${displaySectionName(nextType).uppercase()} · ${nextPending.size} EXERCISE${if (nextPending.size == 1) "" else "S"}", 11f, true, Color.parseColor("#1E40AF")).apply {
-                letterSpacing = 0.06f; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(8))
-            })
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-            val thumb = FrameLayout(this).apply {
-                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(8).toFloat() }
-                layoutParams = LinearLayout.LayoutParams(dp(52), dp(38))
-                roundedClip(8)
-            }
-            val asset = PhotoLib.assetForSessionExercise(this, db, first)
-            val bmp = asset?.let { PhotoLib.bitmap(this, it) }
-            if (bmp != null) {
-                thumb.addView(android.widget.ImageView(this).apply {
-                    setImageBitmap(bmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-                })
-            } else {
-                thumb.addView(BodyMapView(this, DbHelper.parseMuscles(first.targetMuscles, first.name), true).apply {
-                    layoutParams = FrameLayout.LayoutParams(dp(28), dp(36), Gravity.CENTER)
-                })
-            }
-            row.addView(thumb)
-            val col = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, 0, 0) }
-            }
-            col.addView(makeText(first.name, 15f, true).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            val last = db.lastPerformedForExercise(first.name, sessionId)
-            col.addView(makeText(if (last != null) "Last: ${lastTimeLine(last)}" else "New exercise", 12.5f, false, Theme.textSecondary).apply {
-                maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, 0)
-            })
-            row.addView(col)
-            card.addView(row)
-            root.addView(card)
-            val startBtn = makeButton("Start ${displaySectionName(nextType)} Section") {
-                sectionType = nextType
-                reloadDeck()
-                index = deck.indexOfFirst { it.id == first.id }.coerceAtLeast(0)
-                animateEntryOnNextRender = true
-                render()
-            }
-            (startBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(52); setMargins(0, dp(10), 0, 0) }
-            tightButton(startBtn, 52, 14, primary = true)
-            root.addView(startBtn)
+        val num = makeText(interstitialCount.toString(), 96f, true, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
-        val seeAll = makeSecondaryButton("See All Exercises") { navigateToHub() }
-        (seeAll.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
-        tightButton(seeAll, 48, 12)
-        root.addView(seeAll)
-        if (undoStack.isNotEmpty()) {
-            val undo = makeSecondaryButton("Undo last action") { doUndo(); render() }
-            (undo.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(2), 0, 0) }
-            tightButton(undo, 44, 12)
-            root.addView(undo)
-        }
-        // 3-dot section progress: handled = green, up-next = blue,
-        // upcoming = grey (mock screen 2).
-        val dots = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(18), 0, 0) }
-        }
-        val all = db.getSessionExercises(sessionId)
-        var firstDot = true
-        for (t in listOf("Warmup", "Main", "Stretch")) {
-            val list = all.filter { it.type.equals(t, true) }
-            if (list.isEmpty()) continue
-            if (!firstDot) dots.addView(makeText("→", 12f, false, Theme.textTertiary).apply {
-                (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(dp(8), 0, dp(8), 0) }
-            })
-            firstDot = false
-            val handledAll = list.all { db.effectiveStatus(it) != "pending" }
-            val dotColor = when {
-                handledAll -> Theme.success
-                t.equals(nextType, true) -> Theme.primary
-                else -> Color.parseColor("#CBD8E4")
-            }
-            dots.addView(View(this).apply {
-                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(dotColor) }
-                layoutParams = LinearLayout.LayoutParams(dp(9), dp(9)).apply { setMargins(0, 0, dp(5), 0) }
-            })
-            dots.addView(makeText(displaySectionName(t), 11f, true, Theme.textSecondary).apply {
-                (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, 0, 0) }
-            })
-        }
-        root.addView(dots)
+        circleWrap.addView(num)
+        root.addView(circleWrap)
+        num.scaleX = 0.7f; num.scaleY = 0.7f
+        num.animate().scaleX(1f).scaleY(1f).setDuration(260).setInterpolator(OvershootInterpolator(1.4f)).start()
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+    }
+
+    private fun scheduleInterstitialStep(nextType: String) {
+        val step = Runnable {
+            if (interstitialTarget != nextType) return@Runnable // superseded / cancelled
+            interstitialCount--
+            if (interstitialCount <= 0) advanceFromInterstitial(nextType)
+            else { drawInterstitial(nextType); scheduleInterstitialStep(nextType) }
+        }
+        interstitialStep = step
+        interstitialHandler.postDelayed(step, 800)
+    }
+
+    /** The one way out of the interstitial — the countdown reaching
+     *  zero, or a tap. Lands on the next section's first pending
+     *  card: exactly where the old transition card's Start button
+     *  landed (first pending of the section, entry animation on). */
+    private fun advanceFromInterstitial(nextType: String) {
+        if (interstitialTarget != nextType) return
+        cancelInterstitial()
+        sectionType = nextType
+        reloadDeck()
+        moveToPending()
+        animateEntryOnNextRender = true
+        render()
     }
 
     /** Strip jump: same section switches the deck in place; another
@@ -1003,8 +994,9 @@ class CardSessionActivity : AppCompatActivity() {
      *  exercise). v3.7 sent the user back to the hub here; v3.8.2
      *  restores the direct card flow Mahesh asked for: finishing one
      *  workout takes you to the NEXT workout's card. If this Done
-     *  completed the section, render() lands on the transition card
-     *  (or the completion state) exactly as before; otherwise, in the
+     *  completed the section, render() lands on the section
+     *  interstitial (v3.9.2; the completion state after Cool-Down)
+     *  exactly as before; otherwise, in the
      *  Workout section the between-exercises Rest Ring runs first
      *  (default 60s, Settings-adjustable, next exercise as the target
      *  — S2/S5) and its GO / Skip-rest fires the advance ONCE;
