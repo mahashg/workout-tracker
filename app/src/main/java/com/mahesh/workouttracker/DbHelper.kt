@@ -211,6 +211,37 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         return sessionId
     }
 
+    /** v3.8.1: create an EMPTY Movie Movements session. Unlike a gym
+     *  session it starts with no exercises and no parts: the deck appends
+     *  one session_exercises row per dealt movement and credits a body
+     *  part (session_parts) only when a movement of that part is first
+     *  COMPLETED. routineName is the session's identity everywhere
+     *  (History, Summary, Health Connect title). */
+    fun createMovieSession(weekNumber: Int, weekStart: String): Long {
+        val db = writableDatabase
+        val todayStr = DateUtil.fmt(DateUtil.today())
+        val nowMs = System.currentTimeMillis()
+        val v = ContentValues().apply { put("routineId",-1L); put("routineName",MovieDeck.ROUTINE_NAME); put("focus",""); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0); put("startedAt",nowMs); put("elapsedSec",0); put("endedAt",0L) }
+        return db.insert("sessions", null, v)
+    }
+
+    /** v3.8.1: deal one movement into a movie session — appends a pending
+     *  session_exercises row for [e] at the end of the session, with
+     *  exactly ONE pre-filled set (the movement's guide reps, bodyweight).
+     *  The session copy's type is forced to "Main" so Summary/History
+     *  group every dealt movement under one section (two of the deck's
+     *  catalog entries are Warmup-typed in their part files). Completion
+     *  is [MovieDeckActivity]'s job: mark the set done + status done. */
+    fun appendMovieExercise(sessionId: Long, e: Exercise): Long {
+        val db = writableDatabase
+        val order = getSessionExercises(sessionId).size
+        val ev = ContentValues().apply { put("sessionId",sessionId); put("originExerciseId",e.id); put("name",e.name); put("type","Main"); put("equipment",e.equipment); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",order); put("targetMuscles",e.targetMuscles); put("status","pending"); put("cues",e.cues); put("effort",""); put("postureCheck",e.postureCheck) }
+        val seId = db.insert("session_exercises", null, ev)
+        val sv = ContentValues().apply { put("sessionExerciseId",seId); put("setNumber",1); put("weight",""); put("reps", e.targetReps); put("isBodyweight",1); put("isDone",0) }
+        db.insert("session_sets", null, sv)
+        return seId
+    }
+
     // ---------- session_parts (v3) ----------
     fun getSessionParts(sessionId: Long): List<String> {
         val list = mutableListOf<String>()
@@ -354,6 +385,10 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         val exIds = getSessionExercises(sessionId).map { it.id }
         for (eid in exIds) db.delete("session_sets","sessionExerciseId=?",arrayOf(eid.toString()))
         db.delete("session_exercises","sessionId=?",arrayOf(sessionId.toString()))
+        // v3.8.1: session_parts belongs to the session — it was orphaned
+        // before (harmless for the JOIN-based reads, but a reused rowid
+        // could inherit a discarded session's parts). Delete it too.
+        db.delete("session_parts","sessionId=?",arrayOf(sessionId.toString()))
         db.delete("sessions","id=?",arrayOf(sessionId.toString()))
     }
     fun setSessionExerciseStatus(sessionExerciseId: Long, status: String) {
