@@ -51,8 +51,10 @@ fun Context.firstPendingCardIntent(db: DbHelper, sessionId: Long): Intent {
 // and shape (every screen in the app reads Theme.*), but each token
 // delegates to [Palettes.current], which is set once at process start
 // (WtApplication) from the "theme" pref and re-applied the moment the
-// Settings Theme segment changes (followed by a CLEAR_TASK relaunch,
-// so no stale-palette screen survives). Two palettes ship:
+// Settings Theme segment changes (v3.9.1: Settings then recreates IN
+// PLACE — no CLEAR_TASK relaunch; tokens are read at view-build time,
+// so a rebuilt screen is fully re-paletted, and later activities read
+// the new palette at their own creation). Two palettes ship:
 //  - MIST: the v3.8.3 / approved-r4 values, byte-for-byte — under
 //    Mist the app looks exactly as it did before v3.9.
 //  - MATERIAL (the DEFAULT, including for existing installs — the
@@ -118,7 +120,8 @@ object Palettes {
     @Volatile var current: Palette = Palette.material()
     /** Read the pref and point [current] at the chosen palette. Called
      *  from WtApplication.onCreate and from the Settings Theme segment
-     *  (which then relaunches the task so every screen re-renders). */
+     *  (which then recreates Settings in place; other screens pick the
+     *  new palette up when they are next created/re-rendered). */
     fun apply(context: Context) {
         current = if (AppTheme.name(context) == "mist") Palette.mist() else Palette.material()
     }
@@ -518,7 +521,7 @@ fun AppCompatActivity.topBar(title: String, subtitle: String = ""): LinearLayout
     (t.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
     titles.addView(t)
     if (subtitle.isNotBlank()) {
-        val st = makeText(subtitle, 11f, false, Theme.textSecondary)
+        val st = makeText(subtitle, 12f, false, Theme.textSecondary)
         st.maxLines = 1; st.ellipsize = android.text.TextUtils.TruncateAt.END
         (st.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         titles.addView(st)
@@ -678,7 +681,13 @@ object WeekManager {
 object CalendarCompat { const val DAY = java.util.Calendar.DAY_OF_YEAR }
 
 object Beginner {
-    fun beginnerMode(context: Context): Boolean = context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getBoolean("beginnerMode", true)
+    /** v3.9.1: Beginner Mode is ALWAYS ON — Mahesh removed the option
+     *  entirely ("always have beginners mode enabled and don't show
+     *  this option to users at all"), so posture checks render
+     *  unconditionally. The stored "beginnerMode" pref / backup key is
+     *  ignored now (kept harmless in the Drive backup subset);
+     *  setBeginnerMode stays only so old callers compile. */
+    fun beginnerMode(context: Context): Boolean = true
     fun setBeginnerMode(context: Context, on: Boolean) { context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit().putBoolean("beginnerMode", on).apply() }
     fun effortSuggestion(effort: String, unit: String): String = when(effort) {
         "Too Easy" -> if (unit=="kg") "try +2.5 kg / +2 reps next time" else "try +5 lb / +2 reps next time"
