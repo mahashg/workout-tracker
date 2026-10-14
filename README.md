@@ -852,3 +852,161 @@ and 174 exercise-image assets (162 + 12 new); no ScrollView, no
 fitXY; signing cert unchanged
 (0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
 APK: 13,532,093 bytes (+640,066 vs v3.5 — the 12 new photo frames).
+
+## V3.7 (versionCode 23) — hub flow, section transitions, slim card actions
+
+Mahesh's gym-session redesign (approved mock: single-column
+`v3.7-mockup.html`, 3 screens — hub, transition, card; Classic design
+language + Mist palette, chosen "for now" over the Athletic/Soft/
+Editorial/Data-forward variants). The assemble/select page is retired
+from the start path: picking body parts creates the session
+immediately with **ALL** exercises for the parts (warm-ups unioned and
+deduped, every Main — primaries and non-primaries —, stretches;
+equipment-cluster order Machine → Dumbbell → Kettlebell → Bodyweight,
+JSON order inside a cluster) and opens the new scrolling **hub**.
+AssembleActivity stays in the codebase, dormant; PreviewCards is
+untouched.
+
+### Fidelity checklist (written from the approved mock BEFORE coding;
+each line marked after verification against the built code/layout
+budgets — headless screenshots do not work in this environment, so
+verification is code inspection + dp budgets, and anything only an
+on-device render can prove is named as such)
+
+Hub (mock screen 1):
+- [x] Header: "Today's Workout" title, parts label, ticking elapsed
+  timer (WorkoutTimer chip), "X of Y done" count.
+- [x] 3-segment progress bar (segments sized by section size, 6dp
+  tall, radius 3dp): Warm-Up fills amber #D97706, Workout blue
+  #2563EB, Cool-Down green #15803D, each by its section's handled
+  (done + passed) fraction.
+- [x] Section bands, radius 10dp: Warm-Up #FEF3C7 / ink #92400E,
+  Workout #DBEAFE / ink #1E40AF, Cool-Down #DCFCE7 / ink #166534,
+  each "LABEL · N of M done".
+- [x] Rows on Theme surface (#F7F9FB) with Theme line border, radius
+  12dp: 26dp status circle (done = green fill, white ✓; passed =
+  grey ✕ + name struck through + secondary ink; to-do = neutral ring
+  with the section position number).
+- [x] Body-part tag pill on Main rows only: #E0E7FF bg / #3730A3 ink.
+- [x] Last-time line per row ("Last: 100×10 · 100×9 · 100×8" format)
+  or "New exercise" (+ target sets×reps when known).
+- [x] Pass button (white, bordered, grey ink) on to-do rows only —
+  marks skipped by status write only; a pass NEVER starts a rest.
+- [x] Drag handle per row; drag reorders WITHIN the section only and
+  persists (sortOrder swaps, same mechanism as Do-later).
+- [x] Next to-do exercise (first pending in order) gets the 2dp
+  primary outline + "UP NEXT — TAP TO START" micro-label (10sp,
+  primary, bold); tapping any row opens its exercise card.
+- [x] Finish Workout button pinned at the bottom → the existing
+  finish flow unchanged (Finish-early confirm, Summary celebrate,
+  Health Connect + Drive call sites byte-identical semantics).
+- [x] The hub list SCROLLS (RecyclerView) — the user's explicit
+  request and the one approved exception to the no-scroll rule.
+
+Transition (mock screen 2):
+- [x] Fires only from the card advance path (Done/Skip/last set)
+  when the LAST pending exercise of Warm-Up or Workout resolves and
+  the next section still has pending exercises; never forced from
+  the hub; Cool-Down completion goes to the normal finish path.
+- [x] 74dp green check circle (white ✓), "<Section> complete" 23sp,
+  counts line "D done · P passed".
+- [x] UP-NEXT card: "UP NEXT — <SECTION> · N EXERCISES" kicker in
+  #1E40AF, first pending exercise name + its last-time line.
+- [x] Primary "Start <Section> Section" (opens that exercise's
+  card); secondary "See All Exercises" (back to hub).
+- [x] 3-dot section progress: done = green #15803D, up-next/current
+  = blue #2563EB, upcoming = grey #CBD8E4.
+
+Exercise card (mock screen 3):
+- [x] Video = icon only: 38dp circular translucent-dark
+  (rgba(15,23,42,.55)) button, white ▶, photo top-right, only when
+  the exercise has a URL; the old full-width "Watch Form Video"
+  button is GONE from the posture card.
+- [x] "☰ All exercises" chip at the photo's top-left (same dark
+  translucent pill, white text) → returns to the hub.
+- [x] Section pill on the photo: white 92% bg, #1E40AF ink,
+  "<SECTION> · n of m" for the current exercise.
+- [x] One simple compact "+ Log set" button (~48dp tall, wrap width,
+  right-aligned in the bottom action row) replacing the full-width
+  Log set bar; the set-logger dialog it opens is unchanged; a short
+  swipe-hint text sits at the row's left, as in the mock.
+- [x] Scroller strip directly under the card: ALL session exercises
+  in order, 66dp tiles (44dp image, radius 9dp), name beneath (2
+  lines max), status dot (✓ green done / ✕ grey passed), current
+  exercise ringed in primary; tap jumps to that exercise (same
+  section switches in place, other section reopens the card there);
+  strip refreshes on every render incl. on resume.
+- [x] Navigation outcomes: Done → section complete ? transition :
+  hub (after the between-exercise Rest Ring when one runs);
+  Skip → next pending card (unchanged, never rests); Later
+  (down-swipe) → advance (unchanged); set rests unchanged.
+- [x] Rest chip: amber pill (#FEF3C7 bg, #F59E0B 1dp border, #92400E
+  ink) labeled "REST m:ss" next to the elapsed timer in the top bar
+  of BOTH card and hub while a rest is active, ticking each second;
+  tap reopens the Rest Ring (same rest: +15s / Skip rest intact);
+  chip disappears when the rest ends or is skipped. Dismissing the
+  ring (back/outside) now hides the ring but keeps the rest counting
+  in the background — that is what makes the chip reachable; Skip
+  rest / GO still end it and fire the pending advance exactly once.
+
+Standing corrections (still in force, re-verified):
+- [x] Photos uncropped: 3:2 aspect-matched band, CENTER_CROP; strip
+  thumbnails keep their own ratio (66×44) and never stretch;
+  fitXY = 0 in the whole codebase.
+- [x] Theme tokens equal the mock hexes (bg #EAF0F5, card #F7F9FB,
+  line #D7E1EB, primary #2563EB, success #15803D, text #1F2937,
+  secondary #64748B) — checked against Theme in Ui.kt.
+- [x] Picker five states still distinguishable (untouched);
+  Settings switches unclipped (untouched); skip never rests;
+  Done-with-unlogged-sets confirmation for Main exercises only;
+  posture content untouched; no gamification; icon unchanged;
+  DB stays v4; scrolling ONLY in hub list + card strip.
+- [x] All sizes in new layout code are dp (via dp()), never raw px.
+
+Verification status: VERIFIED 2026-10-14 by code inspection + dp
+budgets (headless screenshots do not work in this environment — the
+same constraint as every prior version). On-device-only proof still
+needed: the exact pixel look of the hub rows/bands against the mock,
+ItemTouchHelper drag feel (handle-only drag, same-section swaps),
+the strip's horizontal scroll + tap targets at 66dp, the rest chip's
+1-second tick alignment next to the elapsed chip, and that hiding
+the Rest Ring (back/outside) keeps the countdown running behind the
+chip on a real device. One placement deviation from the mock,
+forced by mechanics: the scroller strip sits directly under the
+swipe card rather than inside it (inside, its drags would fight the
+card's swipe handling); the mock's visual order — photo header,
+strip, action row — is preserved at screen level, with the posture
+card travelling inside the swipe card as before.
+
+Implementation notes:
+- New: WorkoutHubActivity (the sections screen was NOT reworked —
+  it stays functional for the legacy WorkoutDetail "Open Sections"
+  path; the hub is a new activity and the start/resume flow points
+  at it). PickPartsActivity creates the session itself (the assemble
+  buildLists logic moved there, minus the primary-only filter);
+  AssembleActivity is untouched and dormant.
+- Theme tokens adjusted to the mock hexes app-wide (they are shared
+  tokens): stroke #D6DEE8 -> #D7E1EB, textPrimary #132033 ->
+  #1F2937, textSecondary #5A6B80 -> #64748B. bg/surface/primary/
+  success already matched. Every other token unchanged.
+- RestTimer is now a countdown engine with observable state
+  (isActive()/remainingSec() + listeners): the ring dialog is a view
+  onto the active rest; back/outside dismiss hides the ring but the
+  rest keeps counting (the chip is how you watch and reopen it);
+  Skip rest and GO end it and fire the pending advance exactly once,
+  as before. +15s, cue rotation, GO pop and haptic are unchanged.
+  SessionActivity's Rest Ring calls keep the same signature and the
+  same GO/Skip outcomes.
+- RecyclerView 1.3.2 (paired with appcompat 1.7.0) mirrored into the
+  offline localrepo via resolve.py. It is used ONLY by the hub list
+  and the card strip: grep-verbatim — ScrollView: 0 hits app-wide;
+  RecyclerView: WorkoutHubActivity.kt + CardSessionActivity.kt
+  only; fitXY: 0; every ImageView scaleType is CENTER_CROP (6
+  sites). DB stays v4; posture content, picker, Settings, Health
+  Connect and Drive call sites untouched.
+
+Verified: offline build successful; `aapt` versionCode 23 /
+"3.7"; signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+APK: 13,753,360 bytes (+221,267 vs v3.6 — the RecyclerView AAR and
+the new hub/transition/strip code).
