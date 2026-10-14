@@ -41,6 +41,8 @@ object MovieDeck {
  * the top of the screen; the counter expiring completes the movement,
  * ✓ Done early completes it sooner, Skip deals the next one instantly.
  * The deck reshuffles forever; only ✕ End finishes the session.
+ * v3.8.2: on a FRESH session the first 3 deals always have pictures
+ * (see prepareFreshBag); a resumed session deals as before.
  *
  * Data model: the session is created EMPTY (DbHelper.createMovieSession).
  * Every deal APPENDS a pending session_exercises row; a completion marks
@@ -287,9 +289,29 @@ class MovieDeckActivity : AppCompatActivity() {
         }
     }
 
+    /** v3.8.2: on a FRESH session the first 3 movements dealt are
+     *  always movements that HAVE pictures — resolved from the actual
+     *  catalog data at runtime (PhotoLib.assetForExercise, the same
+     *  lookup the movement screen uses — never a hardcoded list; today
+     *  the subset is 5: bodyweight-squat, incline-push-up,
+     *  single-leg-calf-raise, arm-circles, shoulder-rolls). They are
+     *  shuffled among themselves into an opening bag; from deal 4 the
+     *  normal full-pool shuffle-bag takes over (refillBag's no-repeat
+     *  check guards the 3→4 boundary via lastDealtId, and photo
+     *  movements may naturally reappear). If the subset ever drops
+     *  below 3, all of it opens the session. Resume never calls this:
+     *  the rule applies to fresh starts only. */
+    private fun prepareFreshBag() {
+        val photoIds = deck.filter { PhotoLib.assetForExercise(this, it.exercise) != null }
+            .map { it.entry.id }
+        bag.clear()
+        bag.addAll(photoIds.shuffled().take(3))
+    }
+
     private fun showCountdown() {
         phase = Phase.COUNTDOWN
         countStep = 3
+        prepareFreshBag()
         renderCountdown()
         handler.postDelayed(countRunnable, COUNT_STEP_MS)
     }

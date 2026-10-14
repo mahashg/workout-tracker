@@ -31,6 +31,20 @@ fun Context.isCompactScreen(): Boolean =
 fun Context.screenHeightDp(): Int =
     (resources.displayMetrics.heightPixels / resources.displayMetrics.density).toInt()
 
+/** v3.8.2: the gym flow's front door — an Intent opening the session's
+ *  FIRST pending exercise card (session order: warm-ups first), so
+ *  Start Workout and Resume land directly on a workout card, never on
+ *  the hub. Falls back to the hub overview when nothing is pending
+ *  (a fully-handled session that was never finished). Shared by
+ *  PickPartsActivity (start) and MainActivity (resume); the intent
+ *  shape mirrors the hub's own row taps. */
+fun Context.firstPendingCardIntent(db: DbHelper, sessionId: Long): Intent {
+    val first = db.getSessionExercises(sessionId).firstOrNull { db.effectiveStatus(it) == "pending" }
+    return if (first != null) Intent(this, CardSessionActivity::class.java).apply {
+        putExtra("sessionId", sessionId); putExtra("sectionType", first.type); putExtra("exerciseId", first.id)
+    } else Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", sessionId)
+}
+
 // ---------- Design tokens (v2.1, light theme for bright gym light) ----------
 object Theme {
     val bg = Color.parseColor("#EAF0F5") // soft mist background (Mahesh color change, v2.3)
