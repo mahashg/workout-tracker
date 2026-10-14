@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 /** v3.9 Movements at Home page (mock r4 frame 3): the Movie
@@ -61,14 +63,36 @@ class AtHomeActivity : AppCompatActivity() {
                 "Deck: $deckSize movements · Last: $n done · ${shortDay(lastMovie.date)}"
             } else "Deck: $deckSize movements"
         }
-        val door = doorCard(Palettes.current.doorHomeBg, Palettes.current.doorHomeBorder) {
-            startActivity(Intent(this, MovieDeckActivity::class.java))
+        // v3.9.3 exclusivity: while a GYM session runs and no deck
+        // session is in progress, this door is locked — dimmed, a 🔒
+        // where ▶ sits, and a tap only toasts "finish first" (the
+        // deck must never be CREATED during a gym workout; creation
+        // is refused in MovieDeckActivity too). An in-progress deck
+        // session is never locked — resuming it is always allowed.
+        val gymActive = db.inProgressSessions().any { it.routineName != MovieDeck.ROUTINE_NAME }
+        if (movie == null && gymActive) {
+            val door = doorCard(Palettes.current.doorHomeBg, Palettes.current.doorHomeBorder) {
+                Toast.makeText(this, "Finish your current workout first", Toast.LENGTH_SHORT).show()
+            }
+            door.alpha = 0.62f
+            (door.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
+            door.addView(doorIcon("🎬", IconTints.WARM))
+            door.addView(doorTextCol("Movie Movements", desc, "Available after you finish this workout"))
+            door.addView(TextView(this).apply {
+                text = "🔒"; textSize = 19f; gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+            })
+            root.addView(door)
+        } else {
+            val door = doorCard(Palettes.current.doorHomeBg, Palettes.current.doorHomeBorder) {
+                startActivity(Intent(this, MovieDeckActivity::class.java))
+            }
+            (door.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
+            door.addView(doorIcon("🎬", IconTints.WARM))
+            door.addView(doorTextCol("Movie Movements", desc, meta))
+            door.addView(playGlyph { startActivity(Intent(this, MovieDeckActivity::class.java)) })
+            root.addView(door)
         }
-        (door.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
-        door.addView(doorIcon("🎬", IconTints.WARM))
-        door.addView(doorTextCol("Movie Movements", desc, meta))
-        door.addView(playGlyph { startActivity(Intent(this, MovieDeckActivity::class.java)) })
-        root.addView(door)
 
         // ---- Recent at Home ----
         val label = overline("Recent at Home")
