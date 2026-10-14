@@ -1074,146 +1074,26 @@ class CardSessionActivity : AppCompatActivity() {
         Toast.makeText(this,"Undone",Toast.LENGTH_SHORT).show()
     }
 
-    /** v3.1 custom value editor for the set logger: a numeric EditText
-     *  (decimal allowed for weight, integer for reps) prefilled with the
-     *  current value; OK applies it to the set being logged. */
-    private fun customValueDialog(decimal: Boolean, current: Double, title: String, apply: (Double) -> Unit) {
-        val et = EditText(this).apply {
-            inputType = if (decimal) android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                        else android.text.InputType.TYPE_CLASS_NUMBER
-            setText(if (decimal) (if (current % 1.0 == 0.0) current.toInt().toString() else current.toString()) else current.toInt().toString())
-            setSelection(text.length)
-            styleEditText(this)
-        }
-        AlertDialog.Builder(this).setTitle(title).setView(et)
-            .setPositiveButton("OK") { _, _ ->
-                val v = et.text.toString().toDoubleOrNull() ?: return@setPositiveButton
-                apply(if (decimal) v.coerceAtLeast(0.0) else v.coerceAtLeast(1.0))
-            }
-            .setNegativeButton("Cancel", null).show()
-    }
 
+    /** v3.9: the set logger is the shared [SetLogger] sheet now (mock
+     *  frame 6) — this wrapper keeps the old dialog's contract 1:1.
+     *  The old dialog opened only when an unlogged set remained (else
+     *  the card's Done path runs), snapshotted for undo before any
+     *  write, and after a write: all sets logged -> mark the exercise
+     *  done + advanceWithRest (the v3.7/v3.8.2 advance machinery,
+     *  Rest Ring included); some newly logged -> the 30s set rest via
+     *  setRestThen; nothing newly logged -> just re-render (the old
+     *  Cancel, plus value-only edits the old dialog couldn't make). */
     private fun logSetDialog(){
         val ex=current() ?: return
         val sets=db.getSets(ex.id)
-        val next=sets.firstOrNull{!it.isDone}
-        if(next==null){ applyDone(); return }
-        val unit=WeekManager.unit(this)
-        var count=1; var weightVal=next.weight.toDoubleOrNull() ?: 0.0; var repsVal=next.reps.filter{it.isDigit()}.toIntOrNull() ?: 10; var isBw=next.isBodyweight
-        val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; setPadding(dp(16),dp(12),dp(16),dp(4))}
-        // v3: this exercise's last performance, with the next set's own
-        // last-time value called out as the hint that matters mid-workout.
-        val lastForSheet = db.lastPerformedForExercise(ex.name, sessionId)
-        if (lastForSheet != null) {
-            val pos = sets.indexOf(next)
-            val ls = lastForSheet.sets.getOrNull(pos)
-            box.addView(makeText("Last time (${DateUtil.display(lastForSheet.date)}): ${lastTimeLine(lastForSheet)}",12.5f,true,Theme.primary))
-            if (ls != null) box.addView(makeText("Set ${next.setNumber} last time: ${setText(ls)}",12f,false,Theme.textSecondary))
-        }
-        // Sets finished stepper
-        box.addView(makeText("How many sets finished?",14f,true))
-        val countTv=makeText("1 set",22f,true,Color.parseColor("#92400E"))
-        val cRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        cRow.addView(makeSmallButton("−"){count=(count-1).coerceAtLeast(1); countTv.text="$count set${if(count>1)"s" else ""}"})
-        cRow.addView(countTv); cRow.addView(makeSmallButton("+"){count=(count+1).coerceAtMost(sets.count{!it.isDone}); countTv.text="$count set${if(count>1)"s" else ""}"})
-        box.addView(cRow)
-        // Weight stepper + chips
-        box.addView(makeText("Weight used ($unit)",14f,true))
-        val wStep=if(unit=="kg")2.5 else 5.0
-        val wTv=makeText(if(isBw) "Bodyweight" else String.format(Locale.US,"%.1f %s",weightVal,unit),22f,true,Color.parseColor("#92400E"))
-        // v3.1: the displayed value itself is tappable — opens the custom editor.
-        wTv.setOnClickListener{ customValueDialog(true, weightVal, "Custom weight ($unit)") { v -> isBw=false; weightVal=v; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit) } }
-        val wRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        wRow.addView(makeSmallButton("−"){isBw=false; weightVal=(weightVal-wStep).coerceAtLeast(0.0); wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
-        wRow.addView(wTv); wRow.addView(makeSmallButton("+"){isBw=false; weightVal+=wStep; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
-        box.addView(wRow)
-        val wChips=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        wChips.addView(makeSmallButton("BW"){isBw=true; wTv.text="Bodyweight"})
-        for(w in listOf(10,20,30,40,50)) wChips.addView(makeSmallButton("$w"){isBw=false; weightVal=w.toDouble(); wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit)})
-        // v3.1: final chip opens the custom weight editor (any value).
-        wChips.addView(makeSmallButton("Custom"){ customValueDialog(true, weightVal, "Custom weight ($unit)") { v -> isBw=false; weightVal=v; wTv.text=String.format(Locale.US,"%.1f %s",weightVal,unit) } })
-        box.addView(wChips)
-        // Reps stepper + chips
-        box.addView(makeText("Reps done",14f,true))
-        val rTv=makeText("$repsVal reps",22f,true,Color.parseColor("#92400E"))
-        // v3.1: the displayed value itself is tappable — opens the custom editor.
-        rTv.setOnClickListener{ customValueDialog(false, repsVal.toDouble(), "Custom reps") { v -> repsVal=v.toInt().coerceAtLeast(1); rTv.text="$repsVal reps" } }
-        val rRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        rRow.addView(makeSmallButton("−"){repsVal=(repsVal-1).coerceAtLeast(1); rTv.text="$repsVal reps"})
-        rRow.addView(rTv); rRow.addView(makeSmallButton("+"){repsVal++; rTv.text="$repsVal reps"})
-        box.addView(rRow)
-        val rChips=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-        for(r in listOf(8,10,12,15)) rChips.addView(makeSmallButton("$r"){repsVal=r; rTv.text="$repsVal reps"})
-        // v3.1: final chip opens the custom reps editor (any value).
-        rChips.addView(makeSmallButton("Custom"){ customValueDialog(false, repsVal.toDouble(), "Custom reps") { v -> repsVal=v.toInt().coerceAtLeast(1); rTv.text="$repsVal reps" } })
-        box.addView(rChips)
-        // v3: no per-log rest picker — rest durations are the user's Settings
-        // values (30s between sets / 60s between exercises by default) and
-        // the Rest Ring starts automatically after saving (S2/S5).
-        val typeEt=EditText(this).apply{hint="…or type weight / reps instead (optional)"; styleEditText(this); textSize=12f}
-        box.addView(typeEt)
-        // Compress the sheet so it fits a normal phone with no internal scrolling.
-        for (i in 0 until box.childCount) {
-            val v = box.getChildAt(i)
-            (v.layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(1), 0, dp(1))
-            if (v is TextView) v.setPadding(0, dp(1), 0, dp(1))
-        }
-        // Bottom sheet (v2.3): anchored dialog, rounded top, drag handle, big steppers.
-        val sheet = android.app.Dialog(this)
-        val sheetRoot = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply { setColor(Theme.surface); cornerRadii = floatArrayOf(dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), 0f, 0f, 0f, 0f) }
-            setPadding(dp(20), dp(10), dp(20), dp(20))
-        }
-        sheetRoot.addView(View(this).apply { background = roundedBg("#D6DEE8", 4); layoutParams = LinearLayout.LayoutParams(dp(44), dp(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(2), 0, dp(12)) } })
-        sheetRoot.addView(makeText("Log this set", 20f, true))
-        sheetRoot.addView(box)
-        // S1: one tap fills every set from last time and marks them logged
-        // (rows stay editable in the list afterwards). Fewer last-time sets
-        // than today's -> only those are filled.
-        if (lastForSheet != null) {
-            val repeatBtn = makeSecondaryButton("Repeat last time") {
-                snapshot(ex)
-                val mine = db.getSets(ex.id)
-                for ((i, s) in mine.withIndex()) {
-                    val ls = lastForSheet.sets.getOrNull(i) ?: continue
-                    db.updateSet(s.copy(weight = ls.weight, reps = ls.reps, isBodyweight = ls.isBodyweight, isDone = true))
-                }
-                db.syncExerciseStatus(ex.id)
-                sheet.dismiss()
-                val remaining = db.getSets(ex.id).count { !it.isDone }
-                if (remaining == 0) { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
-                else setRestThen(ex) { render() }
+        if(sets.none{!it.isDone}){ applyDone(); return }
+        SetLogger.show(this, db, sessionId, ex, onSnapshot = { snapshot(ex) }) { res ->
+            when {
+                res.remaining == 0 -> { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
+                res.newlyLogged > 0 -> setRestThen(ex) { render() }
+                else -> render()
             }
-            (repeatBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(2), 0, 0) }
-            sheetRoot.addView(repeatBtn)
         }
-        val saveRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val cancelBtn = makeSecondaryButton("Cancel") { sheet.dismiss() }
-        (cancelBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
-        val saveBtn = makeButton("Save Set") {
-            snapshot(ex)
-            val targets=sets.filter{!it.isDone}.take(count)
-            val typed=typeEt.text.toString().trim().split("/").map{it.trim()}
-            val wStr=if(typed.size>=2&&typed[0].isNotEmpty()) typed[0] else if(isBw) "" else String.format(Locale.US,if(weightVal%1.0==0.0)"%.0f" else "%.1f",weightVal)
-            val rStr=if(typed.size>=2&&typed[1].isNotEmpty()) typed[1].filter{it.isDigit()}.ifEmpty{repsVal.toString()} else repsVal.toString()
-            for(s in targets) db.updateSet(s.copy(weight=wStr, reps=rStr, isBodyweight=isBw, isDone=true))
-            db.syncExerciseStatus(ex.id)
-            sheet.dismiss()
-            val remaining=db.getSets(ex.id).count{!it.isDone}
-            if(remaining==0){ db.setSessionExerciseStatus(ex.id,"done"); advanceWithRest() }
-            else setRestThen(ex){ render() }
-        }
-        (saveBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f }
-        saveRow.addView(cancelBtn); saveRow.addView(saveBtn)
-        sheetRoot.addView(saveRow)
-        sheet.setContentView(sheetRoot)
-        sheet.window?.apply {
-            setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT, android.view.WindowManager.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.BOTTOM)
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
-        }
-        sheet.show()
     }
-
 }
