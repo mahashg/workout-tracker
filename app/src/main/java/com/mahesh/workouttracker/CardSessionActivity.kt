@@ -78,6 +78,7 @@ class CardSessionActivity : AppCompatActivity() {
         reloadDeck(); moveToPending()
         // v3.7: opened from the hub (or the strip) at a chosen exercise —
         // land on it even if it is already handled (viewing/re-logging).
+        // v3.8.2: Start / Resume also land here, on the first pending.
         if (startExId > 0) {
             val pos = deck.indexOfFirst { it.id == startExId }
             if (pos >= 0) index = pos
@@ -520,9 +521,12 @@ class CardSessionActivity : AppCompatActivity() {
         else -> "Workout"
     }
 
-    /** Back to the hub, wherever this card was opened from: the hub is
-     *  the session's home now (CLEAR_TOP reuses the hub below us when
-     *  there is one, and creates it when the card came from elsewhere). */
+    /** To the hub overview, wherever this card was opened from
+     *  (CLEAR_TOP reuses the hub below us when there is one, and
+     *  creates it when the card came from elsewhere). Since v3.8.2 the
+     *  hub is an optional overview, not the flow's home: the ☰ chip,
+     *  the transition's "See All Exercises" and the completion state's
+     *  "All Exercises" come here; Start / Resume / Done never do. */
     private fun navigateToHub() {
         startActivity(Intent(this, WorkoutHubActivity::class.java).apply {
             putExtra("sessionId", sessionId)
@@ -995,28 +999,49 @@ class CardSessionActivity : AppCompatActivity() {
         index++; moveToPendingFrom(index)
         render()
     }
-    /** v3.7 navigation after REAL work (Done, or logging the last set of
-     *  an exercise): the card no longer auto-advances. If this Done
-     *  completed the section, the transition card (or the completion
-     *  state) renders here; otherwise, in the Workout section the
-     *  between-exercises Rest Ring runs first (default 60s,
-     *  Settings-adjustable, next exercise as the target — S2/S5) and
-     *  the HUB opens when it ends; Warm-Up / Cool-Down dones go
-     *  straight to the hub. Never called from a skip path. */
+    /** Navigation after REAL work (Done, or logging the last set of an
+     *  exercise). v3.7 sent the user back to the hub here; v3.8.2
+     *  restores the direct card flow Mahesh asked for: finishing one
+     *  workout takes you to the NEXT workout's card. If this Done
+     *  completed the section, render() lands on the transition card
+     *  (or the completion state) exactly as before; otherwise, in the
+     *  Workout section the between-exercises Rest Ring runs first
+     *  (default 60s, Settings-adjustable, next exercise as the target
+     *  — S2/S5) and its GO / Skip-rest fires the advance ONCE;
+     *  Warm-Up / Cool-Down dones advance directly (they never rested).
+     *  The top-bar REST chip is engine-driven, so it keeps ticking on
+     *  whatever card is showing while a hidden rest runs out. Never
+     *  called from a skip path. */
     private fun advanceWithRest(){
         reloadDeck()
         val pendingLeft = deck.count { db.effectiveStatus(it) == "pending" }
         if (pendingLeft == 0) { index = deck.size; render(); return }
+        val nextEx = deck.firstOrNull { db.effectiveStatus(it) == "pending" } ?: run { moveToPending(); render(); return }
+        val doneId = current()?.id ?: -1L
         if (sectionType == "Main") {
-            val nextEx = deck.firstOrNull { db.effectiveStatus(it) == "pending" }
-            if (nextEx != null) {
-                val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
-                    .split(";").map { it.trim() }.filter { it.isNotEmpty() }
-                RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { navigateToHub() }
-                return
-            }
+            val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
+                .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+            RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { advanceToPending(nextEx.id, doneId) }
+            return
         }
-        navigateToHub()
+        advanceToPending(nextEx.id, doneId)
+    }
+    /** v3.8.2: land on the next pending exercise's card. [fromExId] is
+     *  the exercise whose completion scheduled this advance: when the
+     *  Rest Ring's callback fires after the ring was hidden, the user
+     *  may already have navigated elsewhere (a scroller-strip jump) —
+     *  then don't yank them back; just refresh the card they're on.
+     *  A dead window likewise swallows the advance. */
+    private fun advanceToPending(targetId: Long, fromExId: Long){
+        if (isFinishing || isDestroyed) return
+        reloadDeck()
+        if (fromExId > 0) {
+            val cur = current()
+            if (cur == null || cur.id != fromExId) { render(); return }
+        }
+        val pos = deck.indexOfFirst { it.id == targetId }
+        if (pos >= 0) { index = pos; animateEntryOnNextRender = true } else moveToPending()
+        render()
     }
     /** S2: after a set is logged with more sets to go, the Rest Ring runs the
      *  between-sets duration (default 30s) and shows the next set's last-time
