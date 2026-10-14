@@ -1,5 +1,6 @@
 package com.mahesh.workouttracker
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
@@ -8,14 +9,18 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 
 /** v3.9 Home = the CHOOSER (approved mock r4, frame 1): "What are we
- *  doing today?" over two doors and nothing else. A door's body opens
- *  its page (WorkoutActivity / AtHomeActivity); its plain ▶ starts
- *  that side's flow directly — PickPartsActivity for the gym, the
- *  deck for Movements — and becomes Resume-in-place while a session
- *  is in progress (the desc says so). The week scoreboard, parts
- *  grid and Start button moved to the Workout page; the v3.4 Health
- *  Connect sync row is GONE (sync UI lives in Settings only, per
- *  Mahesh's round-2 note; finished workouts still auto-sync). */
+ *  doing today?" over two doors and nothing else. The Movements
+ *  door's body opens its page (AtHomeActivity) and its plain ▶ starts
+ *  the deck directly. v3.9.1: the WORKOUT door no longer opens an
+ *  intermediate page — Mahesh found the Workout page useless — BOTH
+ *  its body and its ▶ go straight to the start-workout flow:
+ *  PickPartsActivity when idle, the resume dialog (Resume workout /
+ *  View all exercises / Discard & start new, the pre-v3.9.1 Start
+ *  semantics) while a gym session is in progress. WorkoutActivity is
+ *  retired. The week line lives on the chooser sub-title ("Week N ·
+ *  X of 10 parts done"). The v3.4 Health Connect sync row is GONE
+ *  (sync UI lives in Settings only, per Mahesh's round-2 note;
+ *  finished workouts still auto-sync). */
 class MainActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var created = false
@@ -72,17 +77,15 @@ class MainActivity : AppCompatActivity() {
             gymMeta = if (lastGym != null) "Last: ${lastGym.routineName} · ${shortDay(lastGym.date)}" else "No workouts yet"
         }
         val gymDoor = doorCard(Palettes.current.doorGymBg, Palettes.current.doorGymBorder) {
-            startActivity(Intent(this, WorkoutActivity::class.java))
+            onWorkoutTap()
         }
         (gymDoor.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
         gymDoor.addView(doorIcon("🏋️", IconTints.BLUE))
         gymDoor.addView(doorTextCol("Workout", gymDesc, gymMeta))
         gymDoor.addView(playGlyph {
-            // ▶ = the start flow directly: fresh -> the picker;
-            // in progress -> resume on the first pending card
-            // (v3.8.2 semantics, the same intent Home resume used).
-            if (gym != null) startActivity(firstPendingCardIntent(db, gym.id))
-            else startActivity(Intent(this, PickPartsActivity::class.java))
+            // ▶ does exactly what the door body does (v3.9.1): the
+            // start-workout flow, no intermediate page.
+            onWorkoutTap()
         })
         root.addView(gymDoor)
 
@@ -116,5 +119,33 @@ class MainActivity : AppCompatActivity() {
 
         // Nothing else on the chooser — the rest of the screen is air.
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+    }
+
+    /** The Workout door tap (body and ▶ alike, v3.9.1): idle -> the
+     *  body-part picker (the start-workout page); a gym session in
+     *  progress -> the three-way resume dialog, semantics identical
+     *  to the retired Workout page's Start row (Resume lands on the
+     *  first pending card, v3.8.2; View all = the hub overview;
+     *  Discard deletes the session and opens the picker). */
+    private fun onWorkoutTap() {
+        val inProgress = gymInProgress()
+        if (inProgress == null) {
+            startActivity(Intent(this, PickPartsActivity::class.java))
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Workout in progress")
+            .setMessage("${inProgress.routineName} is in progress. Resume it, view all its exercises, or discard it and start a new workout?")
+            .setPositiveButton("Resume workout") { _, _ ->
+                startActivity(firstPendingCardIntent(db, inProgress.id))
+            }
+            .setNeutralButton("View all exercises") { _, _ ->
+                startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", inProgress.id))
+            }
+            .setNegativeButton("Discard & start new") { _, _ ->
+                db.deleteSession(inProgress.id)
+                startActivity(Intent(this, PickPartsActivity::class.java))
+            }
+            .show()
     }
 }

@@ -51,7 +51,10 @@ class PickPartsActivity : AppCompatActivity() {
         val lastTrained = db.lastTrainedDates()
         val counts = db.partCountsInWeek(wm.weekStart)
 
-        val cellH = if (compact) 56 else 64
+        // v3.9.1: taller cells (60/68) + the last-trained line at
+        // 12sp — at 56/64dp with an 11sp line budgeted at font scale
+        // 1.0, the second line clipped at larger font scales.
+        val cellH = if (compact) 60 else 68
         for (rowParts in BodyParts.all.chunked(2)) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             for (part in rowParts) {
@@ -145,12 +148,20 @@ class PickPartsActivity : AppCompatActivity() {
                 done -> stateCardDrawable(greenFill, greenStroke, tappable = true)
                 else -> cardDrawable(tappable = true)
             }
-            setPadding(dp(10), dp(6), dp(10), dp(5))
+            setPadding(dp(10), dp(5), dp(10), dp(4))
             if (notPaired) alpha = 0.45f
             isClickable = true
             setOnClickListener {
                 if (isSel) selected.remove(part.id) else selected.add(part.id)
                 render()
+            }
+            // v3.9.1: the part DETAIL page (exercise list + add) was
+            // reachable only from the retired Workout page's grid —
+            // keep it reachable from here via long-press, without
+            // disturbing tap-to-select.
+            setOnLongClickListener {
+                startActivity(Intent(this@PickPartsActivity, BodyPartDetailActivity::class.java).putExtra("bodyPart", part.id))
+                true
             }
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
@@ -184,7 +195,11 @@ class PickPartsActivity : AppCompatActivity() {
             days != null -> "Last · ${DateUtil.display(last)} · ${days}d ago"
             else -> "Last · ${DateUtil.display(last)}"
         }
-        val lastTv = makeText(lastLine, 11f, false, if (isSel) Color.parseColor("#BFDBFE") else Theme.textSecondary)
+        // v3.9.1: 12sp muted plain text (was 11sp — below the app's
+        // 12sp floor, and the line that clipped inside the fixed-
+        // height cells). Never-trained ("Not trained yet") is this
+        // same line: plain textSecondary, no pill, full cell width.
+        val lastTv = makeText(lastLine, 12f, false, if (isSel) Color.parseColor("#BFDBFE") else Theme.textSecondary)
         lastTv.maxLines = 1
         lastTv.setPadding(0, dp(2), 0, 0)
         (lastTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)

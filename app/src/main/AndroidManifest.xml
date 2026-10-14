@@ -18,7 +18,6 @@
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>
         <!-- v3.9: the chooser's two doors. -->
-        <activity android:name=".WorkoutActivity" android:exported="false" />
         <activity android:name=".AtHomeActivity" android:exported="false" />
         <activity android:name=".SessionActivity" android:exported="false" />
         <activity android:name=".RoutinesActivity" android:exported="false" />
