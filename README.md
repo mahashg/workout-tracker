@@ -1010,3 +1010,187 @@ Verified: offline build successful; `aapt` versionCode 23 /
 (0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
 APK: 13,753,360 bytes (+221,267 vs v3.6 — the RecyclerView AAR and
 the new hub/transition/strip code).
+
+## V3.8.1 (versionCode 24) — At Home card + the endless Movie Movements deck
+
+Mahesh's extension beyond the gym: everyday living-room movements,
+"extremely simple motion and extremely light" (approved mock:
+`v3.8.1-home-mock.html`, screens 1–3; screen 4, the Home Workout mode,
+is DEFERRED to the catalog build, as is the 108-entry home catalog —
+this build ships only the deck's 18 movements). Tapping 🎬 Movie
+Movements starts an ENDLESS deck: no schedule is ever shown, movements
+are dealt one at a time in random order until he stops it, each with a
+30–60s counter pinned at the top of the screen. Deck membership and
+counters live in the catalog JSON (`home: true` + `counterSec`), per
+the research file's "Revised Movie deck — 18" table (45 sources, 136
+candidates reviewed).
+
+### Fidelity checklist (written from the approved mock BEFORE coding;
+each line marked after verification against the built code/layout
+budgets — headless screenshots do not work in this environment, so
+verification is code inspection + dp budgets, and anything only an
+on-device render can prove is named as such)
+
+Home — At Home card (mock screen 1):
+- [x] Card below Start Workout: bg #FFF7E8, 1.5dp #F2C94C border,
+  16dp radius; "🏠 At Home" title + "No gym, no equipment — everyday
+  movements for the living room." (desc line omitted on compact
+  screens only, to protect the no-scroll budget).
+- [x] ONE row this build: 🎬 Movie Movements — "Endless: one movement
+  at a time, random order, until you stop." Whole row tappable; the
+  pill reads "Start", or "Resume" while a movie session is in
+  progress (row line switches to "In progress — pick up where you
+  left off."). The card is structured so the Home Workout row can be
+  added inside it later.
+- [x] No-scroll budget by construction: the body-part grid became the
+  page's single FLEX region (rows share its height), so the fixed
+  blocks — title 32 + hero ~65 + sync 52 + Start 54 + At Home card
+  ~97 + margins ≈ 310dp compact — always fit the ~546dp floor and the
+  card can never push the Health Connect sync row (kept above Start,
+  its v3.4 position) or anything else off-screen; the grid compresses
+  on short screens and breathes on tall ones (full card ~160dp there).
+- [x] A movie session never leaks into the gym flow: Start Workout's
+  in-progress check excludes routineName "Movie Movements" (gym
+  resume dialog otherwise untouched).
+
+Countdown (mock screen 2):
+- [x] Big numeral in a 170dp primary circle, 3 → 2 → 1 at 800ms,
+  "Get ready…" + the deck line with the REAL pool size interpolated
+  ("18 movements…") — the mock's literal "10 movements" was its
+  sample copy; the app never hardcodes a wrong count.
+- [x] Back during the countdown discards the just-created empty
+  session (no History trace).
+
+Movement state (mock screen 3):
+- [x] Fixed layout, NO scrolling. Top bar: "🎬 Movie Movements" left;
+  right: ticking session elapsed (WorkoutTimer) + "✕ End" chip
+  (#FEE2E2 bg / #991B1B text).
+- [x] COUNTER BAND pinned under the top bar: bg #16324F, radius 14dp;
+  30sp tabular countdown seconds; movement name + "· COUNTER"
+  micro-label; ⏸/▶ pause toggle at right (freezes the counter only —
+  the session elapsed keeps running); draining bar under the seconds,
+  volt #A3E635, turning amber #F59E0B in the last 10s.
+- [x] Photo band flexes to fit (CENTER_CROP, two-frame PhotoLooper
+  where 2 frames exist; body-map fallback otherwise), "🏠 HOME ·
+  <PART>" tag top-left, name + last-time line on the bottom scrim
+  ("Last: 45 sec · ~15 reps · Mon"; "New movement" when none — the
+  last-time lookup excludes the current session).
+- [x] Target card: big rep guide ("~15 reps") + the entry's first 2
+  cues as the guidance text.
+- [x] Actions: "✓ Done early" (green #15803D, flex 1.4) + "Skip →"
+  (56dp, white/outline).
+- [x] Session line: "N done this session · the deck keeps dealing 🎲".
+- [x] Deck chips row (wrapped LinearLayouts — NO RecyclerView):
+  backwards-looking only; done = green tint + ✓, skipped = grey + ✕,
+  current = primary + "· now"; capped at the most recent 12 + a
+  "+N earlier" pill.
+
+Standing corrections (still in force, re-verified):
+- [x] Photos uncropped: CENTER_CROP everywhere; fitXY = 0 app-wide
+  (grep-verbatim).
+- [x] Fixed screens don't scroll: ScrollView = 0 app-wide
+  (grep-verbatim); RecyclerView still confined to
+  WorkoutHubActivity.kt + CardSessionActivity.kt — the deck uses
+  none.
+- [x] Copy minimal per the v2.6.1 audit: no instructional filler
+  added anywhere; the one new toast is "Movie session discarded".
+- [x] No gamification; icon unchanged; posture content untouched;
+  Health Connect sync and Drive backup call sites unchanged (movie
+  sessions reach them through the standard finish path).
+
+### The deck — 18 movements (catalog order = deal pool order)
+
+15 NEW entries + 3 existing entries flagged in place (no duplicates).
+Every entry: equipment Bodyweight, sets 1, research rep guide,
+4 Beginner posture checks + 3 couch-aware cues, YouTube SEARCH url
+only, primary=false, verified hcType, `home: true`, `counterSec` as
+listed. Photos bundled ONLY on a genuine free-exercise-db match.
+
+| id | part | counterSec | photo |
+|---|---|---|---|
+| march-in-place | Quads | 60 | no |
+| bodyweight-squat *(existing, warmups)* | Quads | 45 | yes (existing) |
+| sit-to-stand | Quads | 45 | no |
+| step-jacks | Quads | 45 | no |
+| step-touch | Quads | 45 | no |
+| wall-push-ups | Chest | 45 | no |
+| incline-push-up | Chest | 40 | yes (2 frames) |
+| standing-calf-raises | Calves | 45 | no |
+| single-leg-calf-raise *(existing)* | Calves | 40 | yes (existing) |
+| standing-knee-raises | Core | 45 | no |
+| standing-cross-body-crunch | Core | 40 | no |
+| standing-hip-abduction | Glutes | 40 | no |
+| standing-hamstring-curl | Hamstrings | 45 | no — see below |
+| good-morning | Hamstrings | 40 | no |
+| shoulder-rolls | Shoulders | 30 | yes (2 frames) |
+| arm-circles *(existing, warmups)* | Shoulders | 30 | yes (existing) |
+| shoulder-shrugs | Traps | 30 | no |
+| scapular-squeeze | Traps | 30 | no |
+
+Photo correction vs the research file: its photo column suggested a
+dataset match for standing-hamstring-curl, but visual inspection of
+the "Single Leg Butt Kick" frames showed a knee-drive drill, not a
+heel-to-butt curl — a wrong-movement photo, so the entry ships with
+the body-map fallback instead. New photos this build: 4 frames
+(incline-push-up ×2, shoulder-rolls ×2; 640px JPEG q80). Asset count:
+178 exercise images (174 + 4).
+
+### Implementation notes
+
+- Data/seed: JsonSeed.Entry gains `home`/`counterSec`
+  (optBoolean/optInt — existing parsing unaffected);
+  `deckEntries()` = catalog entries with counterSec in 30–60, in
+  catalog order. Existing installs receive the new entries via a
+  one-time additive step gated by the `v381CatalogApplied` pref:
+  insert-missing by sourceId only — never updates or deletes, user
+  history untouched. Fresh installs get everything via the normal
+  seed. Entries are full catalog citizens (they appear in Library
+  under their parts, posture checks included). Catalog now 117
+  entries. A semantic diff of the bundled JSONs against the pre-build
+  files shows ONLY the 15 additions + `home`/`counterSec` fields on
+  the 3 reused entries; all 18 hcTypes verified against the
+  HealthSync constant table.
+- Sessions: `createMovieSession()` makes an EMPTY session
+  (routineName "Movie Movements"); each deal APPENDS one pending
+  session_exercises row via `appendMovieExercise()` with exactly ONE
+  bodyweight set. The session copy's type is forced to "Main" (two
+  deck entries are Warmup-typed in the catalog) so Summary/History
+  group the whole session together. `deleteSession()` now also
+  deletes `session_parts` — a pre-existing orphan leak on the discard
+  path, fixed here because the deck's 0-done End path relies on it.
+- Dealing: shuffle-bag over the 18 ids; reshuffle when empty; across
+  a reshuffle the first deal never repeats the immediately previous
+  movement. Bag state is deliberately NOT persisted.
+- Logging: Done early or counter expiry = the dealt row done + ONE
+  set row (reps = first integer of the entry's rep guide, weight 0);
+  the part's session_parts row is inserted on its FIRST completion in
+  the session (week credit on completion, not on dealing). Skip =
+  row marked skipped, next deal instantly, no set, no beat.
+- Beat: completion (Done or expiry) shows a ~1.2s green ✓ state with
+  a haptic pop — the Rest Ring GO feel — before the next deal.
+- ✕ End: ≥1 done → the standard finish path (WorkoutTimer.finish →
+  SummaryActivity celebrate → the existing automatic Health Connect
+  attempt + DriveBackup.backupSilently call sites); HealthSync
+  titles the session exactly "Movie Movements". 0 done → the session
+  is deleted outright (no empty History entry) + "Movie session
+  discarded" toast.
+- Resume: Home's card detects the in-progress movie session; the
+  deck re-deals its pending row with a FRESH counter (bag rebuilt,
+  no-repeat applies from the last dealt movement). Leaving mid-deck
+  via Back keeps the session in progress.
+- The deck uses no RestTimer, no set-logger dialog, no swipe
+  gestures.
+
+Verified: offline build successful; `aapt` versionCode 24 /
+"3.8.1"; minSdk 26; signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+Scripted check against the built APK's bundled JSONs: 117 entries;
+the deck is exactly the 18 ids above, all `home=true`, every
+counterSec in 30–60. DB stays v4. APK: 14,247,920 bytes (+715,827 vs
+v3.7 — the 15 catalog entries, 4 photos, MovieDeckActivity and the
+Home card).
+
+On-device-only proof still owed (cannot be shown headlessly): deck
+visuals vs the mock, the pinned counter band, countdown feel, the
+completion beat, chips packing, pause behavior, resume from the Home
+card, and the At Home card on compact screens.
