@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -46,32 +47,115 @@ fun Context.firstPendingCardIntent(db: DbHelper, sessionId: Long): Intent {
 }
 
 // ---------- Design tokens (v2.1, light theme for bright gym light) ----------
+// v3.9: the tokens are now a runtime PALETTE. [Theme] keeps its name
+// and shape (every screen in the app reads Theme.*), but each token
+// delegates to [Palettes.current], which is set once at process start
+// (WtApplication) from the "theme" pref and re-applied the moment the
+// Settings Theme segment changes (followed by a CLEAR_TASK relaunch,
+// so no stale-palette screen survives). Two palettes ship:
+//  - MIST: the v3.8.3 / approved-r4 values, byte-for-byte — under
+//    Mist the app looks exactly as it did before v3.9.
+//  - MATERIAL (the DEFAULT, including for existing installs — the
+//    pref defaults to "material" when absent): the M3 baseline-light
+//    palette Mahesh approved from the concept mock.
+// A theme here is a palette swap only — no component changes.
+class Palette(
+    val bg: Int, val surface: Int, val surfaceVariant: Int, val stroke: Int, val shadow: Int,
+    val primary: Int, val primaryDark: Int, val onPrimary: Int,
+    val textPrimary: Int, val textSecondary: Int, val textTertiary: Int,
+    val success: Int, val successBg: Int, val warn: Int, val warnBg: Int,
+    val pendingFg: Int, val pendingBg: Int, val accentSky: Int, val warmAmber: Int, val coolTeal: Int,
+    val error: Int,
+    val tintBlue: Int, val tintWarm: Int, val tintGreen: Int, val tintLilac: Int, val tintYolk: Int, val tintPink: Int,
+    val doorGymBg: Int, val doorGymBorder: Int, val doorHomeBg: Int, val doorHomeBorder: Int,
+    val stepperBg: Int, val switchOff: Int, val checkOffStroke: Int, val sheetRow: Int,
+    val tagPartBg: Int, val tagPartFg: Int, val tagGearBg: Int, val tagGearFg: Int, val tagHomeBg: Int, val tagHomeFg: Int
+) {
+    companion object {
+        private fun c(hex: String) = Color.parseColor(hex)
+        /** The current app, exactly: v3.8.3 chrome + the r4 mock values. */
+        fun mist() = Palette(
+            bg = c("#EAF0F5"), surface = c("#F7F9FB"), surfaceVariant = c("#EDF2F7"),
+            stroke = c("#D7E1EB"), shadow = c("#C3D0DE"),
+            primary = c("#2563EB"), primaryDark = c("#1D4ED8"), onPrimary = Color.WHITE,
+            textPrimary = c("#1F2937"), textSecondary = c("#64748B"), textTertiary = c("#8494A7"),
+            success = c("#15803D"), successBg = c("#DCFCE7"), warn = c("#92400E"), warnBg = c("#FEF3C7"),
+            pendingFg = c("#475569"), pendingBg = c("#E2E8F0"), accentSky = c("#0369A1"),
+            warmAmber = c("#D97706"), coolTeal = c("#0D9488"), error = c("#B3261E"),
+            tintBlue = c("#DCE9FF"), tintWarm = c("#FFE7C2"), tintGreen = c("#D8F3DC"),
+            tintLilac = c("#E6E0FF"), tintYolk = c("#FFF0B3"), tintPink = c("#FFE0EC"),
+            doorGymBg = c("#E8EFFD"), doorGymBorder = c("#B9CCF5"),
+            doorHomeBg = c("#FFF7E8"), doorHomeBorder = c("#F2C94C"),
+            stepperBg = c("#E3ECF7"), switchOff = c("#CBD8E4"), checkOffStroke = c("#CBD8E4"), sheetRow = Color.WHITE,
+            tagPartBg = c("#E0E7FF"), tagPartFg = c("#3730A3"), tagGearBg = c("#E8EEF4"), tagGearFg = c("#52687E"),
+            tagHomeBg = c("#FFF1CF"), tagHomeFg = c("#92600A")
+        )
+        /** M3 baseline light (the concept mock Mahesh approved). Door
+         *  borders are the one adaptation: the mock's doors are
+         *  borderless container fills; ours keep the r4 door outline
+         *  in a deepened container shade so the doors still read as
+         *  doors on the near-white background. */
+        fun material() = Palette(
+            bg = c("#FEF7FF"), surface = c("#F3EDF7"), surfaceVariant = c("#E7E0EC"),
+            stroke = c("#CAC4D0"), shadow = c("#D9CFE3"),
+            primary = c("#6750A4"), primaryDark = c("#4F378B"), onPrimary = Color.WHITE,
+            textPrimary = c("#1D1B20"), textSecondary = c("#49454F"), textTertiary = c("#79747E"),
+            success = c("#386A20"), successBg = c("#CDEBCF"), warn = c("#574500"), warnBg = c("#FFE088"),
+            pendingFg = c("#49454F"), pendingBg = c("#E6E0E9"), accentSky = c("#6750A4"),
+            warmAmber = c("#8C6A00"), coolTeal = c("#0D9488"), error = c("#B3261E"),
+            tintBlue = c("#EADDFF"), tintWarm = c("#FFD8E4"), tintGreen = c("#CDEBCF"),
+            tintLilac = c("#E8DEF8"), tintYolk = c("#FFE088"), tintPink = c("#FFD8E4"),
+            doorGymBg = c("#EADDFF"), doorGymBorder = c("#B09AD8"),
+            doorHomeBg = c("#FFD8E4"), doorHomeBorder = c("#DE9FBB"),
+            stepperBg = c("#E8DEF8"), switchOff = c("#CAC4D0"), checkOffStroke = c("#CAC4D0"), sheetRow = c("#FFFBFE"),
+            tagPartBg = c("#E8DEF8"), tagPartFg = c("#4A4458"), tagGearBg = c("#E6E0E9"), tagGearFg = c("#49454F"),
+            tagHomeBg = c("#FFE088"), tagHomeFg = c("#574500")
+        )
+    }
+}
+
+object Palettes {
+    @Volatile var current: Palette = Palette.material()
+    /** Read the pref and point [current] at the chosen palette. Called
+     *  from WtApplication.onCreate and from the Settings Theme segment
+     *  (which then relaunches the task so every screen re-renders). */
+    fun apply(context: Context) {
+        current = if (AppTheme.name(context) == "mist") Palette.mist() else Palette.material()
+    }
+}
+
+/** The theme pref: "material" | "mist", DEFAULT "material" when absent
+ *  (Mahesh: the M3 palette is the new default, Mist is the opt-in) —
+ *  including on existing installs that have never seen the pref. */
+object AppTheme {
+    fun name(context: Context): String =
+        context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getString("theme", "material") ?: "material"
+    fun set(context: Context, name: String) {
+        context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit().putString("theme", name).apply()
+    }
+}
+
 object Theme {
-    val bg = Color.parseColor("#EAF0F5") // soft mist background (Mahesh color change, v2.3)
-    val surface = Color.parseColor("#F7F9FB") // soft off-white cards - never pure #FFFFFF
-    val surfaceVariant = Color.parseColor("#EDF2F7")
-    // v3.7: stroke / textPrimary / textSecondary aligned to the approved
-    // v3.7 mock hexes (line #D7E1EB, text #1F2937, secondary #64748B) so
-    // the new hub/transition/card screens and every existing screen
-    // share the mock's exact Mist values. Differences vs the v2.3 values
-    // (#D6DEE8 / #132033 / #5A6B80) are sub-perceptual greys.
-    val stroke = Color.parseColor("#D7E1EB")
-    val shadow = Color.parseColor("#C3D0DE")
-    val primary = Color.parseColor("#2563EB")
-    val primaryDark = Color.parseColor("#1D4ED8")
-    val onPrimary = Color.WHITE
-    val textPrimary = Color.parseColor("#1F2937")
-    val textSecondary = Color.parseColor("#64748B")
-    val textTertiary = Color.parseColor("#8494A7")
-    val success = Color.parseColor("#15803D")
-    val successBg = Color.parseColor("#DCFCE7")
-    val warn = Color.parseColor("#92400E")
-    val warnBg = Color.parseColor("#FEF3C7")
-    val pendingFg = Color.parseColor("#475569")
-    val pendingBg = Color.parseColor("#E2E8F0")
-    val accentSky = Color.parseColor("#0369A1")
-    val warmAmber = Color.parseColor("#D97706")
-    val coolTeal = Color.parseColor("#0D9488")
+    val bg get() = Palettes.current.bg
+    val surface get() = Palettes.current.surface
+    val surfaceVariant get() = Palettes.current.surfaceVariant
+    val stroke get() = Palettes.current.stroke
+    val shadow get() = Palettes.current.shadow
+    val primary get() = Palettes.current.primary
+    val primaryDark get() = Palettes.current.primaryDark
+    val onPrimary get() = Palettes.current.onPrimary
+    val textPrimary get() = Palettes.current.textPrimary
+    val textSecondary get() = Palettes.current.textSecondary
+    val textTertiary get() = Palettes.current.textTertiary
+    val success get() = Palettes.current.success
+    val successBg get() = Palettes.current.successBg
+    val warn get() = Palettes.current.warn
+    val warnBg get() = Palettes.current.warnBg
+    val pendingFg get() = Palettes.current.pendingFg
+    val pendingBg get() = Palettes.current.pendingBg
+    val accentSky get() = Palettes.current.accentSky
+    val warmAmber get() = Palettes.current.warmAmber
+    val coolTeal get() = Palettes.current.coolTeal
 }
 
 /** Rounded fill background. v3.8.3 ROOT-CAUSE FIX: this factory used to
@@ -85,6 +169,12 @@ object Theme {
 fun Context.roundedBg(color: String, radiusDp: Int, strokeColor: String? = null): GradientDrawable {
     return if (strokeColor != null) rounded(Color.parseColor(color), radiusDp, Color.parseColor(strokeColor), 1)
     else rounded(Color.parseColor(color), radiusDp)
+}
+
+/** v3.9: Int-color overload for palette-driven callers. */
+fun Context.roundedBg(color: Int, radiusDp: Int, strokeColor: Int? = null): GradientDrawable {
+    return if (strokeColor != null) rounded(color, radiusDp, strokeColor, 1)
+    else rounded(color, radiusDp)
 }
 
 private fun Context.rounded(color: Int, radiusDp: Int, strokeColor: Int? = null, strokeDp: Int = 1): GradientDrawable {
@@ -503,7 +593,7 @@ fun Context.equipmentBadge(equipment: String): TextView {
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), dp(6), dp(4)) }
     }
 }
-fun sectionColor(type: String): Int = when(type.lowercase()) { "warmup" -> Color.parseColor("#D97706"); "stretch" -> Color.parseColor("#0D9488"); else -> Color.parseColor("#2563EB") }
+fun sectionColor(type: String): Int = when(type.lowercase()) { "warmup" -> Color.parseColor("#D97706"); "stretch" -> Color.parseColor("#0D9488"); else -> Theme.primary }
 fun sectionLabel(type: String): String = when(type.lowercase()) { "warmup" -> "Warm Up"; "stretch" -> "Cool Down"; else -> "Exercise" }
 fun doItLine(sets: List<SessionSet>): String {
     if (sets.isEmpty()) return "Do it at an easy, controlled pace"
@@ -650,4 +740,193 @@ object CsvExporter {
         }
         return sb.toString()
     }
+}
+
+// ---------- v3.9 icon system: pastel bubbles, plain play glyphs, toggles ----------
+
+/** The v3.9 pastel bubble tints (approved mock r4): one icon language
+ *  app-wide. Palette-driven since the theme addition: under Material
+ *  these are the M3 container tones (primaryContainer / tertiaryContainer
+ *  / secondaryContainer / success + due containers). */
+object IconTints {
+    val BLUE get() = Palettes.current.tintBlue
+    val WARM get() = Palettes.current.tintWarm
+    val GREEN get() = Palettes.current.tintGreen
+    val LILAC get() = Palettes.current.tintLilac
+    val YOLK get() = Palettes.current.tintYolk
+    val PINK get() = Palettes.current.tintPink
+}
+
+private fun shadeOf(color: Int, factor: Float): Int {
+    return Color.rgb(
+        (Color.red(color) * factor).toInt().coerceIn(0, 255),
+        (Color.green(color) * factor).toInt().coerceIn(0, 255),
+        (Color.blue(color) * factor).toInt().coerceIn(0, 255)
+    )
+}
+
+/** 56dp pastel door bubble (mock .ic): a soft layered shadow peeking
+ *  below + a gentle top-to-bottom shade inside, standing in for the
+ *  mock's inset bottom shadow. The emoji renders as text — the app's
+ *  established approach (the At Home card already does this). */
+fun Context.doorIcon(emoji: String, tint: Int, sizeDp: Int = 56, emojiSp: Float = 29f): TextView {
+    val shadowLayer = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.shadow) }
+    val face = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(tint, shadeOf(tint, 0.92f))).apply { shape = GradientDrawable.OVAL }
+    val layers = LayerDrawable(arrayOf(shadowLayer, face))
+    layers.setLayerInset(0, dp(2), dp(3), dp(2), 0)
+    layers.setLayerInset(1, 0, 0, 0, dp(4))
+    return TextView(this).apply {
+        text = emoji; textSize = emojiSp; gravity = Gravity.CENTER
+        background = layers
+        layoutParams = LinearLayout.LayoutParams(dp(sizeDp), dp(sizeDp))
+    }
+}
+
+/** 44dp pastel squircle (mock .ic.sm, radius ~15dp): Settings rows,
+ *  slim rows, and the logger's 38dp ⚖ bubble (sizeDp/emojiSp scale it). */
+fun Context.settingsIcon(emoji: String, tint: Int, sizeDp: Int = 44, emojiSp: Float = 22f): TextView {
+    return TextView(this).apply {
+        text = emoji; textSize = emojiSp; gravity = Gravity.CENTER
+        background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(tint, shadeOf(tint, 0.92f))).apply { cornerRadius = dp(15).toFloat() }
+        elevation = dp(2).toFloat()
+        layoutParams = LinearLayout.LayoutParams(dp(sizeDp), dp(sizeDp))
+    }
+}
+
+/** The plain ▶ start glyph (mock .play): no pill, no background —
+ *  just the glyph in primary at ~34sp, inside a ≥48dp touch target. */
+fun Context.playGlyph(onClick: () -> Unit): TextView {
+    return TextView(this).apply {
+        text = "▶"; textSize = 30f; setTextColor(Theme.primary); gravity = Gravity.CENTER
+        layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+        isClickable = true
+        setOnClickListener { onClick() }
+    }
+}
+
+/** The mock's pill toggle (50×30dp): primary track + right knob when
+ *  on, grey track + left knob when off. Stateless — the caller
+ *  persists the pref inside [onToggle] and re-renders. */
+fun Context.toggleSwitch(on: Boolean, onToggle: (Boolean) -> Unit): View {
+    val track = FrameLayout(this).apply {
+        background = roundedBg(if (on) Theme.primary else Palettes.current.switchOff, 999)
+        layoutParams = LinearLayout.LayoutParams(dp(50), dp(30))
+        isClickable = true
+        setOnClickListener { onToggle(!on) }
+    }
+    val knob = View(this).apply {
+        background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.WHITE) }
+        elevation = dp(2).toFloat()
+        layoutParams = FrameLayout.LayoutParams(dp(24), dp(24)).apply {
+            gravity = (if (on) Gravity.END else Gravity.START) or Gravity.CENTER_VERTICAL
+            setMargins(dp(3), 0, dp(3), 0)
+        }
+    }
+    track.addView(knob)
+    return track
+}
+
+/** Segmented control (mock .seg): grey track, the active segment
+ *  filled primary with white text. Used for the kg | lb choice. */
+fun Context.segControl(options: List<String>, selected: Int, onSelect: (Int) -> Unit): LinearLayout {
+    val track = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        background = roundedBg(Theme.surfaceVariant, 999)
+        setPadding(dp(3), dp(3), dp(3), dp(3))
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(38))
+    }
+    for ((i, opt) in options.withIndex()) {
+        val sel = i == selected
+        track.addView(TextView(this).apply {
+            text = opt; textSize = 13.5f; gravity = Gravity.CENTER
+            typeface = medium()
+            if (sel) { setTextColor(Theme.onPrimary); background = roundedBg(Theme.primary, 999) } else setTextColor(Theme.textSecondary)
+            setPadding(dp(17), 0, dp(17), 0)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
+            isClickable = true
+            setOnClickListener { if (!sel) onSelect(i) }
+        })
+    }
+    return track
+}
+
+/** A v3.9 door (mock .door): tinted fill, 1.5dp border, 18dp radius,
+ *  the whole door tappable. Children (icon, text column, play glyph)
+ *  are added by the caller; a clickable child (the ▶) takes its own
+ *  taps and the door's click does not also fire. */
+fun Context.doorCard(bg: Int, border: Int, onClick: () -> Unit): LinearLayout {
+    return LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        background = GradientDrawable().apply {
+            setColor(bg); cornerRadius = dp(18).toFloat()
+            setStroke((1.5f * resources.displayMetrics.density).toInt(), border)
+        }
+        elevation = dp(2).toFloat()
+        setPadding(dp(14), dp(13), dp(8), dp(13))
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        isClickable = true
+        setOnClickListener { onClick() }
+    }
+}
+
+/** A plain white door-row (the Workout page's Start row): same shape
+ *  as [doorCard] on the surface fill with the standard stroke. */
+fun Context.whiteDoorRow(onClick: () -> Unit): LinearLayout {
+    return LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        background = GradientDrawable().apply {
+            setColor(Theme.surface); cornerRadius = dp(18).toFloat()
+            setStroke(dp(1), Theme.stroke)
+        }
+        elevation = dp(2).toFloat()
+        setPadding(dp(14), dp(12), dp(8), dp(12))
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        isClickable = true
+        setOnClickListener { onClick() }
+    }
+}
+
+/** The door's text column: name / desc / meta with the factory text
+ *  margins stripped (they would push the meta line out of the door). */
+fun Context.doorTextCol(name: String, desc: String, meta: String?): LinearLayout {
+    val col = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, dp(6), 0) }
+    }
+    fun line(t: String, sp: Float, bold: Boolean, color: Int, top: Int, maxLines: Int = 2): TextView {
+        val tv = makeText(t, sp, bold, color)
+        (tv.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(top), 0, 0)
+        tv.maxLines = maxLines; tv.ellipsize = android.text.TextUtils.TruncateAt.END
+        return tv
+    }
+    col.addView(line(name, 16.5f, true, Theme.textPrimary, 0, 1))
+    col.addView(line(desc, 12.5f, false, Theme.textSecondary, 2))
+    if (meta != null) col.addView(line(meta, 12f, false, Theme.textTertiary, 3, 1))
+    return col
+}
+
+/** Small caps tag for Library rows (mock .tag): PART / EQUIPMENT /
+ *  🏠 HOME chips, one color family per kind. */
+fun Context.tagView(text: String, bg: Int, fg: Int): TextView {
+    return TextView(this).apply {
+        this.text = text; textSize = 9.5f; setTextColor(fg)
+        typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+        background = roundedBg(bg, 6); setPadding(dp(6), dp(2), dp(6), dp(2)); maxLines = 1
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, dp(5), 0) }
+    }
+}
+
+/** "#RRGGBB" for a palette color — for the legacy String-hex
+ *  factories (pillView, cardDrawable accents) at palette-driven
+ *  call sites. */
+fun hexOf(color: Int): String = String.format("#%06X", 0xFFFFFF and color)
+
+/** Short weekday label ("Tue") for a yyyy-MM-dd session date — the
+ *  chooser / Recent meta style in the approved mock. */
+fun shortDay(dateStr: String): String {
+    return try {
+        val inFmt = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        val outFmt = java.text.SimpleDateFormat("EEE", java.util.Locale.US)
+        outFmt.format(inFmt.parse(dateStr)!!)
+    } catch (e: Exception) { "" }
 }
