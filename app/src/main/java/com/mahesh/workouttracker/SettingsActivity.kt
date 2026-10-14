@@ -253,7 +253,7 @@ class SettingsActivity : AppCompatActivity() {
         root.addView(tiles)
 
         // About: version + the week rule, allowed to wrap fully.
-        val about = caption("Workout Tracker · Version 3.9.2\nWeek counter advances only after a week with 1+ completed workout.")
+        val about = caption("Workout Tracker · Version 3.9.3\nWeek counter advances only after a week with 1+ completed workout.")
         (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
         root.addView(about)
     }

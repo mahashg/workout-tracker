@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 /** v3 picker: choose today's body parts (multi-select, at least 1), then the
@@ -95,6 +96,15 @@ class PickPartsActivity : AppCompatActivity() {
      *  exercise happens per exercise, from its card (Skip / Pass on
      *  the hub overview). */
     private fun startSessionWithAll(partIds: List<String>) {
+        // v3.9.3 exclusivity (defense in depth — the chooser's
+        // Workout door is already locked in this state): never CREATE
+        // a gym session while a Movie Movements session is in
+        // progress. One active workout at a time; back out to Home.
+        if (db.inProgressSessions().any { it.routineName == MovieDeck.ROUTINE_NAME }) {
+            Toast.makeText(this, "Finish your current Movements first", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
         val warm = LinkedHashMap<String, Exercise>()
         val stretch = LinkedHashMap<String, Exercise>()
         val mainAll = mutableListOf<Exercise>()

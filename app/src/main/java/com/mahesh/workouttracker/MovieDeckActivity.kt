@@ -126,13 +126,26 @@ class MovieDeckActivity : AppCompatActivity() {
 
         val wanted = intent.getLongExtra("sessionId", -1)
         val existing = db.inProgressSessions().firstOrNull { it.routineName == MovieDeck.ROUTINE_NAME }
+        // v3.9.3 exclusivity (defense in depth — the chooser and the
+        // At Home page already lock this door): never CREATE a deck
+        // session while a gym workout is in progress. Resuming an
+        // existing deck session (wanted / existing above) is never
+        // blocked. The refusal is a -1 id, caught just below before
+        // anything else runs — nothing is created.
+        val gymActive = db.inProgressSessions().any { it.routineName != MovieDeck.ROUTINE_NAME }
         sessionId = when {
             wanted > 0 -> wanted
             existing != null -> existing.id
+            gymActive -> -1L
             else -> {
                 val wm = WeekManager.reconcile(this, db)
                 db.createMovieSession(wm.weekNumber, wm.weekStart)
             }
+        }
+        if (sessionId < 0) {
+            Toast.makeText(this, "Finish your current workout first", Toast.LENGTH_LONG).show()
+            finish()
+            return
         }
         val session = db.getSession(sessionId)
         if (session == null || session.completed) { finish(); return }
