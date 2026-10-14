@@ -64,9 +64,10 @@ class PickPartsActivity : AppCompatActivity() {
         val n = selected.size
         // v3.7: no assemble/select page any more — Start creates the
         // session IMMEDIATELY with every exercise for the picked parts
-        // and opens the hub, where each exercise can be started or
-        // passed on individually (Mahesh: "start with all workout and
-        // let one select or pass on specific one").
+        // (Mahesh: "start with all workout and let one select or pass
+        // on specific one"). v3.8.2: it opens the FIRST exercise card
+        // directly — there is no hub stop on the way in; the hub
+        // remains as an overview behind the card's "☰ All exercises".
         val btn = makeButton(if (n == 0) "Pick at least 1 body part" else "Start workout · $n part${if (n == 1) "" else "s"}") {
             if (selected.isEmpty()) return@makeButton
             val ordered = BodyParts.ids.filter { it in selected }
@@ -88,7 +89,8 @@ class PickPartsActivity : AppCompatActivity() {
      *  primaries and non-primaries — in equipment clusters (Machine →
      *  Dumbbell → Kettlebell → Bodyweight, stable sort keeps JSON order
      *  inside a cluster). Nothing is pre-filtered: passing on an
-     *  exercise happens on the hub, per exercise. */
+     *  exercise happens per exercise, from its card (Skip / Pass on
+     *  the hub overview). */
     private fun startSessionWithAll(partIds: List<String>) {
         val warm = LinkedHashMap<String, Exercise>()
         val stretch = LinkedHashMap<String, Exercise>()
@@ -111,7 +113,9 @@ class PickPartsActivity : AppCompatActivity() {
         val wm = WeekManager.reconcile(this, db)
         val label = partIds.joinToString(" + ") { BodyParts.name(it) }
         val sessionId = db.createAssembledSession(label, partIds, items, wm.weekNumber, wm.weekStart)
-        startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", sessionId))
+        // v3.8.2: straight to the first workout card (warm-ups first) —
+        // the hub is no longer the start destination.
+        startActivity(firstPendingCardIntent(db, sessionId))
         finish()
     }
 

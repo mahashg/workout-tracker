@@ -19,7 +19,8 @@ import java.util.Locale
 
 /** v3 Home: the Week N scoreboard over body parts (the fixed 5-day routine
  *  assignment is retired). Start Workout -> pick today's parts -> assembled
- *  flat list. In-progress resume behavior is unchanged.
+ *  flat list. v3.8.2: resume (like Start) lands directly on the first
+ *  pending exercise card; the hub survives as an overview.
  *  Budget: since v3.8.1 the body-part grid is the page's single flex
  *  region (rows share its height), so the fixed blocks — title 32/40 +
  *  hero ~65/76 + sync 52 + start 54/60 + the At Home card ~97/160 —
@@ -293,19 +294,15 @@ class MainActivity : AppCompatActivity() {
         }
         AlertDialog.Builder(this)
             .setTitle("Workout in progress")
-            .setMessage("${inProgress.routineName} is in progress. Resume it, view its cards, or discard it and start a new workout?")
+            .setMessage("${inProgress.routineName} is in progress. Resume it, view all its exercises, or discard it and start a new workout?")
             .setPositiveButton("Resume workout") { _, _ ->
-                // v3.7: resume opens the hub (the sections screen left
-                // the start/resume flow with the assemble page).
-                startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", inProgress.id))
+                // v3.8.2: resume lands directly on the first pending
+                // exercise card (hub only if nothing is pending).
+                startActivity(firstPendingCardIntent(db, inProgress.id))
             }
-            .setNeutralButton("View cards") { _, _ ->
-                // Cards open at the first section that still has pending work.
-                val exs = db.getSessionExercises(inProgress.id)
-                val section = listOf("Warmup", "Main", "Stretch").firstOrNull { t ->
-                    exs.any { it.type.equals(t, true) && db.effectiveStatus(it) == "pending" }
-                } ?: "Main"
-                startActivity(Intent(this, CardSessionActivity::class.java).putExtra("sessionId", inProgress.id).putExtra("sectionType", section))
+            .setNeutralButton("View all exercises") { _, _ ->
+                // The hub as an overview: bands, Pass, reorder, Finish.
+                startActivity(Intent(this, WorkoutHubActivity::class.java).putExtra("sessionId", inProgress.id))
             }
             .setNegativeButton("Discard & start new") { _, _ ->
                 db.deleteSession(inProgress.id)
