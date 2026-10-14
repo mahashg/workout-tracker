@@ -253,7 +253,10 @@ object SetLogger {
                     setOnClickListener { st.isBw = !st.isBw; renderSheet() }
                 })
                 rowCard.addView(line1)
-                // Line 2: weight stepper · reps stepper · ✓ circle.
+                // Line 2: reps stepper · weight stepper · ✓ circle.
+                // v3.9.2 (Mahesh): reps FIRST, weight second — so the
+                // weight value + its KG/LB micro-label forms one
+                // aligned column across all rows, under the BW pill.
                 val line2 = LinearLayout(act).apply {
                     orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(6), 0, 0) }
@@ -278,22 +281,10 @@ object SetLogger {
                     })
                     return stack
                 }
-                // Weight stepper (step 2.5 kg / 5 lb, as the old logger).
-                line2.addView(roundBtn("−") {
-                    if (st.isBw) { st.isBw = false; st.weight = 0.0 } else st.weight = (st.weight - wStep).coerceAtLeast(0.0)
-                    renderSheet()
-                })
-                line2.addView(valueStack(if (st.isBw) "BW" else fmtWeight(st.weight), unit.uppercase(Locale.US)) {
-                    customValueDialog(act, true, st.weight, "Custom weight ($unit)") { v -> st.isBw = false; st.weight = v; renderSheet() }
-                })
-                line2.addView(roundBtn("+") {
-                    if (st.isBw) { st.isBw = false; st.weight = wStep } else st.weight += wStep
-                    renderSheet()
-                })
-                // Reps stepper (step 1).
+                // Reps stepper first (step 1) — v3.9.2 swap.
                 val repsGroup = LinearLayout(act).apply {
                     orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(14), 0, 0, 0) }
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 }
                 repsGroup.addView(roundBtn("−") { st.reps = (st.reps - 1).coerceAtLeast(1); renderSheet() })
                 repsGroup.addView(valueStack(st.reps.toString(), "REPS") {
@@ -301,6 +292,25 @@ object SetLogger {
                 })
                 repsGroup.addView(roundBtn("+") { st.reps++; renderSheet() })
                 line2.addView(repsGroup)
+                // Weight stepper second (step 2.5 kg / 5 lb, as the
+                // old logger) — its own group so the swap is a pure
+                // reorder; every handler is byte-identical.
+                val weightGroup = LinearLayout(act).apply {
+                    orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(14), 0, 0, 0) }
+                }
+                weightGroup.addView(roundBtn("−") {
+                    if (st.isBw) { st.isBw = false; st.weight = 0.0 } else st.weight = (st.weight - wStep).coerceAtLeast(0.0)
+                    renderSheet()
+                })
+                weightGroup.addView(valueStack(if (st.isBw) "BW" else fmtWeight(st.weight), unit.uppercase(Locale.US)) {
+                    customValueDialog(act, true, st.weight, "Custom weight ($unit)") { v -> st.isBw = false; st.weight = v; renderSheet() }
+                })
+                weightGroup.addView(roundBtn("+") {
+                    if (st.isBw) { st.isBw = false; st.weight = wStep } else st.weight += wStep
+                    renderSheet()
+                })
+                line2.addView(weightGroup)
                 line2.addView(android.view.View(act), LinearLayout.LayoutParams(0, 1, 1f))
                 // The big ✓: filled green when logged, hollow when not.
                 line2.addView(TextView(act).apply {

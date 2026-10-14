@@ -26,8 +26,9 @@ import androidx.recyclerview.widget.RecyclerView
  * ALL of its exercises; the hub lists every one of them in three
  * tinted section bands — Warm-Up / Workout / Cool-Down — with a
  * left-swipe Pass on pending rows (skip, never a rest; v3.9.1 — it
- * replaced the per-row Pass button), drag reorder within a section,
- * and tap-to-start cards. It replaces both the old assemble page and
+ * replaced the per-row Pass button) and its v3.9.2 mirror, a
+ * right-swipe on a passed row to add it back to pending, drag
+ * reorder within a section, and tap-to-start cards. It replaces both the old assemble page and
  * the sections screen in the start/resume flow (those stay in the
  * codebase, dormant).
  *
@@ -268,20 +269,38 @@ class WorkoutHubActivity : AppCompatActivity() {
         renderAll()
     }
 
+    /** v3.9.2: the mirror of passExercise — a RIGHT swipe on a passed
+     *  row writes it back to "pending" through the same status path.
+     *  Only the status column changes: any sets logged before the pass
+     *  stay exactly as they are, and restoring NEVER starts a rest.
+     *  The full re-render recomputes up-next highlighting as usual. */
+    private fun restoreExercise(ex: SessionExercise) {
+        db.setSessionExerciseStatus(ex.id, "pending")
+        Toast.makeText(this, "Added back ${ex.name}", Toast.LENGTH_SHORT).show()
+        renderAll()
+    }
+
     // ---------- drag reorder (within a section only) ----------
 
-    private inner class HubDragCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
+    private inner class HubDragCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
             if (viewHolder is BandHolder) 0 else super.getDragDirs(recyclerView, viewHolder)
         /** v3.9.1: LEFT swipe = Pass (Mahesh's request — it replaces
          *  the per-row Pass button). Swipe is offered ONLY on rows
-         *  still pending — the exact set the Pass button showed for;
-         *  bands and handled rows get no swipe at all. Drag stays
-         *  handle-driven (below), so the two never fight. */
+         *  still pending — the exact set the Pass button showed for.
+         *  v3.9.2 adds the mirror: RIGHT swipe = Add back, offered
+         *  ONLY on passed (skipped) rows. Done rows get neither
+         *  direction — logged work is never undone by a swipe — and
+         *  bands get 0 both ways. Drag stays handle-driven (below),
+         *  so the two never fight. */
         override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
             val row = viewHolder as? RowHolder ?: return 0
             val item = adapter?.items?.getOrNull(row.bindingAdapterPosition) as? HubItem.Row ?: return 0
-            return if (db.effectiveStatus(item.ex) == "pending") ItemTouchHelper.LEFT else 0
+            return when (db.effectiveStatus(item.ex)) {
+                "pending" -> ItemTouchHelper.LEFT
+                "skipped" -> ItemTouchHelper.RIGHT
+                else -> 0
+            }
         }
         override fun isLongPressDragEnabled(): Boolean = false
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
@@ -294,29 +313,44 @@ class WorkoutHubActivity : AppCompatActivity() {
             return ad.moveRow(from, to)
         }
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            // The IDENTICAL write the Pass button performed: status
-            // "skipped" via passExercise (never a rest, no advance
-            // side effects), then the full re-render it always did —
-            // so a swiped row renders exactly like a button-passed one.
+            // LEFT: the IDENTICAL write the Pass button performed:
+            // status "skipped" via passExercise (never a rest, no
+            // advance side effects), then the full re-render it always
+            // did — so a swiped row renders exactly like a
+            // button-passed one. RIGHT (v3.9.2): the reverse write via
+            // restoreExercise — status "pending", same re-render.
             val item = adapter?.items?.getOrNull(viewHolder.bindingAdapterPosition) as? HubItem.Row ?: return
-            if (db.effectiveStatus(item.ex) == "pending") passExercise(item.ex)
+            when (direction) {
+                ItemTouchHelper.LEFT -> if (db.effectiveStatus(item.ex) == "pending") passExercise(item.ex)
+                ItemTouchHelper.RIGHT -> if (db.effectiveStatus(item.ex) == "skipped") restoreExercise(item.ex)
+            }
         }
-        /** Swipe cue: as the row slides left, a pending-toned panel
+        /** Swipe cues: as the row slides left, a pending-toned panel
          *  with "✕ PASS" is revealed behind its right edge — the same
-         *  grey/✕ treatment a passed row wears afterwards. */
+         *  grey/✕ treatment a passed row wears afterwards. v3.9.2
+         *  mirrors it on the other side: sliding right reveals
+         *  "↩ ADD BACK" behind the row's LEFT edge, in the same
+         *  pending palette treatment the row returns to. */
         override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-            if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX < 0 && viewHolder is RowHolder) {
+            if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && viewHolder is RowHolder && dX != 0f) {
                 val v = viewHolder.itemView
                 val bg = rectBg(Theme.pendingBg, 12)
-                bg.setBounds((v.right + dX).toInt(), v.top, v.right, v.bottom)
-                bg.draw(c)
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Theme.pendingFg; textSize = dp(12).toFloat(); textAlign = Paint.Align.RIGHT
+                    color = Theme.pendingFg; textSize = dp(12).toFloat()
                     typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
                 }
-                val label = "✕ PASS"
                 val baseline = (v.top + v.bottom) / 2f - (paint.descent() + paint.ascent()) / 2f
-                c.drawText(label, (v.right - dp(16)).toFloat(), baseline, paint)
+                if (dX < 0) {
+                    bg.setBounds((v.right + dX).toInt(), v.top, v.right, v.bottom)
+                    bg.draw(c)
+                    paint.textAlign = Paint.Align.RIGHT
+                    c.drawText("✕ PASS", (v.right - dp(16)).toFloat(), baseline, paint)
+                } else {
+                    bg.setBounds(v.left, v.top, (v.left + dX).toInt(), v.bottom)
+                    bg.draw(c)
+                    paint.textAlign = Paint.Align.LEFT
+                    c.drawText("↩ ADD BACK", (v.left + dp(16)).toFloat(), baseline, paint)
+                }
             }
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
         }
@@ -407,8 +441,9 @@ class WorkoutHubActivity : AppCompatActivity() {
             col.addView(holder.lastTv)
             row.addView(col)
             // v3.9.1: no Pass button — LEFT swipe on a pending row is
-            // the Pass now (HubDragCallback); the reclaimed width goes
-            // to the name/last-time column.
+            // the Pass now (HubDragCallback); v3.9.2: RIGHT swipe on a
+            // passed row adds it back. The reclaimed width goes to the
+            // name/last-time column.
             holder.handle = TextView(this@WorkoutHubActivity).apply {
                 text = "⋮⋮"; textSize = 16f; setTextColor(Color.parseColor("#94A3B8"))
                 gravity = Gravity.CENTER
