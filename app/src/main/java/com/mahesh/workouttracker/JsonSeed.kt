@@ -25,7 +25,13 @@ object JsonSeed {
          *  (an EXERCISE_SEGMENT_TYPE_* constant NAME from the bundled
          *  config, "" when absent). HealthSync resolves segments from this
          *  instead of guessing from the exercise name. */
-        val hcType: String = ""
+        val hcType: String = "",
+        /** v3.8.1: home-mode markers. [home] flags a zero-equipment
+         *  living-room movement (the deferred Home Workout build reads
+         *  it); [counterSec] (30–60, 0 = none) marks membership in the
+         *  Movie Movements deck and carries the movement's counter. */
+        val home: Boolean = false,
+        val counterSec: Int = 0
     )
 
     data class PartData(val partId: String, val warmups: List<Entry>, val exercises: List<Entry>, val stretches: List<Entry>) {
@@ -55,7 +61,8 @@ object JsonSeed {
                             primary = o.optBoolean("primary", false),
                             defaultWeight = o.optString("defaultWeight"), variation = o.optString("variation"),
                             easier = o.optString("easier"), photo = o.optString("photo"), type = type,
-                            hcType = o.optString("hcType")
+                            hcType = o.optString("hcType"),
+                            home = o.optBoolean("home", false), counterSec = o.optInt("counterSec", 0)
                         ))
                     }
                     return list
@@ -82,7 +89,29 @@ object JsonSeed {
             prefs.edit().putBoolean("v3SeedApplied", true).apply()
         }
         applyV36AdditionsIfNeeded(context, db, prefs)
+        applyV381AdditionsIfNeeded(context, db, prefs)
     }
+
+    /** v3.8.1: one-time additive step for the 15 Movie deck movements,
+     *  same contract as the v3.6 step (its own gate pref, insert-missing
+     *  by sourceId, never updates/deletes, history untouched). Note the
+     *  step inserts NEW entries only — the 3 reused deck entries
+     *  (Bodyweight Squat, Arm Circles, Single-Leg Calf Raise) already
+     *  exist in every install's DB; their JSON-side home/counterSec
+     *  fields are read from the bundled JSON at runtime (see
+     *  [deckEntries]), not from the DB, so they need no DB change. */
+    private fun applyV381AdditionsIfNeeded(context: Context, db: DbHelper, prefs: SharedPreferences) {
+        if (prefs.getBoolean("v381CatalogApplied", false)) return
+        insertMissingEntries(context, db)
+        prefs.edit().putBoolean("v381CatalogApplied", true).apply()
+    }
+
+    /** The Movie Movements deck (v3.8.1): every bundled entry carrying a
+     *  counter (30–60s), in catalog order (part order, then JSON order
+     *  within the part). Membership lives in the JSON so it can never
+     *  drift from the entries' own data. */
+    fun deckEntries(context: Context): List<Pair<String, Entry>> =
+        loadAll(context).flatMap { pd -> pd.all.filter { it.counterSec in 30..60 }.map { pd.partId to it } }
 
     /** v3.6: one-time ADDITIVE catalog step. Installs seeded before v3.6
      *  never re-run [applyV3], so catalog entries added to the JSONs later

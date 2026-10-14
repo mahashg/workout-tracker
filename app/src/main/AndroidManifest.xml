@@ -26,6 +26,7 @@
         <activity android:name=".WorkoutDetailActivity" android:exported="false" />
         <activity android:name=".WorkoutSectionsActivity" android:exported="false" />
         <activity android:name=".WorkoutHubActivity" android:exported="false" />
+        <activity android:name=".MovieDeckActivity" android:exported="false" />
         <activity android:name=".CardSessionActivity" android:exported="false" />
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".LibraryActivity" android:exported="false" />

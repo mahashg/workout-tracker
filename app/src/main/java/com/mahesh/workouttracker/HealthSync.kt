@@ -200,7 +200,11 @@ object HealthSync {
 
         val unit = WeekManager.unit(app)
         val parts = db.getSessionParts(session.id)
-        val title = if (parts.isNotEmpty()) parts.joinToString(" + ") { BodyParts.name(it) } else session.routineName
+        // v3.8.1: a Movie Movements session syncs under its own name —
+        // its parts are credited incrementally and would otherwise
+        // relabel the record as a gym-style part list.
+        val title = if (session.routineName == MovieDeck.ROUTINE_NAME) MovieDeck.ROUTINE_NAME
+            else if (parts.isNotEmpty()) parts.joinToString(" + ") { BodyParts.name(it) } else session.routineName
         // Notes: "Week N · Workout Tracker" plus the per-exercise heaviest
         // set — ExerciseSegment in connect-client 1.1.0 has no weight
         // field, so this is where the weights live (see class doc).
