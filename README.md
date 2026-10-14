@@ -1194,3 +1194,110 @@ On-device-only proof still owed (cannot be shown headlessly): deck
 visuals vs the mock, the pinned counter band, countdown feel, the
 completion beat, chips packing, pause behavior, resume from the Home
 card, and the At Home card on compact screens.
+
+## V3.8.2 (versionCode 25) — direct card flow (hub demoted) + Movie deck photo openers
+
+Two changes from Mahesh's on-device use. (1) The v3.7 hub is OUT of
+the workout flow: in his words, "there is no today's workout page,
+user clicks on start workout they directly go to first workout card…
+when one workout is finished it takes you to 2nd workout rather than
+today's workout page." (2) In Movie Movements, the first 3 movements
+of every fresh session always have pictures.
+
+### Route changes (the hub is demoted, not deleted)
+
+- **Start**: PickPartsActivity still creates the session exactly as
+  v3.7 (ALL exercises for the parts, equipment-cluster order) but now
+  opens **CardSessionActivity at the first pending exercise**
+  (session order — warm-ups first) instead of the hub.
+- **Resume**: Home's in-progress dialog "Resume workout" opens the
+  same first-pending card. The dialog's other button is retargeted
+  to match: "View cards" (which landed on that same first pending
+  card, now a duplicate) became **"View all exercises"** → the hub.
+  Message copy updated to name the three actions as they now are.
+  Both routes share one helper, `Context.firstPendingCardIntent`
+  (Ui.kt): first pending in session order → card intent
+  (sessionId + sectionType + exerciseId, mirroring the hub's row
+  taps); **no pending at all → hub** (a fully-handled session that
+  was never finished still needs its Finish button).
+- **Unchanged hub routes**: the card's "☰ All exercises" chip, the
+  transition's "See All Exercises", the completion state's "All
+  Exercises", and now the resume dialog's "View all exercises". The
+  hub itself is byte-for-byte functional (bands, Pass, within-section
+  drag reorder, REST chip, Finish Workout) — and its Finish is now
+  also the mid-workout early-finish path: card → ☰ chip → hub →
+  Finish. Its "Today's Workout" title stays: it names what the
+  overview shows, not a place in the flow. (History / WorkoutDetail
+  never linked to the hub — their card/sections routes are
+  untouched, as are the Movie deck, picker, Library, Settings, and
+  the Health Connect / Drive call sites.)
+
+### What "advance" means now, per path (CardSessionActivity)
+
+- **Done** (right swipe, via the unchanged v3.3 Main-only
+  unlogged-sets confirmation) → `advanceWithRest()`: if the section
+  still has pending, a Main exercise runs the between-exercise Rest
+  Ring first (60s default, unchanged engine semantics — GO / Skip
+  rest fires the advance exactly once) and then the **next pending
+  exercise's card** renders; Warm-Up / Cool-Down dones advance
+  directly (they never rested). If the Done emptied the section,
+  render() lands on the **transition card** when a later section has
+  pending (its "Start <Section> Section" is itself the advance to
+  that section's first pending card; "See All Exercises" still opens
+  the hub) or on the plain **completion state** → Summary, both
+  exactly as v3.7.
+- **Last set logged** (Save Set / Repeat-last-time leaving 0 sets):
+  same `advanceWithRest()` as Done, including the Rest Ring.
+- **Set logged with more to go**: the 30s set rest is unchanged.
+- **Skip**: unchanged since v3.3 — next pending card, never rests.
+- **Later** (down-swipe): unchanged — exercise moves to the end of
+  its section, next pending card renders.
+- **Scroller strip**: unchanged; a cross-section tap still reopens
+  the card screen there.
+- **REST chip across the advance**: the chip is driven by the
+  RestTimer engine, not by any screen, so it keeps ticking on
+  whatever card is up while a hidden rest runs out. One guard added:
+  the ring's advance callback checks the user is still on the
+  exercise that scheduled it — if they strip-jumped elsewhere while
+  a hidden rest ran out, the callback only refreshes their current
+  card instead of yanking them to the scheduled target; a finishing
+  / destroyed window swallows the callback entirely. (In v3.7 the
+  callback unconditionally navigated to the hub.)
+
+Edge cases: resume mid-section lands on that section's first pending
+(the shared helper scans the whole session in order); a session
+whose every exercise was passed/skipped from the hub resumes
+straight to the hub fallback; finishing from the card flow needs no
+hub visit at any point.
+
+### Movie deck: photo openers
+
+On a **fresh** session (never on resume), the first 3 deals come
+from the deck's photo-having subset, shuffled among themselves;
+from deal 4 the normal full-pool shuffle-bag takes over. The subset
+is resolved at runtime from the catalog data itself —
+`PhotoLib.assetForExercise`, the same lookup the movement screen
+uses to render — so it tracks the data, not a hardcoded list. With
+today's catalog the subset is **5 of 18**: bodyweight-squat
+(Quads), incline-push-up (Chest), single-leg-calf-raise (Calves),
+arm-circles and shoulder-rolls (Shoulders) — all with both photo
+frames bundled. Photo movements may reappear later in the bag;
+`refillBag`'s no-repeat check guards the position-3→4 boundary via
+`lastDealtId`. If the subset ever fell below 3, all of it would
+open the session (the code takes `shuffled().take(3)`).
+
+Verified: offline build successful; `aapt` versionCode 25 /
+"3.8.2"; minSdk 26; DB stays v4; signing cert unchanged
+(0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE).
+Greps: fitXY = 0, ScrollView = 0, RecyclerView confined to
+WorkoutHubActivity.kt + CardSessionActivity.kt. APK: 13,917,058
+bytes — ~331KB smaller than v3.8.1's file with near-identical
+uncompressed contents (731 entries, +1,892B in classes3.dex for the
+new code): the difference is zip entry compression in the standard
+assembleDebug output, not content.
+
+On-device-only proof still owed: Start landing on the first warm-up
+card, Done-to-next-card feel with the Rest Ring in between, the
+resume dialog's new middle button, strip-jumping during a hidden
+rest (no yank when it ends), and a fresh Movie session opening with
+three pictured movements.
