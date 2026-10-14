@@ -15,7 +15,9 @@
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/HMxqtrsNz60",
       "primary": true,
-      "defaultWeight": "BW"
+      "defaultWeight": "BW",
+      "home": true,
+      "counterSec": 30
     },
     {
       "id": "kettlebell-halo",
@@ -174,6 +176,23 @@
       "image": "shoulders",
       "url": "https://www.youtube.com/results?search_query=Face+Pull+form",
       "primary": false
+    },
+    {
+      "id": "shoulder-rolls",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/shoulder-rolls.jpg",
+      "name": "Shoulder Rolls",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea way",
+      "targetMuscles": "shoulders",
+      "precautions": "Stand or sit tall, arms relaxed at your sides;Roll both shoulders together in big slow circles;Keep your neck long - ears away from shoulders;Shrink the circle if anything pinches",
+      "cues": "Shoulders up, back, and down;Big slow circles;Reverse direction halfway",
+      "image": "shoulders",
+      "url": "https://www.youtube.com/results?search_query=Shoulder+Rolls+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 30
     }
   ],
   "stretches": [

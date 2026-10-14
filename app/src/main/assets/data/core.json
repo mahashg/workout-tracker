@@ -93,6 +93,38 @@
       "image": "core",
       "url": "https://www.youtube.com/results?search_query=Torso+Rotation+Machine+form",
       "primary": false
+    },
+    {
+      "id": "standing-knee-raises",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "name": "Standing Knee Raises",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "core",
+      "precautions": "Stand tall, chair or wall within reach for balance;Lift one knee to hip height - no higher needed;Do not lean back as the knee rises;Lower the foot softly before switching sides",
+      "cues": "Stand tall, brace your middle;Lift knee, lower slowly;Alternate sides",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Standing+Knee+Raises+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
+    },
+    {
+      "id": "standing-cross-body-crunch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "name": "Standing Cross-Body Crunch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "core",
+      "precautions": "Stand tall, fingertips lightly behind your ears - do not pull your neck;Turn from your waist as elbow meets opposite knee;Lift the knee to meet the elbow, not the other way;Move slowly - no yanking or bouncing",
+      "cues": "Elbow to opposite knee;Twist from the waist;Alternate sides slowly",
+      "image": "core",
+      "url": "https://www.youtube.com/results?search_query=Standing+Cross+Body+Crunch+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 40
     }
   ],
   "stretches": []

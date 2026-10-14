@@ -110,6 +110,38 @@
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=Cable+Pull-Through+form",
       "primary": false
+    },
+    {
+      "id": "standing-hamstring-curl",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_CURL",
+      "name": "Standing Hamstring Curl",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "hamstrings",
+      "precautions": "Hold a chair back or wall for balance;Bend one knee, heel toward your bottom;Thigh stays still and vertical - only the lower leg moves;Lower the foot slowly, no dropping",
+      "cues": "Heel to bottom, thigh still;Squeeze the back of your thigh;Lower slowly, repeat, switch",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=Standing+Hamstring+Curl+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
+    },
+    {
+      "id": "good-morning",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "name": "Good Morning",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Feet hip-width, knees soft - never locked;Hands lightly across your chest;Push your hips back with a flat back - chest stays open;Lower only until you feel a gentle stretch behind your thighs",
+      "cues": "Hips back, flat back;Feel the stretch behind thighs;Push hips forward to stand",
+      "image": "hamstrings",
+      "url": "https://www.youtube.com/results?search_query=Bodyweight+Good+Morning+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 40
     }
   ],
   "stretches": [

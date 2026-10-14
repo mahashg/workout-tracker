@@ -145,6 +145,39 @@
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=Assisted+Dip+(Chest)+form",
       "primary": false
+    },
+    {
+      "id": "wall-push-ups",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "name": "Wall Push-Ups",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "12-15",
+      "targetMuscles": "chest",
+      "precautions": "Palms flat on the wall at shoulder height, fingers pointing up;Body in one straight line - no sagging hips;Feet far enough back that you lean in slightly;Lower until elbows bend about 90 degrees, no deeper",
+      "cues": "Hands flat, body straight;Bend elbows, lean in;Push the wall away",
+      "image": "chest",
+      "url": "https://www.youtube.com/results?search_query=Wall+Push+Ups+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
+    },
+    {
+      "id": "incline-push-up",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/incline-push-up.jpg",
+      "name": "Incline Push-Up",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "chest",
+      "precautions": "Hands on the couch edge or a sturdy low table - it must not slide;Body straight from head to heels;Elbows about 45 degrees from your body, not flared wide;Lower your chest toward the edge, not your hips",
+      "cues": "Hands on the edge, body straight;Lower chest to the edge;Press back up tall",
+      "image": "chest",
+      "url": "https://www.youtube.com/results?search_query=Incline+Push+Up+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 40
     }
   ],
   "stretches": [

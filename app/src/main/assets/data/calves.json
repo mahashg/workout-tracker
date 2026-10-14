@@ -45,7 +45,25 @@
       "cues": "One foot on step, hold support;Rise onto toes tall;Lower slowly, repeat, switch",
       "image": "calves",
       "url": "https://www.youtube.com/results?search_query=Single-Leg+Calf+Raise+form",
-      "primary": false
+      "primary": false,
+      "home": true,
+      "counterSec": 40
+    },
+    {
+      "id": "standing-calf-raises",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "name": "Standing Calf Raises",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "15-20",
+      "targetMuscles": "calves",
+      "precautions": "Hold a chair back or wall lightly for balance;Feet hip-width, toes pointing forward;Rise straight up - do not roll your ankles outward;Lower slowly until your heels touch the floor",
+      "cues": "Hold support, stand tall;Rise onto your toes;Lower slowly, repeat",
+      "image": "calves",
+      "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raises+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
     }
   ],
   "stretches": [

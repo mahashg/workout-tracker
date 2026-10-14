@@ -47,7 +47,9 @@
       "image": "quads",
       "url": "https://www.youtube.com/watch?v=Ul2idJKmpAc",
       "primary": true,
-      "defaultWeight": "BW"
+      "defaultWeight": "BW",
+      "home": true,
+      "counterSec": 45
     },
     {
       "id": "leg-swings",
@@ -206,6 +208,70 @@
       "image": "quads",
       "url": "https://www.youtube.com/results?search_query=Stationary+DB+Lunge+form",
       "primary": false
+    },
+    {
+      "id": "march-in-place",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WALKING",
+      "name": "March in Place",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "60 steps",
+      "targetMuscles": "quads",
+      "precautions": "Stand tall with a chair or wall within reach;Lift knees only as high as comfortable - thigh level is plenty;Land softly on the whole foot;Keep a steady, easy rhythm - you could hold a conversation",
+      "cues": "Stand tall, swing arms gently;Lift one knee, then the other;Soft steps, steady rhythm",
+      "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=March+In+Place+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 60
+    },
+    {
+      "id": "sit-to-stand",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "name": "Sit-to-Stand",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "12",
+      "targetMuscles": "quads",
+      "precautions": "Use a sturdy chair or the couch edge - no wheels, no sinking seat;Feet flat, hip-width, slightly back under your knees;Lean your chest a little forward as you stand;Push with your hands on your thighs only if you need help",
+      "cues": "Sit tall at the edge;Lean forward, push through heels;Stand tall, sit back down slowly",
+      "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Sit+to+Stand+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
+    },
+    {
+      "id": "step-jacks",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "name": "Step Jacks",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "quads",
+      "precautions": "Step wide, never jump - one foot always stays on the floor;Soft knees as each foot lands;Arms rise only as high as comfortable;Slow down any time - keep the rhythm easy",
+      "cues": "Step out, arms rise;Step in, arms lower;Alternate sides smoothly",
+      "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Step+Jacks+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
+    },
+    {
+      "id": "step-touch",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "name": "Step Touch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "quads",
+      "precautions": "Stay tall - do not lean toward the stepping foot;Step wide enough to feel your hips work;Toes point forward on both feet;Hold a chair back if your balance feels unsure",
+      "cues": "Step right, tap left foot in;Step left, tap right foot in;Easy side-to-side rhythm",
+      "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Step+Touch+exercise+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 45
     }
   ],
   "stretches": [

@@ -159,6 +159,22 @@
       "url": "https://www.youtube.com/results?search_query=Glute+Kickback+Machine+form",
       "primary": false,
       "easier": "Glute Bridge"
+    },
+    {
+      "id": "standing-hip-abduction",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "name": "Standing Hip Abduction",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "glutes",
+      "precautions": "Hold a chair back or wall with one hand;Moving leg straight, toes pointing forward - not turned out;Lift the leg out to the side only 30-45 degrees;Stand tall - do not lean away from the moving leg",
+      "cues": "Hold support, stand tall;Leg out to the side, toes forward;Lower slowly, repeat, switch",
+      "image": "glutes",
+      "url": "https://www.youtube.com/results?search_query=Standing+Hip+Abduction+form",
+      "primary": false,
+      "home": true,
+      "counterSec": 40
     }
   ],
   "stretches": [
