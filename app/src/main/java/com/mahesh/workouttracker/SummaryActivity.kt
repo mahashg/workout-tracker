@@ -65,7 +65,11 @@ class SummaryActivity : AppCompatActivity() {
         val done = exs.count { db.effectiveStatus(it) == "done" }; val skipped = exs.count { db.effectiveStatus(it) == "skipped" }; val setsDone = exs.sumOf { db.getSets(it.id).count { s -> s.isDone } }; val setsTotal = exs.sumOf { db.getSets(it.id).size }
         val muscles = linkedSetOf<String>(); for (ex in exs) if (db.effectiveStatus(ex) == "done") muscles.addAll(DbHelper.parseMuscles(ex.targetMuscles, ex.name))
         val card = cardLayout("#15803D")
-        card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(148)).apply { setMargins(0, 0, 0, 0) }
+        // v3.8.3: was a fixed 148dp, but its real content is ~183dp
+        // (overline + title + the 104dp body map / 4 stat rows) — the
+        // same fixed-height clipping class as Settings. Wrap-content;
+        // the page's flexible filler below absorbs the difference.
+        card.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
         card.setPadding(dp(12), dp(8), dp(12), dp(8))
         card.addView(overline("Today you trained"))
         card.addView(cardTitle(musclesLabel(muscles)))
@@ -87,7 +91,10 @@ class SummaryActivity : AppCompatActivity() {
         root.addView(card)
 
         val perCard = cardLayout()
-        perCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(92)).apply { setMargins(0, 0, 0, 0) }
+        // v3.8.3: wrap-content (was fixed 92dp; real content is ~96dp
+        // once the lines' 1dp margins are counted, so the third section
+        // line could clip by a few dp when all three sections exist).
+        perCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
         perCard.setPadding(dp(12), dp(8), dp(12), dp(8))
         // v3.2 polish: the three section lines were 14sp bodyText with the
         // factory 4dp margins — ~109dp of content in a 92dp card, so the
@@ -131,7 +138,9 @@ class SummaryActivity : AppCompatActivity() {
             }
             if (cmps.isNotEmpty()) {
                 val beatCard = cardLayout()
-                beatCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(68)).apply { setMargins(0, 0, 0, 0) }
+                // v3.8.3: wrap-content (was fixed 68dp; title + a 2-line
+                // delta text is ~84dp, so the delta's second line clipped).
+                beatCard.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
                 beatCard.setPadding(dp(12), dp(8), dp(12), dp(8))
                 beatCard.addView(makeText("Beat last time on ${cmps.count { it.second }} of ${cmps.size} exercises", 14f, true, Theme.primary))
                 val deltas = cmps.filter { it.second }.take(3)

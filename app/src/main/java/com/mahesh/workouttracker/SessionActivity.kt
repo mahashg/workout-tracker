@@ -64,7 +64,12 @@ class SessionActivity : AppCompatActivity() {
         hTitle.maxLines = 1; hTitle.ellipsize = android.text.TextUtils.TruncateAt.END
         (hTitle.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         hInfo.addView(hTitle)
-        val hSub = makeText("${session.focus} • ${musclesLabel(allMuscles)}", 11f, false, Theme.textSecondary)
+        // v3.8.3: same stray-separator bug as the History list — a
+        // Movie Movements session has focus="" and rendered a leading
+        // "• ...". Build from non-empty segments; focus part ids are
+        // shown as names, matching the History list.
+        val focusNames = session.focus.split(",").map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ") { tok -> BodyParts.byId(tok)?.name ?: tok }
+        val hSub = makeText(listOf(focusNames, musclesLabel(allMuscles)).filter { it.isNotBlank() }.joinToString(" • "), 11f, false, Theme.textSecondary)
         hSub.maxLines = 1; hSub.ellipsize = android.text.TextUtils.TruncateAt.END
         (hSub.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
         hInfo.addView(hSub)
