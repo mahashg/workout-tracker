@@ -95,6 +95,22 @@ kickback (glute), or pull-apart constant, and the only row constant is
 `DUMBBELL_ROW`. There is also no dumbbell bench-press constant — presses
 map to `BENCH_PRESS`.
 
+## V3.6 additions (8 gym machines, 2026-10-13/14)
+
+Same method — every value below is from the verified 68-constant table;
+no new constants. Coverage over the grown catalog: 102 entries.
+
+| Entry | File | hcType | Rationale |
+|---|---|---|---|
+| torso-rotation-machine | core.json | UPPER_TWIST | Seated trunk rotation — the same call as russian-twist (value 63, verified present). |
+| mid-row-machine | back.json | WEIGHTLIFTING | Chest-supported machine row; the only row constant is DUMBBELL_ROW — a machine row is not that (the seated-cable-row precedent). |
+| back-extension-machine | back.json | BACK_EXTENSION | The constant names this exact movement (and the bodyweight back-extension entry already uses it). |
+| seated-dip-machine | triceps.json | WEIGHTLIFTING | No dip constant exists (the bench-dip / assisted-dip-chest precedent). |
+| triceps-extension-machine | triceps.json | DOUBLE_ARM_TRICEPS_EXTENSION | The implement-neutral two-arm extension — both arms press together (the cable-pushdown / skull-crusher precedent; the DUMBBELL_* variants name the wrong implement). |
+| bicep-curl-machine | biceps.json | ARM_CURL | No BICEP_CURL constant exists in the table; ARM_CURL is the generic curl constant every other two-arm/machine curl uses (machine-preacher-curl precedent). |
+| hip-adduction-machine | glutes.json | WEIGHTLIFTING | No adduction constant exists — mirrors hip-abduction-machine exactly. |
+| glute-kickback-machine | glutes.json | WEIGHTLIFTING | No kickback constant exists — mirrors cable-glute-kickback exactly. |
+
 ## Coverage
 
 94 catalog entries mapped: **47 specific** (a constant naming the

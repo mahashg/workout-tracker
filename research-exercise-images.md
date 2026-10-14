@@ -119,6 +119,28 @@ Verification: 20 downloaded images were spot-viewed (see notes). 1 was dropped a
 
 Each dataset entry ships a second photo (`images[1]` — the other position of the movement). On 2026-10-13 the second frame of every matched entry above was downloaded from the same URL pattern (`.../exercises/<Entry>/1.jpg`), resized to max width 640px and re-encoded as JPEG quality 80 with Pillow, and bundled as `app/src/main/assets/exercise-images/<our-id>-2.jpg`. Coverage: **81 of 81** bundled photos have a second frame (every matched entry had one). The app crossfade-loops the two frames in card mode and in the Library detail (hold ~800ms, fade ~350ms); exercises without a photo still use the body-map display. Like the first frames, the `-2.jpg` binaries are NOT pushed to GitHub.
 
+## Gym machines — v3.6 (8 added from the user's gym photos)
+
+On 2026-10-13 the user photographed the Hoist ROC-IT selectorized machines at his 24 Hour Fitness. Audit against the catalog found 7 already supported (Seated Leg Curl, Chest Press Machine, Shoulder Press Machine, Lying Leg Curl = his "Prone Leg Curl", Hip Abduction Machine = his "Outer Thigh", Leg Extension, Leg Press). The 8 missing ones were added as catalog entries; photos were matched from the same dataset on 2026-10-14 with the same pipeline (max width 640px, JPEG q80, both frames bundled as `<our-id>.jpg` + `<our-id>-2.jpg`). Each candidate photo was visually checked before acceptance.
+
+| Our ID | Our exercise | Dataset exercise | Image path (images[0]) | Status |
+|---|---|---|---|---|
+| torso-rotation-machine | Torso Rotation Machine | — | — | unmatched |
+| mid-row-machine | Mid Row Machine | Leverage Iso Row | Leverage_Iso_Row/0.jpg | matched |
+| back-extension-machine | Back Extension Machine | — | — | unmatched |
+| seated-dip-machine | Seated Dip Machine | Dip Machine | Dip_Machine/0.jpg | matched |
+| triceps-extension-machine | Triceps Extension Machine | Machine Triceps Extension | Machine_Triceps_Extension/0.jpg | matched |
+| bicep-curl-machine | Bicep Curl Machine | Machine Bicep Curl | Machine_Bicep_Curl/0.jpg | matched |
+| hip-adduction-machine | Hip Adduction Machine | Thigh Adductor | Thigh_Adductor/0.jpg | matched |
+| glute-kickback-machine | Glute Kickback Machine | Glute Kickback | Glute_Kickback/0.jpg | matched |
+
+Notes on the v3.6 matches:
+- **Mid Row Machine → Leverage Iso Row**: the dataset's seated lever row; its instructions ("adjust the seat height so that the handles are at chest level") mirror the Hoist placard, and the photo shows the same seated chest-height pull. Viewed and confirmed.
+- **Seated Dip Machine → Dip Machine**: literally the seated dip machine — the same dataset entry already used by Assisted Dip (Chest); the two catalog entries are the same machine/movement with different emphasis (upright triceps vs chest lean), so the files are bundled separately under each id (the Dumbbell Lunges precedent).
+- **Glute Kickback Machine → Glute Kickback**: the dataset's kneeling bodyweight kickback — the same hip-extension movement and kneeling base position as the Hoist Glute Master (one knee on a pad, working leg drives rearward); equipment variant per the variant-tolerant rule. Viewed and confirmed.
+- **Torso Rotation Machine → unmatched (rejected after check)**: the only candidate, "Torso Rotation", is a standing exercise-ball twist whose frame 0 is a neutral standing pose showing no rotation — the same defect that dropped Cross-Body Shoulder Stretch. No machine torso-rotation entry exists, so the entry stays photo-less (body-map fallback) rather than teach a standing ball twist for a seated machine.
+- **Back Extension Machine → unmatched**: no seated machine back-extension entry exists. The only back-extension photos are the 45° hyperextension bench (already used by Back Extension, and a clearly different position from a seated pad machine) and Reverse Hyperextension (a different movement). Photo-less rather than wrong.
+
 ## Notes on specific matches
 
 - **KB Step-Up → Dumbbell Step Ups**, **KB Romanian Deadlift → Romanian Deadlift** (barbell), **KB Sumo Squat → Plie Dumbbell Squat**, **Hip Thrust Machine → Barbell Hip Thrust**, **Single-Arm KB Press → One-Arm Kettlebell Push Press**, **KB Swing (light) → One-Arm Kettlebell Swings**: no exact kettlebell/machine entry exists in the dataset; these are the same movement with a different equipment/grip variant, per the variant-tolerant rule.
