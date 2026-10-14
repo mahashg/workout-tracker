@@ -36,13 +36,18 @@ object Theme {
     val bg = Color.parseColor("#EAF0F5") // soft mist background (Mahesh color change, v2.3)
     val surface = Color.parseColor("#F7F9FB") // soft off-white cards - never pure #FFFFFF
     val surfaceVariant = Color.parseColor("#EDF2F7")
-    val stroke = Color.parseColor("#D6DEE8")
+    // v3.7: stroke / textPrimary / textSecondary aligned to the approved
+    // v3.7 mock hexes (line #D7E1EB, text #1F2937, secondary #64748B) so
+    // the new hub/transition/card screens and every existing screen
+    // share the mock's exact Mist values. Differences vs the v2.3 values
+    // (#D6DEE8 / #132033 / #5A6B80) are sub-perceptual greys.
+    val stroke = Color.parseColor("#D7E1EB")
     val shadow = Color.parseColor("#C3D0DE")
     val primary = Color.parseColor("#2563EB")
     val primaryDark = Color.parseColor("#1D4ED8")
     val onPrimary = Color.WHITE
-    val textPrimary = Color.parseColor("#132033")
-    val textSecondary = Color.parseColor("#5A6B80")
+    val textPrimary = Color.parseColor("#1F2937")
+    val textSecondary = Color.parseColor("#64748B")
     val textTertiary = Color.parseColor("#8494A7")
     val success = Color.parseColor("#15803D")
     val successBg = Color.parseColor("#DCFCE7")
