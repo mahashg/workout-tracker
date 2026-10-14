@@ -20,6 +20,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
 import kotlin.math.abs
 
@@ -33,6 +35,11 @@ class CardSessionActivity : AppCompatActivity() {
     private var index: Int=0
     private val undoStack = ArrayDeque<UndoSnap>()
     private var timerChip: TimerChipView? = null
+    // v3.7: hub rows open the card AT a specific exercise.
+    private var startExId: Long = -1
+    private var restChip: RestChipView? = null
+    private var stripRv: androidx.recyclerview.widget.RecyclerView? = null
+    private var firstResume = true
     private var downX=0f; private var downY=0f
 
     // --- Swipe-card (v2.2) state: the whole card is one moving view ---
@@ -66,12 +73,26 @@ class CardSessionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); db=DbHelper(this)
         sessionId=intent.getLongExtra("sessionId",-1); sectionType=intent.getStringExtra("sectionType") ?: "Main"
+        startExId=intent.getLongExtra("exerciseId",-1)
         if(sessionId<0){finish();return}
-        reloadDeck(); moveToPending(); render()
+        reloadDeck(); moveToPending()
+        // v3.7: opened from the hub (or the strip) at a chosen exercise —
+        // land on it even if it is already handled (viewing/re-logging).
+        if (startExId > 0) {
+            val pos = deck.indexOfFirst { it.id == startExId }
+            if (pos >= 0) index = pos
+        }
+        render()
     }
 
     override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() } }
-    override fun onResume() { super.onResume(); photoLoopers.forEach { it.start() } }
+    override fun onResume() {
+        super.onResume(); photoLoopers.forEach { it.start() }
+        // v3.7: returning to the card (e.g. back from the form video)
+        // re-renders so the scroller strip and counts reflect any
+        // status changes. The first resume is onCreate's own render.
+        if (firstResume) firstResume = false else if (::db.isInitialized && sessionId > 0) render()
+    }
     override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking(); photoLoopers.forEach { it.stop() } }
 
     /** Do-later applies while another pending exercise remains in this section. */
@@ -95,14 +116,19 @@ class CardSessionActivity : AppCompatActivity() {
         photoLoopers.forEach { it.stop() }; photoLoopers.clear()
         reloadDeck()
         if(index !in deck.indices){
-            // Completion state (fixed screen, no scrolling)
+            // v3.7: the deck is exhausted. If a LATER section still has
+            // pending exercises, the mock's transition card takes over;
+            // otherwise the plain completion state (fixed, no scrolling).
+            val nextType = nextSectionWithPending()
+            if (nextType != null) { renderTransition(nextType); return }
             val root=fitRoot(); setContentView(root)
             root.addView(topBar(sectionLabel(sectionType), "Section complete"))
             root.addView(makeText("${sectionLabel(sectionType)} complete!",26f,true,Color.parseColor("#15803D")))
             val done=deck.count{db.effectiveStatus(it)=="done"}; val skipped=deck.count{db.effectiveStatus(it)=="skipped"}
             root.addView(makeText("$done done • $skipped skipped",15f,false))
             if(undoStack.isNotEmpty()) root.addView(makeButton("Undo last action"){doUndo(); render()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
-            root.addView(makeButton("Back to Sections"){finish()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
+            // v3.7: the sections screen left the flow — this goes to the hub.
+            root.addView(makeButton("All Exercises"){navigateToHub()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
             Toast.makeText(this,"${sectionLabel(sectionType)} complete!",Toast.LENGTH_SHORT).show()
             return
         }
@@ -124,12 +150,24 @@ class CardSessionActivity : AppCompatActivity() {
         val sessForTimer = db.getSession(sessionId)
         if (sessForTimer != null && !sessForTimer.completed) {
             db.ensureSessionStarted(sessionId)
+            // v3.7: the REST chip sits next to the elapsed timer while a
+            // rest is active (RestTimer engine state), tap reopens the ring.
+            val chipRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(30)).apply { setMargins(0, dp(4), 0, 0) }
+            }
             val chip = TimerChipView(this)
-            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30)).apply { setMargins(0, dp(4), 0, 0) }
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
             chip.bind(this, db, db.getSession(sessionId) ?: sessForTimer) {}
             chip.startTicking()
             timerChip = chip
-            top.addView(chip)
+            chipRow.addView(chip)
+            val rc = RestChipView(this)
+            rc.bind(this)
+            rc.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) }
+            restChip = rc
+            chipRow.addView(rc)
+            top.addView(chipRow)
         }
         root.addView(top)
 
@@ -215,6 +253,7 @@ class CardSessionActivity : AppCompatActivity() {
                 setPadding(dp(12), 0, dp(12), dp(8))
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
             }
+            overlay.addView(sectionPill())
             overlay.addView(makeText(ex.name, 20f, true, Color.WHITE).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             overlay.addView(makeText(lastLine, 12.5f, true, Color.WHITE).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             header.addView(overlay)
@@ -230,33 +269,42 @@ class CardSessionActivity : AppCompatActivity() {
                 // v3.3: raised 32dp so the bottom swipe cue never overlaps it.
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
             }
+            overlay.addView(sectionPill())
             overlay.addView(makeText(ex.name, 20f, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             overlay.addView(makeText(lastLine, 12.5f, true, Theme.primary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
             header.addView(overlay)
         }
-        // Tags top-left over the photo band (v3.2 mock): body part +
-        // equipment as light pills — they replace the old equipment badge
-        // that used to sit under the header.
+        // v3.7 (approved mock screen 3): the header's top row is now the
+        // "☰ All exercises" chip (top-left, back to the hub) and the
+        // form-video as a 38dp icon (top-right) — both dark translucent
+        // pills (rgba(15,23,42,.55)), white ink. They replace the v3.2
+        // part/equipment tags (body part still shows as the hub row tag
+        // and in the section pill below; equipment rides the essentials
+        // "Do it" context and the list view). Both are clickable
+        // children, so they consume their own taps and never start a
+        // card drag — same contract as the old video button.
         run {
-            val tagRow = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
+            val darkPill = 0x8C0F172A.toInt() // rgba(15,23,42,.55)
+            val allChip = TextView(this).apply {
+                text = "☰ All exercises"; textSize = 12.5f; setTextColor(Color.WHITE)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                background = GradientDrawable().apply { setColor(darkPill); cornerRadius = dp(999).toFloat() }
+                setPadding(dp(11), dp(6), dp(11), dp(6)); maxLines = 1
+                isClickable = true
+                setOnClickListener { navigateToHub() }
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) }
             }
-            fun tag(text: String) = TextView(this).apply {
-                this.text = text; textSize = 10f; setTextColor(Color.parseColor("#33475C"))
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-                background = GradientDrawable().apply {
-                    setColor(if (photoBmp != null) 0xE6F7F9FB.toInt() else Color.WHITE)
-                    cornerRadius = dp(999).toFloat()
-                    if (photoBmp == null) setStroke(dp(1), Theme.stroke)
+            header.addView(allChip)
+            if (ex.youtubeUrl.isNotBlank()) {
+                val vicon = TextView(this).apply {
+                    text = "▶"; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+                    background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(darkPill) }
+                    isClickable = true
+                    setOnClickListener { openUrl(this@CardSessionActivity, ex.youtubeUrl) }
+                    layoutParams = FrameLayout.LayoutParams(dp(38), dp(38), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(10), dp(10), 0) }
                 }
-                setPadding(dp(8), dp(3), dp(8), dp(3)); maxLines = 1
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, dp(6), 0) }
+                header.addView(vicon)
             }
-            val partId = db.sessionExercisePart(ex)
-            if (partId.isNotBlank()) tagRow.addView(tag(BodyParts.name(partId)))
-            tagRow.addView(tag(ex.equipment))
-            header.addView(tagRow)
         }
         // v3.3 (item 4): persistent swipe cues ON the photo band — the same
         // band body-map exercises use, so every card type gets them. Left =
@@ -315,12 +363,8 @@ class CardSessionActivity : AppCompatActivity() {
                 (v.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(topDp), 0, dp(1))
                 return v
             }
-            if(ex.youtubeUrl.isNotBlank()) {
-                val vid = primaryButtonWithIcon("Watch Form Video", R.drawable.ic_play){openUrl(this,ex.youtubeUrl)}
-                (vid.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, 0, 0, dp(4)) }
-                tightButton(vid, 44, 12, primary = true); vid.setPadding(dp(8), 0, dp(8), 0)
-                how.addView(vid)
-            }
+            // v3.7: no full-width video button here any more — the form
+            // video is the ▶ icon at the photo's top-right (mock screen 3).
             how.addView(slim(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")), 2))
             val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
             if(posture.isNotBlank()){
@@ -417,25 +461,326 @@ class CardSessionActivity : AppCompatActivity() {
             wrap.animate().alpha(1f).scaleX(1f).scaleY(1f).translationY(0f).setDuration(220).setInterpolator(DecelerateInterpolator()).start()
         }
 
+        // v3.7 scroller strip: directly under the card — every session
+        // exercise as a tappable thumbnail. It sits OUTSIDE the swipe
+        // card on purpose: inside it, the strip's own horizontal drags
+        // would fight the card's swipe handling. The freed vertical
+        // space also absorbs the removed "Next up:" line (the strip
+        // itself now shows what is next).
+        root.addView(buildStrip(ex))
+
         // v3.1 final card design (user-approved mock): NO Skip and NO Done
         // buttons anywhere — those two actions are swipe-only (left/right).
         // v3.3 (item 3): the Later BUTTON is gone too — Later survives as
-        // the down-swipe only. The button row is now a single full-width
-        // "+ Log set" primary (up-swipe opens it as well), and the swipe
-        // hints live on the photo band as cue pills (item 4), so the old
-        // hint line under the row is removed.
+        // the down-swipe only.
+        // v3.7 (approved mock screen 3): the full-width Log set bar is
+        // replaced by ONE simple compact "+ Log set" button, right-aligned
+        // in the action row, with the short swipe hint at the row's left
+        // (the on-photo cue pills remain as well). Up-swipe still opens
+        // the same set-logger dialog.
         val wrapRef = wrap
-        val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)) }
-        val logBtn = makeButton("Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
-        (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(dp(2), 0, dp(2), 0) }
-        tightButton(logBtn, 48, 12, primary = true)
-        btnRow.addView(logBtn)
-        root.addView(btnRow)
-        val next = deck.getOrNull(index + 1)
-        if (next != null) root.addView(makeText("Next up: ${next.name}", 12f, false, Color.parseColor("#0369A1")).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { height = dp(20); setMargins(0, 0, 0, 0) }
+        val btnRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)).apply { setMargins(0, dp(4), 0, 0) }
+        }
+        btnRow.addView(makeText("← swipe Skip · Done → · ↓ Later", 12f, false, Theme.textSecondary).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, dp(8), 0) }
             maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         })
+        val logBtn = makeButton("+ Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
+        (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, 0, 0) }
+        tightButton(logBtn, 48, 10, primary = true)
+        logBtn.setPadding(dp(22), 0, dp(22), 0)
+        btnRow.addView(logBtn)
+        root.addView(btnRow)
+    }
+
+    // ---- v3.7: hub navigation, section transitions, scroller strip ----
+
+    /** v3.7 section pill on the photo (mock screen 3): white 92% pill,
+     *  #1E40AF ink — "<SECTION> · n of m" for the current exercise. */
+    private fun sectionPill(): TextView {
+        return TextView(this).apply {
+            text = "${displaySectionName(sectionType).uppercase()} · ${index + 1} of ${deck.size}"
+            textSize = 11f; setTextColor(Color.parseColor("#1E40AF"))
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            background = GradientDrawable().apply {
+                setColor(0xEBFFFFFF.toInt()); cornerRadius = dp(999).toFloat()
+                setStroke(dp(1), Theme.stroke)
+            }
+            setPadding(dp(9), dp(4), dp(9), dp(4)); maxLines = 1
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, dp(6)) }
+        }
+    }
+
+    /** Mock display names: Warm-up / Workout / Cool-Down. */
+    private fun displaySectionName(type: String): String = when {
+        type.equals("Warmup", true) -> "Warm-up"
+        type.equals("Stretch", true) -> "Cool-Down"
+        else -> "Workout"
+    }
+
+    /** Back to the hub, wherever this card was opened from: the hub is
+     *  the session's home now (CLEAR_TOP reuses the hub below us when
+     *  there is one, and creates it when the card came from elsewhere). */
+    private fun navigateToHub() {
+        startActivity(Intent(this, WorkoutHubActivity::class.java).apply {
+            putExtra("sessionId", sessionId)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        })
+        finish()
+    }
+
+    /** The first section AFTER the current one (Warm-Up → Workout →
+     *  Cool-Down) that still has pending exercises, or null. Drives the
+     *  transition card; Cool-Down (or a fully-handled session) returns
+     *  null and lands on the plain completion state instead. */
+    private fun nextSectionWithPending(): String? {
+        val order = listOf("Warmup", "Main", "Stretch")
+        val all = db.getSessionExercises(sessionId)
+        val from = order.indexOfFirst { it.equals(sectionType, true) }
+        for (t in order.subList((from + 1).coerceIn(0, order.size), order.size)) {
+            if (t.equals(sectionType, true)) continue
+            if (all.any { it.type.equals(t, true) && db.effectiveStatus(it) == "pending" }) return t
+        }
+        return null
+    }
+
+    /** v3.7 transition card (approved mock screen 2), shown when a card
+     *  action resolves the LAST pending exercise of a section and the
+     *  next section still has work: big green check, counts, an UP-NEXT
+     *  card for the next section's first pending exercise, Start /
+     *  See All Exercises, and the 3-dot section progress. */
+    private fun renderTransition(nextType: String) {
+        val root = fitRoot(); setContentView(root)
+        val done = deck.count { db.effectiveStatus(it) == "done" }
+        val skipped = deck.count { db.effectiveStatus(it) == "skipped" }
+        val nextList = db.getSessionExercises(sessionId).filter { it.type.equals(nextType, true) }
+        val nextPending = nextList.filter { db.effectiveStatus(it) == "pending" }
+        val first = nextPending.firstOrNull()
+        root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        val check = TextView(this).apply {
+            text = "✓"; textSize = 34f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
+            layoutParams = LinearLayout.LayoutParams(dp(74), dp(74)).apply { gravity = Gravity.CENTER_HORIZONTAL }
+        }
+        root.addView(check)
+        root.addView(makeText("${displaySectionName(sectionType)} complete", 23f, true, Theme.textPrimary).apply {
+            gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(14), 0, 0)
+        })
+        val sess = db.getSession(sessionId)
+        val elapsedTxt = if (sess != null) " · ${WorkoutTimer.formatDuration(WorkoutTimer.liveElapsedSec(this, sess))}" else ""
+        root.addView(makeText("$done done · $skipped passed$elapsedTxt", 13.5f, false, Theme.textSecondary).apply {
+            gravity = Gravity.CENTER; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0)
+        })
+        // UP-NEXT card (mock): kicker + first pending exercise of the
+        // next section with its photo thumb and last-time line.
+        if (first != null) {
+            val card = cardLayout()
+            (card.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(16), 0, dp(4))
+            card.setPadding(dp(14), dp(12), dp(14), dp(12))
+            card.addView(makeText("UP NEXT — ${displaySectionName(nextType).uppercase()} · ${nextPending.size} EXERCISE${if (nextPending.size == 1) "" else "S"}", 11f, true, Color.parseColor("#1E40AF")).apply {
+                letterSpacing = 0.06f; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, dp(8))
+            })
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            val thumb = FrameLayout(this).apply {
+                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(8).toFloat() }
+                layoutParams = LinearLayout.LayoutParams(dp(52), dp(38))
+                roundedClip(8)
+            }
+            val asset = PhotoLib.assetForSessionExercise(this, db, first)
+            val bmp = asset?.let { PhotoLib.bitmap(this, it) }
+            if (bmp != null) {
+                thumb.addView(android.widget.ImageView(this).apply {
+                    setImageBitmap(bmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                })
+            } else {
+                thumb.addView(BodyMapView(this, DbHelper.parseMuscles(first.targetMuscles, first.name), true).apply {
+                    layoutParams = FrameLayout.LayoutParams(dp(28), dp(36), Gravity.CENTER)
+                })
+            }
+            row.addView(thumb)
+            val col = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, 0, 0) }
+            }
+            col.addView(makeText(first.name, 15f, true).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
+            val last = db.lastPerformedForExercise(first.name, sessionId)
+            col.addView(makeText(if (last != null) "Last: ${lastTimeLine(last)}" else "New exercise", 12.5f, false, Theme.textSecondary).apply {
+                maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(1), 0, 0)
+            })
+            row.addView(col)
+            card.addView(row)
+            root.addView(card)
+            val startBtn = makeButton("Start ${displaySectionName(nextType)} Section") {
+                sectionType = nextType
+                reloadDeck()
+                index = deck.indexOfFirst { it.id == first.id }.coerceAtLeast(0)
+                animateEntryOnNextRender = true
+                render()
+            }
+            (startBtn.layoutParams as LinearLayout.LayoutParams).apply { height = dp(52); setMargins(0, dp(10), 0, 0) }
+            tightButton(startBtn, 52, 14, primary = true)
+            root.addView(startBtn)
+        }
+        val seeAll = makeSecondaryButton("See All Exercises") { navigateToHub() }
+        (seeAll.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) }
+        tightButton(seeAll, 48, 12)
+        root.addView(seeAll)
+        if (undoStack.isNotEmpty()) {
+            val undo = makeSecondaryButton("Undo last action") { doUndo(); render() }
+            (undo.layoutParams as LinearLayout.LayoutParams).apply { height = dp(44); setMargins(0, dp(2), 0, 0) }
+            tightButton(undo, 44, 12)
+            root.addView(undo)
+        }
+        // 3-dot section progress: handled = green, up-next = blue,
+        // upcoming = grey (mock screen 2).
+        val dots = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(18), 0, 0) }
+        }
+        val all = db.getSessionExercises(sessionId)
+        var firstDot = true
+        for (t in listOf("Warmup", "Main", "Stretch")) {
+            val list = all.filter { it.type.equals(t, true) }
+            if (list.isEmpty()) continue
+            if (!firstDot) dots.addView(makeText("→", 12f, false, Theme.textTertiary).apply {
+                (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(dp(8), 0, dp(8), 0) }
+            })
+            firstDot = false
+            val handledAll = list.all { db.effectiveStatus(it) != "pending" }
+            val dotColor = when {
+                handledAll -> Theme.success
+                t.equals(nextType, true) -> Theme.primary
+                else -> Color.parseColor("#CBD8E4")
+            }
+            dots.addView(View(this).apply {
+                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(dotColor) }
+                layoutParams = LinearLayout.LayoutParams(dp(9), dp(9)).apply { setMargins(0, 0, dp(5), 0) }
+            })
+            dots.addView(makeText(displaySectionName(t), 11f, true, Theme.textSecondary).apply {
+                (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, 0, 0) }
+            })
+        }
+        root.addView(dots)
+        root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+    }
+
+    /** Strip jump: same section switches the deck in place; another
+     *  section reopens the card screen there. Logged sets are DB rows,
+     *  so switching mid-exercise loses nothing. */
+    private fun jumpToExercise(target: SessionExercise) {
+        if (target.type.equals(sectionType, true)) {
+            val pos = deck.indexOfFirst { it.id == target.id }
+            if (pos >= 0) { index = pos; animateEntryOnNextRender = true; render() }
+        } else {
+            startActivity(Intent(this, CardSessionActivity::class.java).apply {
+                putExtra("sessionId", sessionId); putExtra("sectionType", target.type); putExtra("exerciseId", target.id)
+            })
+            finish()
+        }
+    }
+
+    /** v3.7 scroller strip (approved mock screen 3): every session
+     *  exercise in order as a tappable thumbnail — photo when the
+     *  exercise has one, body map otherwise — with a status dot and
+     *  the current exercise ringed in primary. One of only two
+     *  scrolling surfaces in the app (the hub list is the other). */
+    private fun buildStrip(currentEx: SessionExercise): RecyclerView {
+        val all = db.getSessionExercises(sessionId)
+        val rv = RecyclerView(this).apply {
+            layoutManager = LinearLayoutManager(this@CardSessionActivity, LinearLayoutManager.HORIZONTAL, false)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(82)).apply { setMargins(0, dp(2), 0, 0) }
+            itemAnimator = null
+            clipToPadding = false
+            setPadding(dp(2), 0, dp(2), 0)
+        }
+        rv.adapter = StripAdapter(all, currentEx.id)
+        val pos = all.indexOfFirst { it.id == currentEx.id }
+        if (pos >= 0) rv.post {
+            (rv.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(pos, dp(12))
+        }
+        stripRv = rv
+        return rv
+    }
+
+    private inner class StripHolder(val itemRoot: LinearLayout) : RecyclerView.ViewHolder(itemRoot) {
+        lateinit var tile: FrameLayout
+        lateinit var dot: TextView
+        lateinit var nameTv: TextView
+    }
+
+    private inner class StripAdapter(val items: List<SessionExercise>, val currentId: Long) : RecyclerView.Adapter<StripHolder>() {
+        override fun getItemCount(): Int = items.size
+        override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): StripHolder {
+            val item = LinearLayout(this@CardSessionActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.WRAP_CONTENT, RecyclerView.LayoutParams.WRAP_CONTENT)
+                setPadding(dp(3), dp(2), dp(3), 0)
+            }
+            val holder = StripHolder(item)
+            holder.tile = FrameLayout(this@CardSessionActivity).apply {
+                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(9).toFloat() }
+                layoutParams = LinearLayout.LayoutParams(dp(66), dp(44))
+                roundedClip(9)
+            }
+            holder.dot = TextView(this@CardSessionActivity).apply {
+                textSize = 8.5f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                layoutParams = FrameLayout.LayoutParams(dp(15), dp(15), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(2), dp(2), 0) }
+            }
+            holder.nameTv = TextView(this@CardSessionActivity).apply {
+                textSize = 9.5f; gravity = Gravity.CENTER
+                maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
+                layoutParams = LinearLayout.LayoutParams(dp(66), dp(26)).apply { setMargins(0, dp(3), 0, 0) }
+            }
+            item.addView(holder.tile)
+            // Name goes under the tile; the dot is added to the tile at
+            // bind time (only handled exercises get one).
+            item.addView(holder.nameTv)
+            return holder
+        }
+        override fun onBindViewHolder(holder: StripHolder, position: Int) {
+            val ex = items[position]
+            val isCurrent = ex.id == currentId
+            holder.tile.removeAllViews()
+            val asset = PhotoLib.assetForSessionExercise(this@CardSessionActivity, db, ex)
+            val bmp = asset?.let { PhotoLib.bitmap(this@CardSessionActivity, it) }
+            if (bmp != null) {
+                holder.tile.addView(android.widget.ImageView(this@CardSessionActivity).apply {
+                    setImageBitmap(bmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                })
+            } else {
+                holder.tile.addView(BodyMapView(this@CardSessionActivity, DbHelper.parseMuscles(ex.targetMuscles, ex.name), true).apply {
+                    layoutParams = FrameLayout.LayoutParams(dp(26), dp(34), Gravity.CENTER)
+                })
+            }
+            when (db.effectiveStatus(ex)) {
+                "done" -> {
+                    holder.dot.text = "✓"
+                    holder.dot.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
+                    holder.tile.addView(holder.dot)
+                }
+                "skipped" -> {
+                    holder.dot.text = "✕"
+                    holder.dot.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.parseColor("#94A3B8")) }
+                    holder.tile.addView(holder.dot)
+                }
+            }
+            // Current exercise ringed in primary (drawn over the tile).
+            holder.tile.foreground = if (isCurrent) GradientDrawable().apply {
+                setColor(Color.TRANSPARENT); cornerRadius = dp(9).toFloat()
+                setStroke(dp(3), Theme.primary)
+            } else null
+            holder.nameTv.text = ex.name
+            holder.nameTv.setTextColor(if (isCurrent) Theme.primary else Theme.textSecondary)
+            holder.nameTv.typeface = if (isCurrent) android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                                       else android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            holder.itemRoot.setOnClickListener { jumpToExercise(ex) }
+        }
     }
 
     // ---- Drag feedback + card animations (v2.2) ----
@@ -650,19 +995,28 @@ class CardSessionActivity : AppCompatActivity() {
         index++; moveToPendingFrom(index)
         render()
     }
-    /** Advance to the next pending card after REAL work (Done, or logging
-     *  the last set of an exercise). In the Exercises phase, crossing to
-     *  a new exercise first shows the Rest Ring for the between-exercises
-     *  duration (default 60s, Settings-adjustable) with the next exercise's
-     *  name as the target line (S2/S5). Never called from a skip path. */
+    /** v3.7 navigation after REAL work (Done, or logging the last set of
+     *  an exercise): the card no longer auto-advances. If this Done
+     *  completed the section, the transition card (or the completion
+     *  state) renders here; otherwise, in the Workout section the
+     *  between-exercises Rest Ring runs first (default 60s,
+     *  Settings-adjustable, next exercise as the target — S2/S5) and
+     *  the HUB opens when it ends; Warm-Up / Cool-Down dones go
+     *  straight to the hub. Never called from a skip path. */
     private fun advanceWithRest(){
-        index++; moveToPendingFrom(index)
-        val nextEx = current()
-        if (sectionType == "Main" && nextEx != null && db.effectiveStatus(nextEx) == "pending") {
-            val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
-                .split(";").map { it.trim() }.filter { it.isNotEmpty() }
-            RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { render() }
-        } else render()
+        reloadDeck()
+        val pendingLeft = deck.count { db.effectiveStatus(it) == "pending" }
+        if (pendingLeft == 0) { index = deck.size; render(); return }
+        if (sectionType == "Main") {
+            val nextEx = deck.firstOrNull { db.effectiveStatus(it) == "pending" }
+            if (nextEx != null) {
+                val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
+                    .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+                RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { navigateToHub() }
+                return
+            }
+        }
+        navigateToHub()
     }
     /** S2: after a set is logged with more sets to go, the Rest Ring runs the
      *  between-sets duration (default 30s) and shows the next set's last-time
