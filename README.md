@@ -1301,3 +1301,173 @@ card, Done-to-next-card feel with the Rest Ring in between, the
 resume dialog's new middle button, strip-jumping during a hidden
 rest (no yank when it ends), and a fresh Movie session opening with
 three pictured movements.
+
+## V3.8.3 (versionCode 26) — UI clipping/layout fixes + Restore fix
+
+From Mahesh's on-device v3.8.2 screenshots (Settings + History):
+"the UI looks so so weird and clunky" and "the restore function
+doesn't work either". Each defect below names its ROOT CAUSE in the
+code, not just the symptom. No features, flows or copy changed (the
+only copy-adjacent change is the History separator fix); DB stays v4.
+
+### 1. Settings — Rest Timer steppers invisible
+
+Root cause: NOT the card height. `makeText()` gives every TextView
+MATCH_PARENT width; inside the Rest card's horizontal stepper groups
+the "Between sets" / "Between exercises" label therefore consumed the
+entire group width and pushed the − / value / + controls off the
+right edge, where the group clipped them. The screenshot shows
+exactly that: two labels, no controls.
+Fix: the label now wraps its content (WRAP_CONTENT width) inside
+`restGroup`. Provably fixed by construction — the controls are laid
+out inside the group's bounds again.
+
+### 2. Settings — Health Connect / Your Data buttons bottom-clipped; About text truncated
+
+Root cause: Settings cards were FIXED dp heights (`budgetCard`)
+filled from hand-derived budgets that were systematically a few dp
+short of the real rendered content. The button rows were fixed at
+48dp while their buttons carried a 4dp top margin inside the row
+(52dp of content in a 48dp row), and text line heights were
+underestimated — so the buttons' bottom arcs crossed the cards'
+bottom edges and were clipped, even though dead space sat below the
+last card. Separately, the About week-rule line is longer than the
+card's inner width at 12sp; capped at 2 lines it ellipsized
+mid-word ("1+ complet…").
+Fix: Settings cards are now WRAP-CONTENT height with honest padding
+(14dp sides, 10dp top/bottom); the button rows wrap their content
+too, margins included; the About caption may wrap to a third line
+instead of truncating. Nothing inside a card can be clipped by its
+card anymore — fixed by construction.
+Re-derived Settings budget (font scale 1.0; line heights 11sp≈15dp,
+12sp≈16dp, 18sp≈24dp): title 40 + Preferences 241 (padding 20 +
+overline 15 + title 24 + caption 16 + button 6+48 + title 10+24 +
+caption 16 + button 6+48, + 8 card margins) + Rest 83 + Health
+Connect 113 + Your Data 145 (About at 3 lines) ≈ **622dp**, against
+~748dp available in the tab scaffold on the user's phone class
+(1080×2210 @ 2.625 ≈ 842dp-tall viewport, minus bottom nav and root
+padding) — fits with ~126dp slack, no scrolling. Honest residual:
+a viewport shorter than ~690dp would still crowd the last card;
+that needs a genuinely small phone to confirm and is named here
+rather than hidden.
+
+### 3. Buttons — pill-like corners
+
+Root cause, measured from the screenshot: the "Switch to lb" outline
+renders at a corner-radius/height ratio of ≈0.35, i.e. the coded
+16dp radius on a 48dp button — the factories were NOT blowing up
+dp→px there (they use the dp-correct `rounded()`). But 16dp is not
+the design standard: the design system (mocks, `tightButton`) is
+12dp, and 16dp on a 48dp-tall full-width button reads as a pill.
+The genuine unit bug was in the sibling factory: `roundedBg(color,
+radiusDp)` passed its radius to GradientDrawable as RAW PIXELS
+(and a raw 3px stroke) despite the dp name — every corner drawn
+through it rendered at ~1/3 of its intended dp size (segmented
+progress 6px≈2dp, equipment badge 20px≈7dp, set chips 10px≈4dp,
+photo fallback frame 18px≈7dp); pillView's 999 only looked right
+because 999px is huge in any unit.
+Fix: `makeButton` / `makeSecondaryButton` now use the 12dp design
+radius (background + ripple mask); `roundedBg` is now a Context
+extension that converts through `dp()` exactly like `rounded()`,
+so all its call sites (pills, badges, set chips, library chips,
+card photo header, deck frame, sheet handle) get their intended
+dp radii.
+
+### 4. History — entry floating in a giant empty card; stray "· 8 min"
+
+Root cause: History session cards were given height 0 + weight 1
+inside the page-filling list container, so the page's sessions
+stretched to fill the screen — with one session, one card filled
+the whole page — and the card's inner row was MATCH_PARENT height
+with CENTER_VERTICAL gravity, centering the entry in the middle of
+the giant card (the user's screenshot). The sub-line bug: it was
+built as `focusLabel + " • " + duration`, so a session with no
+focus parts (Movie Movements, focus="") rendered "· 8 min".
+Fix: cards wrap their content (10dp vertical padding) and list
+top-down; leftover page space stays empty below the last card.
+The sub-line is now built from non-empty segments only, joined
+with " • ". The same separator bug existed in the History DETAIL
+header (SessionActivity: `"${session.focus} • ${muscles}"` →
+leading "• " for Movie sessions, and raw part ids shown) — fixed
+the same way, with focus ids mapped to part names like the list.
+
+### 5. Restore Preloaded didn't work
+
+Root cause (three stacked defects):
+1. The Settings handler first ran the LEGACY `Seed.restore()`,
+   which deletes EVERY row of the exercises table — including
+   user-added exercises the confirmation dialog explicitly
+   promises to keep — and resurrects the retired v2 5-routine
+   catalog (whose rows carry sourceId="").
+2. `JsonSeed.restoreDefaults` then deleted rows
+   `WHERE sourceId != ''` — after step 1 none existed, so the
+   delete was a no-op — and rebuilt the catalog only through
+   `applyV3`'s name-matching adoption, whose own contract is
+   "nothing is renamed or re-texted; only bodyPart/sourceId are
+   filled in". Canonical content was therefore never refreshed
+   from the current bundled JSON: legacy-named rows kept v2-era
+   sets/reps/weights/cues, and any row whose name didn't exactly
+   match a JSON entry was never adopted at all.
+3. The only feedback was a bare toast ("Preloaded exercises
+   restored") regardless of what actually happened.
+Fix: the legacy detour is gone. Restore is now
+`JsonSeed.restorePreloaded` — an unconditional UPSERT by sourceId
+over all bundled JSON entries: missing sourceIds are inserted;
+existing canonical rows get their DB-backed canonical fields
+refreshed from the JSON (name, type, equipment, sets, targetReps,
+defaultWeight, variation, url, targetMuscles, cues, precautions,
+bodyPart) while keeping their row id, routineId and sortOrder;
+canonical duplicates of one sourceId are dropped beyond the first.
+(primary / easier / hcType / home / counterSec / photo are not DB
+columns — they are read from the bundled JSON at runtime, so they
+are current by construction.) User-added rows (sourceId="") and
+all session/set/history data are never touched. A row is written
+only when a field actually differs, so the operation is
+idempotent: **running it twice reports 0 inserted / 0 refreshed
+the second time.** Completion is reported in a dialog with the
+real counts ("Added N new…, refreshed M existing…"); failures
+surface in a "Restore failed" dialog with the error message —
+no more silent no-ops.
+
+### App-wide sweep for the same defect classes
+
+- SummaryActivity: the stats card (fixed 148dp vs ~183dp of real
+  content — body map / fourth stat row could clip), the By-section
+  card (92dp vs ~96dp) and the Beat-last-time card (68dp vs ~84dp
+  for a 2-line delta) are now wrap-content; the page's flexible
+  filler absorbs the growth. The celebration hero stays fixed —
+  its content is provably 52dp (plain) / 98dp (celebrating) inside
+  84/110dp.
+- Checked and CLEARED (bounded content that cannot outgrow its
+  container): SessionActivity header (76dp, ~66dp max content),
+  WorkoutDetail hero (176dp budget with 1-2-line capped texts),
+  LibraryActivity chip box (3 fixed 44dp rows) and group header
+  (76dp), WorkoutSectionsActivity header (112dp), the paginated
+  grid cells in PickParts / Routines / Assemble (fixed cell unit,
+  capped content), and the fixed-count equal-share cards in
+  Library / WorkoutSections / WorkoutDetail / RoutineEdit (exactly
+  3 slots sharing leftover height, single bounded block inside,
+  vertically centered by design — a different pattern from a
+  variable-length list, and left as designed).
+- `makeText` MATCH_PARENT-in-a-row starvation: searched all
+  horizontal-row uses; the Rest groups were the only place siblings
+  were pushed out (pager bar, top bar, section header and progress
+  dialog all set explicit widths/weights).
+
+### Verification
+
+Offline build successful; `aapt` versionCode 26 / "3.8.3";
+signing cert unchanged (0A:1A:71:63:12:09:A8:1A:7B:69:F7:F0:C2:B6:2A:53:4A:A8:46:CE);
+grep fitXY = 0, ScrollView = 0, RecyclerView confined to
+WorkoutHubActivity + CardSessionActivity as before. APK:
+13,919,306 bytes (+2,248 vs v3.8.2).
+Provably fixed by construction (content-sized layouts / in-bounds
+layout / segment-built strings): Rest steppers visible, Settings
+buttons unclipped, About wraps, History top-down listing, both
+separator bugs, Restore behavior and idempotency (pure DB logic
+over the bundled JSON). Still needs Mahesh's phone to confirm:
+the exact rendered look (12dp button corners, dp-true badge/chip
+radii — several decorative corners will look slightly MORE rounded
+than before because they finally render at their intended dp
+size), the Settings page fit at his font/display size settings,
+and Restore's reported counts on his real library.
