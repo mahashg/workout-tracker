@@ -29,18 +29,29 @@ class HistoryActivity : AppCompatActivity() {
         for (s in sessions.drop(page * pageSize).take(pageSize)) {
             val open = { val i = Intent(this, SessionActivity::class.java); i.putExtra("sessionId", s.id); startActivity(i) }
             val card = cardLayout(tappable = true) { open() }
-            (card.layoutParams as LinearLayout.LayoutParams).apply { height = 0; weight = 1f; setMargins(0, dp(4), 0, dp(4)) }
-            card.setPadding(dp(12), dp(6), dp(12), dp(6))
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT) }
+            // v3.8.3 ROOT-CAUSE FIX: the cards were given height 0 +
+            // weight 1 inside this page-filling box, so a page with ONE
+            // session stretched that session's card to the full screen
+            // height — and with the inner row at MATCH_PARENT height +
+            // CENTER_VERTICAL gravity, the entry floated in the middle
+            // of a giant empty card (the user's screenshot). Cards now
+            // wrap their content and list top-down like a normal
+            // history list; any leftover page space stays empty below.
+            (card.layoutParams as LinearLayout.LayoutParams).apply { height = LinearLayout.LayoutParams.WRAP_CONTENT; weight = 0f; setMargins(0, dp(4), 0, dp(4)) }
+            card.setPadding(dp(12), dp(10), dp(12), dp(10))
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) }
             val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             info.addView(makeText("${DateUtil.display(s.date)} • Week ${s.weekNumber}", 11f, true, Theme.textSecondary))
             val name = makeText(s.routineName, 15f, true)
             name.maxLines = 1; name.ellipsize = android.text.TextUtils.TruncateAt.END
             info.addView(name)
-            val dur = if (s.startedAt > 0) " • ${WorkoutTimer.formatDuration(if (s.completed) s.elapsedSec else WorkoutTimer.liveElapsedSec(this, s))}" else ""
+            val durText = if (s.startedAt > 0) WorkoutTimer.formatDuration(if (s.completed) s.elapsedSec else WorkoutTimer.liveElapsedSec(this, s)) else ""
             // v3 sessions store focus as part ids ("back,biceps") — show names.
             val focusLabel = s.focus.split(",").map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ") { tok -> BodyParts.byId(tok)?.name ?: tok }
-            val sub = makeText(focusLabel + dur, 11f, false, Theme.textSecondary)
+            // v3.8.3: build the sub-line from non-empty segments only —
+            // a Movie Movements session has no focus parts, and the old
+            // concatenation rendered a stray leading "· 8 min".
+            val sub = makeText(listOf(focusLabel, durText).filter { it.isNotBlank() }.joinToString(" • "), 11f, false, Theme.textSecondary)
             sub.maxLines = 1; sub.ellipsize = android.text.TextUtils.TruncateAt.END
             info.addView(sub)
             row.addView(info)

@@ -74,11 +74,17 @@ object Theme {
     val coolTeal = Color.parseColor("#0D9488")
 }
 
-fun roundedBg(color: String, radiusDp: Int, strokeColor: String? = null): GradientDrawable {
-    return GradientDrawable().apply {
-        setColor(Color.parseColor(color)); cornerRadius = radiusDp.toFloat()
-        if (strokeColor != null) setStroke(3, Color.parseColor(strokeColor))
-    }
+/** Rounded fill background. v3.8.3 ROOT-CAUSE FIX: this factory used to
+ *  hand its `radiusDp` argument to GradientDrawable as RAW PIXELS (and a
+ *  raw 3px stroke) despite the dp name — on a ~2.6-3.0-density phone every
+ *  corner drawn through it rendered at roughly a third of its intended dp
+ *  size (segmented progress 6px ≈ 2dp, equipment badge 20px ≈ 7dp, set
+ *  chips 10px ≈ 4dp, deck frame 18px ≈ 7dp), while pillView's 999 read
+ *  as a pill only because 999px is huge in any unit. It now converts
+ *  through dp() exactly like the private rounded() below. */
+fun Context.roundedBg(color: String, radiusDp: Int, strokeColor: String? = null): GradientDrawable {
+    return if (strokeColor != null) rounded(Color.parseColor(color), radiusDp, Color.parseColor(strokeColor), 1)
+    else rounded(Color.parseColor(color), radiusDp)
 }
 
 private fun Context.rounded(color: Int, radiusDp: Int, strokeColor: Int? = null, strokeDp: Int = 1): GradientDrawable {
@@ -223,7 +229,7 @@ fun Context.makeButton(text: String, onClick: () -> Unit): Button {
         this.text = text; textSize = 15f; setTextColor(Theme.onPrimary); typeface = medium(); isAllCaps = false
         maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(13, 15, 1, TypedValue.COMPLEX_UNIT_SP)
-        background = RippleDrawable(ColorStateList.valueOf(0x55FFFFFF), rounded(Theme.primary, 16), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(16).toFloat() })
+        background = RippleDrawable(ColorStateList.valueOf(0x55FFFFFF), rounded(Theme.primary, 12), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(12).toFloat() })
         minHeight = dp(56)
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, dp(6)) }
         setOnClickListener { onClick() }
@@ -234,7 +240,7 @@ fun Context.makeSecondaryButton(text: String, onClick: () -> Unit): Button {
         this.text = text; textSize = 15f; setTextColor(Theme.primary); typeface = medium(); isAllCaps = false
         maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(13, 15, 1, TypedValue.COMPLEX_UNIT_SP)
-        background = RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surface, 16, Theme.primary, 1), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(16).toFloat() })
+        background = RippleDrawable(ColorStateList.valueOf(0x222563EB), rounded(Theme.surface, 12, Theme.primary, 1), GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(12).toFloat() })
         minHeight = dp(52)
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, dp(6)) }
         setOnClickListener { onClick() }

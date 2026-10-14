@@ -149,12 +149,68 @@ object JsonSeed {
         }
     }
 
-    /** Settings "Restore Preloaded": drop the canonical JSON-seeded rows and
-     *  re-seed them from the JSON data. User-added rows (sourceId="") and all
-     *  session history are untouched. */
-    fun restoreDefaults(context: Context, db: DbHelper) {
-        db.writableDatabase.delete("exercises", "sourceId IS NOT NULL AND sourceId != ''", null)
-        applyV3(context, db)
+    /** Settings "Restore Preloaded" (v3.8.3, rewritten): an unconditional
+     *  UPSERT by sourceId over EVERY bundled JSON entry. A bundled entry
+     *  whose sourceId is missing from the exercises table is inserted; an
+     *  existing canonical row has its canonical fields refreshed from the
+     *  JSON (name, type, equipment, sets, targetReps, defaultWeight,
+     *  variation, url, targetMuscles, cues, precautions, bodyPart). The
+     *  remaining entry fields (primary, easier, hcType, home, counterSec,
+     *  photo, image) are not DB columns at all — they are read from the
+     *  bundled JSON at runtime (HealthSync, deckEntries, PhotoLib), so
+     *  they are always current by construction. The row's id, routineId
+     *  and sortOrder are preserved (a user's Library reorder survives).
+     *  Canonical DUPLICATE rows sharing one sourceId are dropped beyond
+     *  the first (same safety as applyV3's dedupe; session history stores
+     *  its own copies, so nothing is lost). User-added rows (sourceId="")
+     *  and all session/set/history data are NEVER touched. Idempotent:
+     *  a row is only written (and counted) when a field actually differs,
+     *  so a second run reports 0 inserted / 0 refreshed.
+     *  Returns (inserted, refreshed) so Settings can report real numbers.
+     *
+     *  Why the old implementation "didn't work": the Settings handler
+     *  first ran the legacy Seed.restore(), which deleted EVERY exercise
+     *  row — including user-added rows the dialog promised to keep — and
+     *  re-seeded the retired v2 5-routine catalog whose rows carry
+     *  sourceId="". restoreDefaults then deleted rows WHERE sourceId != ''
+     *  (none existed at that point — a no-op) and rebuilt the catalog only
+     *  through applyV3's name-matching adoption, whose contract is
+     *  "nothing is renamed or re-texted — only bodyPart/sourceId are
+     *  filled in". So canonical content was never actually refreshed from
+     *  the current JSON: legacy-named rows kept v2-era sets/reps/weights,
+     *  rows whose names didn't exactly match a JSON entry were never
+     *  adopted, and the 5 retired routines were resurrected. */
+    fun restorePreloaded(context: Context, db: DbHelper): Pair<Int, Int> {
+        var inserted = 0
+        var refreshed = 0
+        val rowsBySourceId = db.getAllExercises().filter { it.sourceId.isNotBlank() }.groupBy { it.sourceId }
+        for (pd in loadAll(context)) {
+            var order = 0
+            for (entry in pd.all) {
+                val myOrder = order++
+                val rows = rowsBySourceId[entry.id].orEmpty()
+                if (rows.isEmpty()) {
+                    db.insertExercise(Exercise(
+                        0, -1, entry.name, entry.type, entry.equipment, entry.sets,
+                        entry.targetReps, entry.defaultWeight, entry.variation, entry.url,
+                        myOrder, entry.targetMuscles, entry.cues, entry.precautions, pd.partId, entry.id
+                    ))
+                    inserted++
+                } else {
+                    val row = rows.first()
+                    for (extra in rows.drop(1)) db.deleteExercise(extra.id)
+                    val updated = row.copy(
+                        name = entry.name, type = entry.type, equipment = entry.equipment,
+                        defaultSets = entry.sets, targetReps = entry.targetReps,
+                        defaultWeight = entry.defaultWeight, variation = entry.variation,
+                        youtubeUrl = entry.url, targetMuscles = entry.targetMuscles,
+                        cues = entry.cues, postureCheck = entry.precautions, bodyPart = pd.partId
+                    )
+                    if (updated != row) { db.updateExercise(updated); refreshed++ }
+                }
+            }
+        }
+        return inserted to refreshed
     }
 
     private fun applyV3(context: Context, db: DbHelper) {
