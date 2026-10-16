@@ -100,6 +100,8 @@
     },
     {
       "id": "chin-ups",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/chin-ups.jpg",
       "name": "Chin-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -108,6 +110,8 @@
       "precautions": "Underhand grip, hands shoulder-width, bar fully secure;Start from a dead hang with shoulders engaged;Pull until your chin clears the bar - no swinging or kicking;Lower slowly all the way down",
       "cues": "Hang tall, grip tight;Pull your elbows down to your ribs;Lower under control",
       "image": "biceps",
+      "url": "https://www.youtube.com/shorts/VzBj5eQdPvM",
+      "shortUrl": "https://www.youtube.com/shorts/VzBj5eQdPvM",
       "primary": false
     }
   ],

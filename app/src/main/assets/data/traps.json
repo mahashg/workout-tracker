@@ -3,6 +3,7 @@
   "warmups": [
     {
       "id": "scapular-mobility",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Scapular Mobility (Shoulder Blade Glides)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -11,6 +12,7 @@
       "precautions": "Seated tall, arms relaxed;Glide shoulder blades up, down, together and apart in slow circles;Keep the neck long and still;Full comfortable range, no forcing",
       "cues": "Circle the shoulder blades;Slow full glides;Neck stays long",
       "image": "traps",
+      "url": "https://www.instagram.com/reel/Dc6JQ0QOPu4/",
       "primary": false
     }
   ],
@@ -113,6 +115,7 @@
     },
     {
       "id": "neck-rotations",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Neck Rotations",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -121,10 +124,12 @@
       "precautions": "Slow half or full circles - never force the range;Keep shoulders down and still;Stop if you feel dizzy;Never crank the neck backward hard",
       "cues": "Slow gentle circles;Shoulders stay down;Breathe easy",
       "image": "traps",
+      "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
       "primary": false
     },
     {
       "id": "neck-circles-up-dog",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Neck Circles (Upward Dog)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -133,6 +138,7 @@
       "precautions": "In a gentle upward dog, circle your head slowly;Keep circles small and smooth;Shoulders stay down away from your ears;Stop if dizzy",
       "cues": "Gentle up-dog;Small slow head circles;Shoulders stay down",
       "image": "traps",
+      "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
       "primary": false
     }
   ],
