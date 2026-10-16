@@ -305,7 +305,21 @@ class CardSessionActivity : AppCompatActivity() {
                     text = "▶"; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
                     background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(darkPill) }
                     isClickable = true
-                    setOnClickListener { openUrl(this@CardSessionActivity, ex.youtubeUrl) }
+                    // v3.10 (Mahesh): a tap plays the entry's YouTube
+                    // Short when one was verified for it — the quick
+                    // form glance — and falls back to the long video;
+                    // a long-press always opens the full video (the
+                    // deeper link). shortUrl is runtime-resolved from
+                    // the bundled JSON by sourceId (JsonSeed), never
+                    // stored on the session row.
+                    setOnClickListener {
+                        val short = JsonSeed.shortUrlForSessionExercise(this@CardSessionActivity, db, ex)
+                        openUrl(this@CardSessionActivity, short ?: ex.youtubeUrl)
+                    }
+                    setOnLongClickListener {
+                        openUrl(this@CardSessionActivity, ex.youtubeUrl)
+                        true
+                    }
                     layoutParams = FrameLayout.LayoutParams(dp(38), dp(38), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(10), dp(10), 0) }
                 }
                 header.addView(vicon)
