@@ -89,6 +89,18 @@ class CircuitPlayerActivity : AppCompatActivity() {
     private var elapsedRunning = false
     private var pendingNextIndex = -1
 
+    // v3.12: rotation-proof restore scratch — populated by
+    // tryRestorePlayerState() from the cp_* prefs just before
+    // beginWork() re-enters renderWork(), and consumed (then reset
+    // to the -1/false defaults) by renderWork()'s interval tail so
+    // a restored WORK interval resumes at its saved remaining time
+    // instead of restarting at the step's full interval.
+    private var pendingRestoreTotal: Long = -1L
+    private var pendingRestoreRemaining: Long = -1L
+    private var pendingRestorePaused: Boolean = false
+    private var pendingRestoreActive: Boolean = false
+    private var pendingRestoreRow: Int = -1
+
     private val intervalTick = object : Runnable {
         override fun run() {
             if (!intervalRunning) return
@@ -227,22 +239,35 @@ class CircuitPlayerActivity : AppCompatActivity() {
         created = true
         refreshRows()
 
-        val firstPending = rows.indexOfFirst { db.effectiveStatus(it) == "pending" }
-        when {
-            firstPending >= 0 -> {
-                currentRowIndex = firstPending
-                if (isFresh) showCountdown() else beginWork(currentRowIndex)
+        // v3.12: on a resume, a saved cp_* player state (written by
+        // savePlayerState() before the previous instance went away —
+        // e.g. on rotation) preempts the plain first-pending resume
+        // below, so a WORK/REST interval resumes mid-count with its
+        // pause state intact instead of restarting. The COUNTDOWN
+        // phase of a FRESH session is never persisted
+        // (savePlayerState() clears it), so rotation mid-countdown
+        // lands on the standard resume path (beginWork at the first
+        // pending row), matching the app's existing resume semantics.
+        // A restore that fails validation falls through unchanged.
+        val restored = tryRestorePlayerState()
+        if (!restored) {
+            val firstPending = rows.indexOfFirst { db.effectiveStatus(it) == "pending" }
+            when {
+                firstPending >= 0 -> {
+                    currentRowIndex = firstPending
+                    if (isFresh) showCountdown() else beginWork(currentRowIndex)
+                }
+                circuit!!.rounds == -1 && amrapBoxRemains() -> {
+                    appendAmrapRound()
+                    refreshRows()
+                    val np = rows.indexOfFirst { db.effectiveStatus(it) == "pending" }
+                    if (np >= 0) {
+                        currentRowIndex = np
+                        if (isFresh) showCountdown() else beginWork(np)
+                    } else finishCircuit()
+                }
+                else -> finishCircuit() // fully resolved in a previous visit
             }
-            circuit!!.rounds == -1 && amrapBoxRemains() -> {
-                appendAmrapRound()
-                refreshRows()
-                val np = rows.indexOfFirst { db.effectiveStatus(it) == "pending" }
-                if (np >= 0) {
-                    currentRowIndex = np
-                    if (isFresh) showCountdown() else beginWork(np)
-                } else finishCircuit()
-            }
-            else -> finishCircuit() // fully resolved in a previous visit
         }
     }
 
@@ -277,6 +302,11 @@ class CircuitPlayerActivity : AppCompatActivity() {
             val s = db.getSession(sessionId)
             if (s != null && !s.completed) WorkoutTimer.fold(this, db, s)
         }
+        // v3.12: persist the player state last — intervalRemainingMs
+        // was already captured above before the loop stopped, so
+        // savePlayerState()'s non-running branch reads the frozen
+        // remainder exactly.
+        savePlayerState()
     }
 
     override fun onDestroy() {
@@ -295,6 +325,141 @@ class CircuitPlayerActivity : AppCompatActivity() {
             return
         }
         @Suppress("DEPRECATION") super.onBackPressed()
+    }
+
+    // ---------- v3.12: rotation-proof player state (cp_* prefs) ----------
+
+    /** Persists the live interval so a destroyed/recreated player
+     *  (rotation is the common case) resumes where it stopped.
+     *  COUNTDOWN and COMPLETE are never persisted: countdown is a
+     *  fresh-session-only prelude, and a completed circuit has
+     *  nothing to resume — both clear any stale cp_* record. */
+    private fun savePlayerState() {
+        if (sessionId <= 0) return
+        if (phase == Phase.COMPLETE || phase == Phase.COUNTDOWN) {
+            clearPlayerState()
+            return
+        }
+        val rem = when {
+            !intervalActive -> 0L
+            intervalPausedByUser -> intervalRemainingMs
+            intervalRunning -> (intervalEndsAtMs - SystemClock.uptimeMillis()).coerceAtLeast(0)
+            else -> intervalRemainingMs
+        }
+        val phaseStr = when (phase) {
+            Phase.WORK -> "WORK"
+            Phase.REST -> "REST"
+            Phase.ROUNDREST -> "ROUNDREST"
+            else -> return
+        }
+        getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit()
+            .putString("cp_phase_$sessionId", phaseStr)
+            .putInt("cp_row_$sessionId", currentRowIndex)
+            .putInt("cp_next_$sessionId", pendingNextIndex)
+            // Inactive steps (pure rep work) persist a zero total:
+            // intervalTotalMs can still hold a previous timed step's
+            // total, and a restored rep step must never arm a clock.
+            .putLong("cp_total_$sessionId", if (intervalActive) intervalTotalMs else 0L)
+            .putLong("cp_rem_$sessionId", rem)
+            .putBoolean("cp_paused_$sessionId", intervalPausedByUser)
+            .putBoolean("cp_active_$sessionId", intervalActive)
+            .apply()
+    }
+
+    private fun clearPlayerState() {
+        if (sessionId <= 0) return
+        getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit()
+            .remove("cp_phase_$sessionId")
+            .remove("cp_row_$sessionId")
+            .remove("cp_next_$sessionId")
+            .remove("cp_total_$sessionId")
+            .remove("cp_rem_$sessionId")
+            .remove("cp_paused_$sessionId")
+            .remove("cp_active_$sessionId")
+            .apply()
+    }
+
+    /** Attempts the cp_* restore described in onCreate. Returns
+     *  true when the saved state preempted the normal resume flow
+     *  (including when renderRest() finished the circuit on the
+     *  AMRAP deadline); false leaves the caller to run the
+     *  existing first-pending when-block unchanged. */
+    private fun tryRestorePlayerState(): Boolean {
+        if (isFresh || sessionId <= 0) return false
+        val prefs = getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+        val phaseStr = prefs.getString("cp_phase_$sessionId", null) ?: return false
+        val savedRow = prefs.getInt("cp_row_$sessionId", -1)
+        val savedNext = prefs.getInt("cp_next_$sessionId", -1)
+        val savedTotal = prefs.getLong("cp_total_$sessionId", -1L)
+        val savedRem = prefs.getLong("cp_rem_$sessionId", 0L)
+        val savedPaused = prefs.getBoolean("cp_paused_$sessionId", false)
+        val savedActive = prefs.getBoolean("cp_active_$sessionId", false)
+        return when (phaseStr) {
+            "WORK" -> {
+                if (savedRow !in rows.indices) return false
+                pendingRestoreTotal = savedTotal
+                pendingRestoreRemaining = savedRem
+                pendingRestorePaused = savedPaused
+                pendingRestoreActive = savedActive
+                pendingRestoreRow = savedRow
+                currentRowIndex = savedRow
+                clearPlayerState()
+                // beginWork() resets intervalPausedByUser before
+                // renderWork(); renderWork()'s tail then applies
+                // the pendingRestore* values over that reset.
+                beginWork(savedRow)
+                true
+            }
+            "REST", "ROUNDREST" -> restoreRest(
+                isRound = phaseStr == "ROUNDREST",
+                savedRow = savedRow,
+                savedNext = savedNext,
+                savedTotal = savedTotal,
+                savedRem = savedRem,
+                savedPaused = savedPaused,
+                savedActive = savedActive
+            )
+            else -> false
+        }
+    }
+
+    private fun restoreRest(
+        isRound: Boolean,
+        savedRow: Int,
+        savedNext: Int,
+        savedTotal: Long,
+        savedRem: Long,
+        savedPaused: Boolean,
+        savedActive: Boolean
+    ): Boolean {
+        if (savedNext !in rows.indices) return false
+        if (savedRow in rows.indices) currentRowIndex = savedRow
+        pendingNextIndex = savedNext
+        // phase must be set BEFORE renderRest(): it (and the
+        // elapsed refresh inside it) reads phase-dependent state.
+        phase = if (isRound) Phase.ROUNDREST else Phase.REST
+        clearPlayerState()
+        renderRest(isRound)
+        // renderRest's elapsed refresh may have hit the AMRAP
+        // deadline and finished the circuit instead (phase flipped
+        // to COMPLETE) — don't arm a rest interval then, mirroring
+        // enterRest()'s guard. The restore still preempted the
+        // normal resume flow, so report success either way.
+        if (phase != Phase.REST && phase != Phase.ROUNDREST) return true
+        intervalTotalMs = savedTotal
+        intervalRemainingMs = savedRem
+        intervalPausedByUser = savedPaused
+        intervalActive = savedActive && savedTotal > 0
+        if (!intervalActive) {
+            updateIntervalUi()
+        } else if (intervalPausedByUser) {
+            updateIntervalUi()
+        } else {
+            intervalEndsAtMs = SystemClock.uptimeMillis() + intervalRemainingMs
+            updateIntervalUi()
+            startIntervalLoop()
+        }
+        return true
     }
 
     // ---------- chrome ----------
@@ -519,6 +684,9 @@ class CircuitPlayerActivity : AppCompatActivity() {
         phase = Phase.WORK
         intervalPausedByUser = false
         renderWork()
+        // v3.12: persist after renderWork() so the interval state it
+        // armed (or restored) is what gets saved.
+        savePlayerState()
     }
 
     private fun renderWork() {
@@ -570,6 +738,43 @@ class CircuitPlayerActivity : AppCompatActivity() {
             frame.addView(BodyMapView(this, muscles, true).apply {
                 layoutParams = FrameLayout.LayoutParams(dp(110), dp(140),
                     Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(16), 0) }
+            })
+        }
+        // v3.12: form video on the photo frame — the gym card's
+        // badge (38dp dark oval, white ▶) added last so it draws on
+        // top, plus the whole frame is tappable (the photo
+        // ImageViews and BodyMapView are non-clickable, so taps
+        // land on the frame). Tap opens the Short when one exists,
+        // long-press always opens the full video. Freeze
+        // semantics: opening the video leaves this activity, so
+        // onPause() captures intervalRemainingMs and onResume()
+        // re-arms it from that remainder (a running interval stays
+        // running, a user-paused one stays paused) — no extra
+        // freeze code is needed here, and the v3.12 cp_* save in
+        // onPause() preserves the same remainder across a
+        // destroy/recreate while away.
+        val short = entry?.shortUrl?.takeIf { it.isNotBlank() }
+        val full = entry?.url?.takeIf { it.isNotBlank() } ?: row.youtubeUrl.takeIf { it.isNotBlank() }
+        if (full != null) {
+            frame.isClickable = true
+            frame.setOnClickListener { openUrl(this@CircuitPlayerActivity, short ?: full) }
+            frame.setOnLongClickListener {
+                openUrl(this@CircuitPlayerActivity, full)
+                true
+            }
+            frame.addView(TextView(this).apply {
+                text = "▶"; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL; setColor(0x8C0F172A.toInt())
+                }
+                isClickable = true
+                setOnClickListener { openUrl(this@CircuitPlayerActivity, short ?: full) }
+                setOnLongClickListener {
+                    openUrl(this@CircuitPlayerActivity, full)
+                    true
+                }
+                layoutParams = FrameLayout.LayoutParams(dp(38), dp(38), Gravity.TOP or Gravity.END)
+                    .apply { setMargins(0, dp(10), dp(10), 0) }
             })
         }
         content.addView(frame)
@@ -709,7 +914,40 @@ class CircuitPlayerActivity : AppCompatActivity() {
         controls.addView(endBtn)
         content.addView(controls)
 
-        if (intervalSec > 0) startInterval(intervalSec) else intervalActive = false
+        // v3.12: a restored WORK row resumes its saved interval
+        // (total / remaining / paused) instead of restarting at
+        // the step's full interval; every other render keeps the
+        // original fresh-interval behaviour.
+        val rt = pendingRestoreTotal
+        if (rt >= 0 && currentRowIndex == pendingRestoreRow) {
+            intervalTotalMs = rt
+            intervalRemainingMs = pendingRestoreRemaining
+            intervalPausedByUser = pendingRestorePaused
+            // The SAVED active flag is the gate — never the totals:
+            // a rep step saved after a timed step can carry a stale
+            // total, and arming it would instantly time the step out.
+            intervalActive = pendingRestoreActive && rt > 0
+            pendingRestoreTotal = -1L
+            pendingRestoreRemaining = -1L
+            pendingRestorePaused = false
+            pendingRestoreActive = false
+            pendingRestoreRow = -1
+            if (intervalActive) {
+                if (step.timedSec > 0) {
+                    ring.totalMs = rt
+                    ring.setRemaining(intervalRemainingMs)
+                    ringBigTv?.text = WorkoutTimer.formatClock(((intervalRemainingMs + 999) / 1000).toInt())
+                }
+                if (intervalPausedByUser) {
+                    pauseBtnTv?.text = "▶ Resume"
+                    updateIntervalUi()
+                } else {
+                    intervalEndsAtMs = SystemClock.uptimeMillis() + intervalRemainingMs
+                    updateIntervalUi()
+                    startIntervalLoop()
+                }
+            }
+        } else if (intervalSec > 0) startInterval(intervalSec) else intervalActive = false
     }
 
     // ---------- rest screens ----------
@@ -722,6 +960,8 @@ class CircuitPlayerActivity : AppCompatActivity() {
         // and finished the circuit instead — don't arm a rest interval.
         if (phase != Phase.REST && phase != Phase.ROUNDREST) return
         startInterval(sec)
+        // v3.12: persist the freshly armed rest interval.
+        savePlayerState()
     }
 
     private fun renderRest(isRound: Boolean) {
@@ -893,6 +1133,9 @@ class CircuitPlayerActivity : AppCompatActivity() {
             stopIntervalLoop()
             updateIntervalUi()
         }
+        // v3.12: the pause flip (and its frozen remainder) is
+        // exactly what a restore must reproduce.
+        savePlayerState()
     }
 
     private fun onStepTimeout() {
@@ -999,6 +1242,8 @@ class CircuitPlayerActivity : AppCompatActivity() {
 
     private fun finishCircuit() {
         if (phase == Phase.COMPLETE) return
+        // v3.12: a finished circuit has nothing to resume.
+        clearPlayerState()
         stopIntervalLoop()
         intervalActive = false
         stopElapsed()
@@ -1032,6 +1277,8 @@ class CircuitPlayerActivity : AppCompatActivity() {
         stopIntervalLoop(); stopElapsed()
         photoLooper?.stop()
         WorkoutTimer.clear(this, sessionId)
+        // v3.12: drop the saved player state with the session.
+        clearPlayerState()
         getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit()
             .remove("circuitSpr_$sessionId").remove("circuitSteps_$sessionId").apply()
         db.deleteSession(sessionId)

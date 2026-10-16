@@ -176,7 +176,7 @@ class CircuitDetailActivity : AppCompatActivity() {
         root.addView(startBtn)
 
         val hint = makeText(
-            "Long-press a motion to remove it before starting.",
+            "Tap a motion for its video · long-press to remove it before starting.",
             12f, false, Theme.textSecondary
         )
         hint.gravity = Gravity.CENTER
@@ -263,6 +263,16 @@ class CircuitDetailActivity : AppCompatActivity() {
                 true
             }
         }
+        // v3.12: tap a motion for its video (Short preferred,
+        // falling back to the full video); the long-press remove
+        // above is kept exactly as is — Android dispatches the
+        // long-press instead of the click when it fires.
+        val videoUrl = entry?.shortUrl?.takeIf { it.isNotBlank() }
+            ?: entry?.url?.takeIf { it.isNotBlank() }
+        if (videoUrl != null) {
+            row.isClickable = true
+            row.setOnClickListener { openUrl(this@CircuitDetailActivity, videoUrl) }
+        }
         // Numbered disc: position in the WORKING list, so removals renumber.
         row.addView(TextView(this).apply {
             text = (position + 1).toString()
@@ -304,6 +314,19 @@ class CircuitDetailActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
         })
+        // v3.12: video affordance at the row's end, after the dose
+        // pill — shown only when the motion actually has a video.
+        if (videoUrl != null) {
+            row.addView(TextView(this).apply {
+                text = "▶"
+                textSize = 13f
+                setTextColor(Theme.primary)
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(dp(8), 0, 0, 0) }
+            })
+        }
         return row
     }
 
