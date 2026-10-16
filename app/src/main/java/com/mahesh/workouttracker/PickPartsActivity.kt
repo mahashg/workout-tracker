@@ -56,10 +56,12 @@ class PickPartsActivity : AppCompatActivity() {
         // 12sp — at 56/64dp with an 11sp line budgeted at font scale
         // 1.0, the second line clipped at larger font scales.
         val cellH = if (compact) 60 else 68
+        // v3.12: anatomy logo size per cell (compact / regular).
+        val logoDp = if (compact) 44 else 50
         for (rowParts in BodyParts.all.chunked(2)) {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             for (part in rowParts) {
-                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0, logoDp), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
             }
             if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
             root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
@@ -141,7 +143,7 @@ class PickPartsActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
+    private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int, logoDp: Int): View {
         val isSel = part.id in selected
         val done = countThisWeek > 0
         // Suggested = unselected and compatible with EVERY selected part.
@@ -160,7 +162,9 @@ class PickPartsActivity : AppCompatActivity() {
         // top-right corner, clear of the name/pill row.
         val frame = FrameLayout(this)
         val cell = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+            // v3.12: HORIZONTAL — anatomy logo first, then the text column.
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
             background = when {
                 isSel -> stateCardDrawable(Theme.primary, tappable = true)
                 suggested -> stateCardDrawable(violetFill, violet, dashed = true, tappable = true)
@@ -184,6 +188,18 @@ class PickPartsActivity : AppCompatActivity() {
             }
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
+        // v3.12: the part's anatomy logo leads the cell (omitted when
+        // no logo decodes); the existing top row + last-trained line
+        // move unchanged into a weight-1 vertical column beside it.
+        PartLogos.imageView(this, part.id, logoDp)?.let { logo ->
+            (logo.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, dp(10), 0)
+            cell.addView(logo)
+        }
+        val col = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        cell.addView(col)
         val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val nameTv = makeText(part.name, 14.5f, true, if (isSel) Color.WHITE else Theme.textPrimary)
         nameTv.maxLines = 1
@@ -206,7 +222,7 @@ class PickPartsActivity : AppCompatActivity() {
             due -> top.addView(pillView("Due", "#FEF3C7", Theme.warn))
             else -> top.addView(pillView("Pending", "#E2E8F0", Theme.pendingFg))
         }
-        cell.addView(top)
+        col.addView(top)
         val lastLine = when {
             last == null -> "Not trained yet"
             days != null && days == 0L -> "Last · today"
@@ -222,7 +238,7 @@ class PickPartsActivity : AppCompatActivity() {
         lastTv.maxLines = 1
         lastTv.setPadding(0, dp(2), 0, 0)
         (lastTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-        cell.addView(lastTv)
+        col.addView(lastTv)
         frame.addView(cell)
         if (isSel) {
             // White circle with a blue ✓ on the card's top-right corner —

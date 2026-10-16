@@ -114,6 +114,11 @@ class WorkoutHubActivity : AppCompatActivity() {
             val chip = TimerChipView(this)
             chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
             chip.bind(this, db, db.getSession(sessionId) ?: session) {}
+            // v3.12: swipe right on the timer bar = the Finish flow
+            // (same confirm-or-finish the Finish button runs). No
+            // RestTimer.attach here — the card owns rest completion;
+            // this screen's rest chip just reflects the live engine.
+            chip.onFinishSwipe = { onFinishTap() }
             chip.startTicking()
             timerChip = chip
             hRow.addView(chip)

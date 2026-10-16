@@ -1,6 +1,8 @@
 package com.mahesh.workouttracker
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -123,10 +125,10 @@ class RoutinesActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
             }
             val partChips = listOf<Pair<String, String?>>(("All parts" to null)) + BodyParts.all.map { it.name to it.id }
-            addChipRows(chipBox, partChips, filterPart) { v -> filterPart = v; render() }
+            addChipRows(chipBox, partChips, filterPart, { v -> filterPart = v; render() }, partLogos = true)
             val gearChips = listOf<Pair<String, String?>>(("All gear" to null)) +
                 gearValues.map { it to it } + listOf("🏠 Home" to GEAR_HOME)
-            addChipRows(chipBox, gearChips, filterGear) { v -> filterGear = v; render() }
+            addChipRows(chipBox, gearChips, filterGear, { v -> filterGear = v; render() })
             root.addView(chipBox)
         }
 
@@ -150,7 +152,7 @@ class RoutinesActivity : AppCompatActivity() {
         "Machine" -> 0; "Dumbbell" -> 1; "Kettlebell" -> 2; "Bodyweight" -> 3; else -> 4
     }
 
-    private fun addChipRows(box: LinearLayout, chips: List<Pair<String, String?>>, selected: String?, onPick: (String?) -> Unit) {
+    private fun addChipRows(box: LinearLayout, chips: List<Pair<String, String?>>, selected: String?, onPick: (String?) -> Unit, partLogos: Boolean = false) {
         for (rowChips in chips.chunked(3)) {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -171,6 +173,16 @@ class RoutinesActivity : AppCompatActivity() {
                     layoutParams = LinearLayout.LayoutParams(0, dp(38), 1f).apply { setMargins(dp(3), dp(2), dp(3), dp(2)) }
                     isClickable = true
                     setOnClickListener { onPick(value) }
+                    // v3.12: part chips (partLogos only, non-null value)
+                    // carry their 24dp anatomy logo as a left compound
+                    // drawable; "All parts" (null) and gear chips don't.
+                    if (partLogos && value != null) {
+                        PartLogos.bitmap(this@RoutinesActivity, value)?.let { bmp ->
+                            val scaled = Bitmap.createScaledBitmap(bmp, dp(24), dp(24), true)
+                            setCompoundDrawablesWithIntrinsicBounds(BitmapDrawable(resources, scaled), null, null, null)
+                            compoundDrawablePadding = dp(6)
+                        }
+                    }
                 }
                 row.addView(chip)
             }
