@@ -86,13 +86,25 @@ class CardSessionActivity : AppCompatActivity() {
         render()
     }
 
-    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() }; cancelInterstitial() }
+    override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() }; cancelInterstitial(); RestTimer.persistNow() }
     override fun onResume() {
         super.onResume(); photoLoopers.forEach { it.start() }
         // v3.7: returning to the card (e.g. back from the form video)
         // re-renders so the scroller strip and counts reflect any
         // status changes. The first resume is onCreate's own render.
         if (firstResume) firstResume = false else if (::db.isInitialized && sessionId > 0) render()
+        // v3.12: re-attach to a rest that outlived this screen
+        // (rotation reshows the ring; process death rebuilds the
+        // engine from prefs). The factory mirrors the two show()
+        // call sites: an exercise rest completes into
+        // advanceToPending (whose stale-target guard keeps a late
+        // fire safe), a set rest just re-renders.
+        if (::db.isInitialized && sessionId > 0) {
+            val s = db.getSession(sessionId)
+            if (s != null && !s.completed) RestTimer.attach(this, sessionId) { kind, target, from ->
+                if (kind == "exercise") ({ advanceToPending(target, from) }) else ({ render() })
+            }
+        }
     }
     override fun onDestroy() { super.onDestroy(); timerChip?.stopTicking(); photoLoopers.forEach { it.stop() }; cancelInterstitial() }
 
@@ -164,6 +176,8 @@ class CardSessionActivity : AppCompatActivity() {
             val chip = TimerChipView(this)
             chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
             chip.bind(this, db, db.getSession(sessionId) ?: sessForTimer) {}
+            // v3.12: swipe right on the timer bar = finish workout.
+            chip.onFinishSwipe = { confirmFinishWorkout() }
             chip.startTicking()
             timerChip = chip
             chipRow.addView(chip)
@@ -551,6 +565,33 @@ class CardSessionActivity : AppCompatActivity() {
             putExtra("sessionId", sessionId)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         })
+        finish()
+    }
+
+    /** v3.12: the timer bar's swipe-right lands here — confirm, then
+     *  finish from the card screen (previously only the hub could
+     *  finish a workout). */
+    private fun confirmFinishWorkout() {
+        AlertDialog.Builder(this).setTitle("Finish workout?")
+            .setMessage("End this workout now? Everything you've logged is saved.")
+            .setNegativeButton("Keep going", null)
+            .setPositiveButton("Finish") { _, _ -> doFinishWorkout() }
+            .show()
+    }
+
+    /** v3.12: the standard finish path (identical semantics to the
+     *  hub's doFinish): any active rest is cancelled WITHOUT firing
+     *  its onDone — a mid-flight rest must never advance a session
+     *  that is ending — then timer finalize, mark completed, Drive
+     *  backup + Health Connect sync, and the celebrating Summary. */
+    private fun doFinishWorkout() {
+        RestTimer.cancelActive()
+        val fresh = db.getSession(sessionId)
+        if (fresh != null) WorkoutTimer.finish(this, db, fresh)
+        db.setSessionCompleted(sessionId, true)
+        DriveBackup.backupSilently(this, db)
+        HealthSync.syncSessionIfEnabled(this, db, sessionId)
+        startActivity(Intent(this, SummaryActivity::class.java).apply { putExtra("sessionId", sessionId); putExtra("celebrate", true) })
         finish()
     }
 
@@ -1027,7 +1068,12 @@ class CardSessionActivity : AppCompatActivity() {
         if (sectionType == "Main") {
             val cues = nextEx.cues.ifBlank { DbHelper.cuesForName(nextEx.name, nextEx.equipment, nextEx.type) }
                 .split(";").map { it.trim() }.filter { it.isNotEmpty() }
-            RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues) { advanceToPending(nextEx.id, doneId) }
+            // v3.12: the rest carries its persistence identity so
+            // attach() can rebuild this exact advance after rotation
+            // or process death (kind/target/from mirror the lambda).
+            RestTimer.show(this, WeekManager.restExerciseSec(this), "Next · ${nextEx.name}", cues,
+                sessionId = sessionId, kind = "exercise", targetId = nextEx.id, fromId = doneId,
+                onDone = { advanceToPending(nextEx.id, doneId) })
             return
         }
         advanceToPending(nextEx.id, doneId)
@@ -1064,7 +1110,11 @@ class CardSessionActivity : AppCompatActivity() {
         } else ""
         val cues = ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) }
             .split(";").map { it.trim() }.filter { it.isNotEmpty() }
-        RestTimer.show(this, WeekManager.restSetSec(this), label, cues, after)
+        // v3.12: persisted like the exercise rest (kind "set"); its
+        // attach()-time completion is just a re-render, exactly what
+        // [after] does here.
+        RestTimer.show(this, WeekManager.restSetSec(this), label, cues,
+            sessionId = sessionId, kind = "set", targetId = ex.id, fromId = ex.id, onDone = after)
     }
     private fun moveToPendingFrom(from:Int){
         // index already advanced; if that card is handled, jump to first pending

@@ -4,10 +4,12 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.util.Locale
+import kotlin.math.abs
 
 /**
  * Workout elapsed timer (v2.3).
@@ -104,13 +106,22 @@ object WorkoutTimer {
     }
 }
 
-/** Ticking timer chip for session screens. Tap = pause/resume. */
+/** Ticking timer chip for session screens. Tap = pause/resume.
+ *  v3.12: horizontal swipes join the tap — swipe LEFT = pause/resume
+ *  (same as a tap), swipe RIGHT = finish (via [onFinishSwipe], set by
+ *  hosts that have a finish flow; hosts without one just keep taps). */
 class TimerChipView(context: Context) : LinearLayout(context) {
     private val label = TextView(context)
     private val icon = ImageView(context)
     private val handler = Handler(Looper.getMainLooper())
     private var session: SessionInfo? = null
     private var db: DbHelper? = null
+    private var onToggleCb: (() -> Unit)? = null
+    // v3.12: swipe-right target (finish). Null = right swipes fall
+    // through to the normal touch handling, exactly like a tap.
+    var onFinishSwipe: (() -> Unit)? = null
+    private var touchDownX = 0f
+    private var touchDownY = 0f
     private var ticking = false
     private val ticker = object : Runnable {
         override fun run() {
@@ -147,16 +158,53 @@ class TimerChipView(context: Context) : LinearLayout(context) {
 
     fun bind(context: Context, db: DbHelper, session: SessionInfo, onToggle: () -> Unit) {
         this.db = db; this.session = session
+        this.onToggleCb = onToggle
         WorkoutTimer.ensureRunning(context, db, session)
-        setOnClickListener {
-            val s = this.session ?: return@setOnClickListener
-            val fresh = db.getSession(s.id) ?: return@setOnClickListener
-            if (WorkoutTimer.isPaused(context, s.id)) WorkoutTimer.resume(context, fresh)
-            else WorkoutTimer.pause(context, db, fresh)
-            this.session = db.getSession(s.id)
-            refresh(); onToggle()
-        }
+        setOnClickListener { togglePause() }
         refresh()
+    }
+
+    /** v3.12: the tap's pause/resume toggle, extracted so the swipe
+     *  gestures share it exactly. Pausing the session ALSO freezes an
+     *  active rest (and resuming thaws it) — RestTimer no-ops when no
+     *  rest is active/paused, so non-rest screens are unaffected. */
+    private fun togglePause() {
+        val s = session ?: return
+        val d = db ?: return
+        val fresh = d.getSession(s.id) ?: return
+        if (WorkoutTimer.isPaused(context, s.id)) {
+            WorkoutTimer.resume(context, fresh)
+            RestTimer.resumeRest()
+        } else {
+            WorkoutTimer.pause(context, d, fresh)
+            RestTimer.pauseRest()
+        }
+        session = d.getSession(s.id)
+        refresh(); onToggleCb?.invoke()
+    }
+
+    /** v3.12: horizontal swipe detection on the chip itself. A swipe
+     *  must travel at least 36dp and be clearly horizontal
+     *  (|dx| >= 1.6 x |dy|); anything else falls through to
+     *  super.onTouchEvent so plain taps (the click listener) keep
+     *  working untouched. */
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                touchDownX = event.x; touchDownY = event.y
+            }
+            MotionEvent.ACTION_UP -> {
+                val dx = event.x - touchDownX
+                val dy = event.y - touchDownY
+                if (abs(dx) >= context.dp(36) && abs(dx) >= 1.6f * abs(dy)) {
+                    // Consumed as a swipe: clear the pressed state the
+                    // DOWN left behind (super never sees this UP).
+                    if (dx < 0) { isPressed = false; togglePause(); return true }
+                    if (dx > 0 && onFinishSwipe != null) { isPressed = false; onFinishSwipe!!.invoke(); return true }
+                }
+            }
+        }
+        return super.onTouchEvent(event)
     }
 
     fun refresh() {
@@ -166,7 +214,7 @@ class TimerChipView(context: Context) : LinearLayout(context) {
         session = fresh
         val sec = WorkoutTimer.liveElapsedSec(ctx, fresh)
         val paused = WorkoutTimer.isPaused(ctx, fresh.id) && !fresh.completed
-        label.text = (if (paused) "Paused  " else "") + WorkoutTimer.formatClock(sec)
+        label.text = (if (paused) "⏸ Paused " else "") + WorkoutTimer.formatClock(sec)
     }
 
     fun startTicking() { if (!ticking) { ticking = true; handler.post(ticker) } }
