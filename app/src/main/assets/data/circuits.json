@@ -1,0 +1,3843 @@
+{
+  "meta": {
+    "description": "Circuit presets, circuit formats, circuit-only motions and section tags for the Workout Tracker catalog. Companion to the per-body-part data files.",
+    "sources": "Instagram saved-reel scan + Instagram circuit search (staged-routines-r1), Nerd Fitness circuit training guide (staged-circuits-web-r1), Sam Zellien mobility reel.",
+    "circuitCount": 66,
+    "formatCount": 7
+  },
+  "circuits": [
+    {
+      "id": "stepper-hiit",
+      "name": "Stepper HIIT",
+      "specialty": "hiit",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@getfitwith_mansi",
+        "ref": "https://www.instagram.com/reel/DeeWqfwxNzh/"
+      },
+      "rounds": 5,
+      "workSec": 40,
+      "restSec": 20,
+      "steps": [
+        {
+          "id": "squat-jump-step"
+        },
+        {
+          "id": "spider-climbers"
+        },
+        {
+          "id": "side-shuffles-step"
+        },
+        {
+          "id": "squat-to-step-jump"
+        },
+        {
+          "id": "stepper-shuffles"
+        },
+        {
+          "id": "cross-climbers"
+        },
+        {
+          "id": "high-plank-to-squat-hold"
+        }
+      ],
+      "notes": "7 moves on an aerobic step platform, 40s work / 20s rest, 5 rounds, exactly as labeled in the reel. Contains jumping. Source's calorie claim not carried."
+    },
+    {
+      "id": "arms-back-tabata",
+      "name": "Arms & Back Tabata",
+      "specialty": "tabata",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@im_soo_homefit",
+        "ref": "https://www.instagram.com/reel/DdAR8Pbpp6z/"
+      },
+      "rounds": 3,
+      "workSec": 20,
+      "restSec": 10,
+      "steps": [
+        {
+          "id": "alternate-arm-swings"
+        },
+        {
+          "id": "db-reverse-fly"
+        },
+        {
+          "id": "alternate-arm-rows"
+        },
+        {
+          "id": "db-triceps-kickback"
+        },
+        {
+          "id": "db-overhead-raise"
+        },
+        {
+          "id": "around-the-world"
+        }
+      ],
+      "notes": "Light dumbbells (1-2 kg in source). 20s work / 10s rest x 3 rounds, sequence from the reel caption."
+    },
+    {
+      "id": "full-body-dynamic-warm-up",
+      "name": "Full-Body Dynamic Warm-Up",
+      "specialty": "warm-up",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@the12absproject",
+        "ref": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "neck-rotations"
+        },
+        {
+          "id": "arm-circles"
+        },
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "high-knees"
+        },
+        {
+          "id": "arm-swings"
+        },
+        {
+          "id": "cross-body-shoulder-stretch"
+        },
+        {
+          "id": "shoulder-swings"
+        },
+        {
+          "id": "neck-trapezius-stretch"
+        },
+        {
+          "id": "windmill-touches"
+        },
+        {
+          "id": "leg-swings"
+        }
+      ],
+      "notes": "Narrated warm-up sequence in the reel's order; per-move durations/reps not stated in source."
+    },
+    {
+      "id": "daily-100",
+      "name": "Daily 100",
+      "specialty": "bodyweight",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@lokramfitness",
+        "ref": "https://www.instagram.com/reel/Db0g0fezwzz/ + https://www.instagram.com/reel/DcFeOc4R9Iy/"
+      },
+      "rounds": 1,
+      "repsPerMotion": 100,
+      "steps": [
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "standing-cross-body-crunch"
+        },
+        {
+          "id": "standing-knee-raises"
+        },
+        {
+          "id": "march-in-place"
+        }
+      ],
+      "notes": "Merged from two saves of the same creator's daily-100 routine (#8 + #14 in the scan). 100 reps per move. Reel #8's voiceover lists a 4th move that could not be identified (see partials). Fat-loss claims in the voiceover not carried."
+    },
+    {
+      "id": "easy-home-routine",
+      "name": "Easy Standing Home Routine",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@growwithasad12",
+        "ref": "https://www.instagram.com/reel/Dd_dKsotP40/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "standing-side-bend"
+        },
+        {
+          "id": "standing-torso-twist"
+        },
+        {
+          "id": "overhead-reach"
+        },
+        {
+          "id": "standing-knee-raises"
+        }
+      ],
+      "notes": "Gentle kneeling/standing mobility-style sequence; reps/durations not stated in source. Source's waist/back-pain claims not carried."
+    },
+    {
+      "id": "in-bed-back-mobility",
+      "name": "In-Bed Back Mobility",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@yogasong_hayeon",
+        "ref": "https://www.instagram.com/reel/DdCBaQ4hzX7/"
+      },
+      "rounds": 1,
+      "repsPerMotion": 20,
+      "steps": [
+        {
+          "id": "supine-leg-open-close"
+        },
+        {
+          "id": "supine-butterfly"
+        },
+        {
+          "id": "supine-heel-swings"
+        },
+        {
+          "id": "supine-knee-drops"
+        },
+        {
+          "id": "pigeon-pose"
+        }
+      ],
+      "notes": "5 supine movements performed on a bed, ~20 reps each in the source. Back-pain relief claims not carried - movements staged on merit as gentle mobility."
+    },
+    {
+      "id": "gentle-yoga-flow",
+      "name": "Gentle Yoga Flow",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@jhanakkkk",
+        "ref": "https://www.instagram.com/reel/Dcq6wnzS_SE/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "malasana"
+        },
+        {
+          "id": "chakki-chalanasana"
+        },
+        {
+          "id": "baddha-konasana"
+        },
+        {
+          "id": "malasana-walk"
+        }
+      ],
+      "notes": "Timed holds from the reel: Malasana 2-3 min, Chakki Chalanasana 2-3 min, Baddha Konasana 3-4 min, Malasana Walk 1-2 min. The reel's PCOS/period-relief claims are medical claims and are NOT carried - staged as a gentle yoga/mobility flow only."
+    },
+    {
+      "id": "seated-posture-mobility",
+      "name": "Seated Posture Mobility",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@_yoga_with_preeti_",
+        "ref": "https://www.instagram.com/reel/Dc6JQ0QOPu4/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "scapular-squeeze"
+        },
+        {
+          "id": "shoulder-external-rotation"
+        },
+        {
+          "id": "seated-arm-stretch"
+        },
+        {
+          "id": "scapular-mobility"
+        }
+      ],
+      "notes": "Seated sequence with stated reps: elbow pullback (catalog scapular-squeeze) x25, external rotation x20, arm stretch x15, scapular mobility x20."
+    },
+    {
+      "id": "hip-mobility-stretches",
+      "name": "Hip Mobility Stretches",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@poojanegi_yoga",
+        "ref": "https://www.instagram.com/reel/DZztrZESQvP/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "low-lunge-hip-stretch"
+        },
+        {
+          "id": "half-side-lunge-stretch"
+        },
+        {
+          "id": "side-leg-hip-stretch"
+        },
+        {
+          "id": "deep-squat-hip-stretch"
+        },
+        {
+          "id": "seated-side-leg-hip-stretch"
+        }
+      ],
+      "notes": "5 labeled hip stretches in the reel's order; hold durations not stated in source."
+    },
+    {
+      "id": "home-50-rep-circuit",
+      "name": "Home 50-Rep Circuit",
+      "specialty": "hiit",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@_peak.fit_",
+        "ref": "https://www.instagram.com/reel/Dc5DFP1RB8n/"
+      },
+      "rounds": 1,
+      "repsPerMotion": 50,
+      "steps": [
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "jump-squat"
+        },
+        {
+          "id": "standing-cross-body-crunch"
+        },
+        {
+          "id": "half-crunch"
+        }
+      ],
+      "notes": "4 moves x 50 reps each, as guided by on-screen text. Fat-loss framing in the reel title not carried."
+    },
+    {
+      "id": "three-minute-hiit",
+      "name": "3-Minute Full-Body HIIT",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@_fit_with_neelam",
+        "ref": "https://www.instagram.com/reel/DZr8W6Yiehg/"
+      },
+      "rounds": 1,
+      "workSec": 20,
+      "steps": [
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "squat-to-calf-raise"
+        },
+        {
+          "id": "knee-claps"
+        },
+        {
+          "id": "standing-cross-body-crunch"
+        },
+        {
+          "id": "squat-to-floor-tap"
+        },
+        {
+          "id": "high-knees"
+        }
+      ],
+      "notes": "6 moves in 20-second intervals with an on-screen timer (3-minute total in source); rest between moves not explicitly stated."
+    },
+    {
+      "id": "db-full-body-routine",
+      "name": "Dumbbell Full-Body Routine",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-scan",
+        "creator": "@befitwithanjalii",
+        "ref": "https://www.instagram.com/reel/DeTuvQdCkD9/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "kb-goblet-squat"
+        },
+        {
+          "id": "bent-over-db-row"
+        },
+        {
+          "id": "db-clean-to-front-squat"
+        },
+        {
+          "id": "db-reverse-lunge"
+        }
+      ],
+      "notes": "4 dumbbell movements in the reel's order (goblet squat performed with a dumbbell in the reel; catalog entry is the kettlebell version - same movement). Sets/reps not stated in source."
+    },
+    {
+      "id": "modified-low-impact-cardio",
+      "name": "Modified Low-Impact Cardio Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@bootyking",
+        "ref": "https://www.instagram.com/reel/DeQrTZjPvy7/"
+      },
+      "rounds": 3,
+      "workSec": 30,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "step-touch"
+        },
+        {
+          "id": "burpee"
+        },
+        {
+          "id": "high-knees"
+        },
+        {
+          "id": "march-in-place"
+        }
+      ],
+      "notes": "Every move is the modified version in the source: step jacks instead of jumping jacks, step-back burpee (no jump), marching high knees, side steps, marches. 30s per move, 60s rest between rounds, 3 rounds. Rest between moves not stated. Source's weight-loss framing not carried."
+    },
+    {
+      "id": "kitchen-counter-rep-circuit",
+      "name": "Kitchen-Counter Beginner Rep Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@energizewithemilyfitness",
+        "ref": "https://www.instagram.com/reel/DUqoQVkkefF/"
+      },
+      "rounds": 2,
+      "steps": [
+        {
+          "id": "standing-calf-raises"
+        },
+        {
+          "id": "standing-hip-abduction"
+        },
+        {
+          "id": "standing-leg-extension"
+        },
+        {
+          "id": "standing-knee-raises"
+        },
+        {
+          "id": "incline-push-up"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "kb-sumo-squat"
+        }
+      ],
+      "notes": "Rep-based, done twice through (100 reps per round, 200 total): calf raises 10, side leg raises 10/side, standing leg extensions 10/side, high-knee marches 20, counter incline push-ups 10, squats 10, sumo squats 10 (bodyweight in source; catalog sumo entry is the KB version). Kitchen counter used for balance. Same creator posted a near-identical version (reel/DdANlQCOzQr) - deduplicated. Source's fat-loss/toning claims not carried."
+    },
+    {
+      "id": "standing-25-rep-circuit",
+      "name": "All-Standing 25-Rep Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@b.palmer_",
+        "ref": "https://www.instagram.com/reel/Da_3_yvRQJs/"
+      },
+      "repsPerMotion": 25,
+      "steps": [
+        {
+          "id": "standing-calf-raises"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "oblique-crunch"
+        },
+        {
+          "id": "good-morning"
+        },
+        {
+          "id": "high-knees"
+        }
+      ],
+      "notes": "All standing, no floor work, no jumping. 25 reps per move (oblique crunches 25 per side). Source gives rounds as a range: 2-4 sets. Presented by the creator as joint-friendly."
+    },
+    {
+      "id": "chair-low-impact-circuit",
+      "name": "Chair-Supported Low-Impact Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@workoutwithbp",
+        "ref": "https://www.instagram.com/reel/DdaNvgTsKJh/"
+      },
+      "steps": [
+        {
+          "id": "standing-knee-raises"
+        },
+        {
+          "id": "sit-to-stand"
+        },
+        {
+          "id": "seated-toe-touches"
+        },
+        {
+          "id": "chair-leg-raises"
+        },
+        {
+          "id": "good-morning"
+        },
+        {
+          "id": "oblique-crunch"
+        },
+        {
+          "id": "kb-step-up"
+        }
+      ],
+      "notes": "One folding chair; about half the moves seated, the rest chair-supported. Reps: chair high knees 20, chair squats (= sit-to-stand) 20, seated toe touches 20, chair leg raises 20, seated good mornings 20, oblique crunches 20/side, single-leg step-ups 10/side (bodyweight in source; catalog step-up is the KB version). Source gives rounds as a range: 2-3 sets."
+    },
+    {
+      "id": "simple-3-round-home-circuit",
+      "name": "Simple 3-Round Home Full-Body Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@deedeedavis_1",
+        "ref": "https://www.instagram.com/reel/DW5ACYSDWSF/"
+      },
+      "rounds": 3,
+      "steps": [
+        {
+          "id": "push-ups"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "plank"
+        },
+        {
+          "id": "db-reverse-lunge"
+        },
+        {
+          "id": "running-in-place"
+        },
+        {
+          "id": "bench-dip"
+        }
+      ],
+      "notes": "Push-ups 12, air squats 12, forearm plank 30s, reverse lunges 12/side (bodyweight in source), running in place 30s, dips on a bed edge 12. Rest between moves not stated. The reel opens with a warm-up (arm swings / jumping jacks / hip stretch) that is not part of the circuit."
+    },
+    {
+      "id": "starter-calisthenics-circuit",
+      "name": "Starter Calisthenics Base Circuit",
+      "specialty": "beginner",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@hadi.khattar",
+        "ref": "https://www.instagram.com/reel/DX95VdyoDTn/"
+      },
+      "rounds": 3,
+      "steps": [
+        {
+          "id": "push-ups"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "seated-leg-raises"
+        },
+        {
+          "id": "mountain-climbers"
+        },
+        {
+          "id": "hollow-hold"
+        }
+      ],
+      "notes": "Push-ups 10, squats 15, seated leg raises 10, mountain climbers 30 reps, hollow hold 20s. Rest between moves not stated. Hollow hold is the one higher-skill move in the set."
+    },
+    {
+      "id": "devils-press-555",
+      "name": "5-5-5 Devil's Press Circuit",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@westin_crosby",
+        "ref": "https://www.instagram.com/reel/Dc54ZKZsciL/"
+      },
+      "rounds": 5,
+      "repsPerMotion": 5,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "db-deadlift"
+        },
+        {
+          "id": "deficit-push-up"
+        },
+        {
+          "id": "db-clean-and-press"
+        },
+        {
+          "id": "db-front-squat"
+        },
+        {
+          "id": "devils-press"
+        }
+      ],
+      "notes": "Two dumbbells (weight not stated). 5 moves x 5 reps x 5 rounds, 60s rest between rounds. Advanced-leaning: devil's press finishes every round."
+    },
+    {
+      "id": "single-db-descending-ladder",
+      "name": "Single-Dumbbell Descending Ladder (E2MOM x 10)",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@sarahholden_fit",
+        "ref": "https://www.instagram.com/reel/DcbzbBGgyI0/"
+      },
+      "rounds": 10,
+      "format": "every 2 minutes",
+      "steps": [
+        {
+          "id": "db-deadlift"
+        },
+        {
+          "id": "db-hang-clean"
+        },
+        {
+          "id": "db-push-press"
+        },
+        {
+          "id": "devils-press"
+        },
+        {
+          "id": "db-cluster"
+        }
+      ],
+      "notes": "One dumbbell. Every 2 minutes x 10 rounds: per arm, deadlift 5, hang power clean 4, push press 3, devil press 2, cluster 1 - finish the ladder on one arm, then the other, inside the same 2-minute window; rest is the remainder of the window. Creator used 17.5 kg and advises a challenging-but-unbroken weight."
+    },
+    {
+      "id": "single-db-unilateral-complex",
+      "name": "Single-Dumbbell Unilateral Complex",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@fitwithhit",
+        "ref": "https://www.instagram.com/reel/DZPT_9dMBYU/"
+      },
+      "rounds": 6,
+      "repsPerMotion": 6,
+      "steps": [
+        {
+          "id": "db-snatch"
+        },
+        {
+          "id": "lunge-to-knee-drive"
+        },
+        {
+          "id": "offset-push-up"
+        },
+        {
+          "id": "bent-over-db-row"
+        },
+        {
+          "id": "db-thruster"
+        }
+      ],
+      "notes": "One dumbbell, medium-to-heavy. All 5 moves x 6 reps on one side, then switch sides = 1 round; 6 rounds per side; rest 90-120s between rounds (source range, staged as stated)."
+    },
+    {
+      "id": "emom-5x5-complex",
+      "name": "5x5 EMOM Dumbbell Complex",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@fit___dad",
+        "ref": "https://www.instagram.com/reel/Db30x5XBqWb/"
+      },
+      "rounds": 10,
+      "repsPerMotion": 5,
+      "format": "every 2 minutes",
+      "steps": [
+        {
+          "id": "deficit-push-up"
+        },
+        {
+          "id": "db-deadlift"
+        },
+        {
+          "id": "db-hang-clean"
+        },
+        {
+          "id": "db-front-squat"
+        },
+        {
+          "id": "db-push-press"
+        }
+      ],
+      "notes": "Two dumbbells. Start a round at the top of every 2-minute window: 5 reps of each of 5 moves (25 reps/round), 10 rounds (20 min); rest is the remainder of each window. Weight not stated - creator advises a load that allows efficient movement with good form. Source's transformation claims not carried."
+    },
+    {
+      "id": "snatch-front-rack-circuit",
+      "name": "Snatch & Front-Rack High-Rep Circuit",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@matttralli5",
+        "ref": "https://www.instagram.com/reel/DcOkTncv5ts/"
+      },
+      "rounds": 4,
+      "repsPerMotion": 20,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "db-snatch"
+        },
+        {
+          "id": "db-front-rack-lunge"
+        },
+        {
+          "id": "renegade-row"
+        },
+        {
+          "id": "sit-up"
+        }
+      ],
+      "notes": "Two dumbbells (creator used 35 lb, 'adjust as needed'). 20 reps per move, 4 rounds (320 total reps), minimal rest between exercises, 60s after each round. High-volume conditioning end of the dumbbell set."
+    },
+    {
+      "id": "tyson-devil-press-pair",
+      "name": "Tyson Push-Up + Devil Press Pair",
+      "specialty": "dumbbell",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@anthonycarlo_1",
+        "ref": "https://www.instagram.com/reel/DbdTWM3xrCE/"
+      },
+      "rounds": 5,
+      "repsPerMotion": 8,
+      "roundRestSec": 90,
+      "steps": [
+        {
+          "id": "tyson-push-up"
+        },
+        {
+          "id": "devils-press"
+        }
+      ],
+      "notes": "Two-move finisher pair: 8 reps each, 5 rounds, 90s rest between rounds. Creator used 55 lb dumbbells in the video (aspirational load, not a default)."
+    },
+    {
+      "id": "standing-db-core-circuit",
+      "name": "Standing Dumbbell Core Circuit",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@fitnesswithkien",
+        "ref": "https://www.instagram.com/reel/DeT-Z-xTxGM/"
+      },
+      "rounds": 4,
+      "steps": [
+        {
+          "id": "overhead-march"
+        },
+        {
+          "id": "standing-cross-body-crunch"
+        },
+        {
+          "id": "around-the-world"
+        },
+        {
+          "id": "halo-to-woodchop"
+        },
+        {
+          "id": "uppercut-punches"
+        }
+      ],
+      "notes": "Fully standing, one dumbbell. Single overhead marches 10/side, knee-to-elbow crunches 10/side (dumbbell at chest; catalog standing cross-body crunch is the same family), around the worlds 10, halo to woodchops 10/side, uppercut punches 45s. 4 rounds. No separate rest stated. Evidence: on-screen text in the reel (caption confirms the 'Standing Abs' title only)."
+    },
+    {
+      "id": "no-rest-ab-circuit",
+      "name": "No-Rest 30-Second Ab Circuit",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@niagaine",
+        "ref": "https://www.instagram.com/reel/DYMyxIvRJyP/"
+      },
+      "workSec": 30,
+      "restSec": 0,
+      "steps": [
+        {
+          "id": "double-crunch"
+        },
+        {
+          "id": "crunch-kicks"
+        },
+        {
+          "id": "heel-touches"
+        },
+        {
+          "id": "plank"
+        }
+      ],
+      "notes": "4 moves x 30s back-to-back with NO rest between moves (2 min of work per round). Source prescribes 1-4 rounds with 3-4 minutes rest between rounds - staged with the range as stated."
+    },
+    {
+      "id": "plank-family-circuit",
+      "name": "Plank-Family Circuit",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@lisafiitt",
+        "ref": "https://www.instagram.com/reel/DbQktpRsUmh/"
+      },
+      "rounds": 5,
+      "workSec": 20,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "mountain-climbers"
+        },
+        {
+          "id": "plank-jumps"
+        },
+        {
+          "id": "plank-jump-kick-backs"
+        },
+        {
+          "id": "plank-hip-dips"
+        },
+        {
+          "id": "plank-knee-touches"
+        },
+        {
+          "id": "plank-reach-outs"
+        }
+      ],
+      "notes": "Every move starts from plank, 20s each, 5 sets; 60s rest between rounds per the creator's comment reply. A near-identical repost exists under @lisafiittworkouts - counted once."
+    },
+    {
+      "id": "kb-mb-core-finisher",
+      "name": "Kettlebell & Medicine-Ball Core Finisher (40/20)",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@trainwithdjib",
+        "ref": "https://www.instagram.com/reel/DdRkgOaN6OG/"
+      },
+      "rounds": 3,
+      "workSec": 40,
+      "restSec": 20,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "kettlebell-halo"
+        },
+        {
+          "id": "plank-ball-pass"
+        },
+        {
+          "id": "plank-pull-through"
+        }
+      ],
+      "notes": "Caption-verified protocol: kneeling kettlebell halo 40s, forearm-plank medicine-ball hand-to-hand pass 40s, feet-elevated plank pull-through (kettlebell dragged side to side) 40s; 40s work / 20s rest, 3 rounds, 60s between rounds. Gym-equipment finisher (KB, med ball, box/bench for feet)."
+    },
+    {
+      "id": "core-finisher-30-20",
+      "name": "4-Move Core Finisher (30/20)",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@matchfitmum2.0",
+        "ref": "https://www.instagram.com/reel/Dc3C5eCoU6X/"
+      },
+      "rounds": 4,
+      "workSec": 30,
+      "restSec": 20,
+      "steps": [
+        {
+          "id": "froggers"
+        },
+        {
+          "id": "lizard-hops"
+        },
+        {
+          "id": "plank-jacks"
+        },
+        {
+          "id": "mountain-climbers"
+        }
+      ],
+      "notes": "Caption-verified: 30s work / 20s rest between moves, 4 rounds (~8 min per caption). High-energy, jump-heavy finisher. A related 15s-per-move variant circulates under the same creator and @romove.method - not staged separately."
+    },
+    {
+      "id": "kb-ab-circuit-finisher",
+      "name": "Kettlebell Ab Circuit Finisher",
+      "specialty": "core",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@nateleaderfitness",
+        "ref": "https://www.instagram.com/reel/Db-6ncGRbxZ/"
+      },
+      "rounds": 3,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "kb-toe-touches"
+        },
+        {
+          "id": "reverse-plank-hold"
+        },
+        {
+          "id": "bicycle-crunch"
+        },
+        {
+          "id": "flutter-kicks"
+        }
+      ],
+      "notes": "Caption-verified: kettlebell toe touches 20 reps, reverse plank hold 20s, bicycle crunches 20 reps, flutter kicks 20 reps; 3 rounds, 60s rest between rounds. One kettlebell."
+    },
+    {
+      "id": "seven-minute-classic",
+      "name": "7-Minute Classic (30/10)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@rhyswardjones1",
+        "ref": "https://www.instagram.com/reel/Dd5UhHvomHz/"
+      },
+      "rounds": 1,
+      "workSec": 30,
+      "restSec": 10,
+      "steps": [
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "wall-sit"
+        },
+        {
+          "id": "push-ups"
+        },
+        {
+          "id": "half-crunch"
+        },
+        {
+          "id": "kb-step-up"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "bench-dip"
+        },
+        {
+          "id": "plank"
+        },
+        {
+          "id": "high-knees"
+        },
+        {
+          "id": "forward-lunge"
+        },
+        {
+          "id": "push-up-rotation"
+        },
+        {
+          "id": "side-plank"
+        }
+      ],
+      "notes": "The classic 'Scientific 7-Minute Workout' sequence: 12 moves, 30s work / 10s rest, 1 round (7 min 20s of intervals). Chair/bench needed for step-ups (bodyweight in source; catalog step-up is the KB version) and triceps dips (catalog bench-dip). Side plank switches sides halfway."
+    },
+    {
+      "id": "ten-minute-45-15",
+      "name": "10-Minute Full-Body Circuit (45/15)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@vmfit24",
+        "ref": "https://www.instagram.com/reel/DY2S7sxT415/"
+      },
+      "workSec": 45,
+      "restSec": 15,
+      "steps": [
+        {
+          "id": "jumping-jacks"
+        },
+        {
+          "id": "bicycle-crunch"
+        },
+        {
+          "id": "high-knees"
+        },
+        {
+          "id": "russian-twist"
+        },
+        {
+          "id": "mountain-climbers"
+        },
+        {
+          "id": "lying-leg-raises"
+        },
+        {
+          "id": "in-and-outs"
+        },
+        {
+          "id": "plank-hip-dips"
+        },
+        {
+          "id": "star-crunch"
+        },
+        {
+          "id": "seated-leg-kicks"
+        }
+      ],
+      "notes": "10 moves x (45s work / 15s rest) = 10 min per round; source says repeat 2-3 times (range staged as stated). 'High knee taps' mapped to high-knees; 'plank side to side' mapped to plank-hip-dips. Core-heavy back half. Source made claims (not carried)."
+    },
+    {
+      "id": "emom-16-metcon",
+      "name": "EMOM 16 - Full-Body Metcon",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@misaq.khayat",
+        "ref": "https://www.instagram.com/reel/Ddy94EStn0D/"
+      },
+      "rounds": 4,
+      "format": "EMOM",
+      "steps": [
+        {
+          "id": "burpee-box-jump-over"
+        },
+        {
+          "id": "renegade-row"
+        },
+        {
+          "id": "db-snatch"
+        },
+        {
+          "id": "forward-lunge"
+        }
+      ],
+      "notes": "16 minutes = 4 rounds of a 4-minute block. Minute 1: burpee box jump over x8; minute 2: renegade row x10; minute 3: DB snatch x12 (6/6); minute 4: DB forward lunge x14 (7/7, dumbbells held at sides). Finish the reps, rest the remainder of the minute (rest rule stated in the caption, in Persian, alongside the English workout list). Needs dumbbells + a plyo box."
+    },
+    {
+      "id": "tabata-db-full-body",
+      "name": "Tabata Dumbbell Full-Body (20/10 x 10)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@starboy_camair",
+        "ref": "https://www.instagram.com/reel/DZDLYwQxj_x/"
+      },
+      "rounds": 10,
+      "workSec": 20,
+      "restSec": 10,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "db-romanian-deadlift"
+        },
+        {
+          "id": "renegade-row"
+        },
+        {
+          "id": "burpee"
+        },
+        {
+          "id": "db-front-squat"
+        },
+        {
+          "id": "db-reverse-lunge"
+        },
+        {
+          "id": "russian-twist"
+        }
+      ],
+      "notes": "Pair of dumbbells. 6 moves, 20s on / 10s off, 10 rounds, 60s break between rounds. Name staged from the format: the source titles it '3 Min' (one round); the full session is ~39 min. Not a clone of the arms & back Tabata (different moves, 10 rounds vs 3). Source made claims (not carried)."
+    },
+    {
+      "id": "muay-thai-chair-circuit",
+      "name": "7-Minute Muay Thai Chair Circuit (45/15 x 3)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@mikahdiazcruz",
+        "ref": "https://www.instagram.com/reel/Dbq4CISAGsx/"
+      },
+      "rounds": 3,
+      "workSec": 45,
+      "restSec": 15,
+      "roundRestSec": 60,
+      "steps": [
+        {
+          "id": "hip-turnovers"
+        },
+        {
+          "id": "body-kicks"
+        },
+        {
+          "id": "teep"
+        },
+        {
+          "id": "switch-knees"
+        },
+        {
+          "id": "step-up-knee-to-lunge"
+        },
+        {
+          "id": "incline-push-up"
+        },
+        {
+          "id": "bench-dip"
+        }
+      ],
+      "notes": "One chair. Caption version staged: 45s on / 15s off, 7 moves, 3 rounds, 1 min rest between circuits (on-screen text said '2-3x'). Elevated push-ups staged as incline push-ups on the chair; source title '7 Minute' is one round - full session ~23 min. Only martial-arts-flavoured circuit in the set."
+    },
+    {
+      "id": "db-circuit-40-20",
+      "name": "Dumbbell Circuit (40/20 x 2)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@coachcolleenfit",
+        "ref": "https://www.instagram.com/reel/DabAPd6CjMM/"
+      },
+      "rounds": 2,
+      "workSec": 40,
+      "restSec": 20,
+      "steps": [
+        {
+          "id": "db-thruster"
+        },
+        {
+          "id": "db-swing"
+        },
+        {
+          "id": "db-rdl-to-front-squat"
+        },
+        {
+          "id": "sumo-squat-high-pull"
+        }
+      ],
+      "notes": "Pair of dumbbells (creator used 10 lb). 4 compound combo moves, 40s work / 20s rest, 2 rounds. Name staged from the format: the source's '10 minutes' title sums to 8 min of stated intervals."
+    },
+    {
+      "id": "emom-24-db",
+      "name": "EMOM 24 - Dumbbell Full-Body",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@aubrieedgington",
+        "ref": "https://www.instagram.com/reel/DayOgSqvRr_/"
+      },
+      "rounds": 4,
+      "format": "EMOM",
+      "steps": [
+        {
+          "id": "db-deadlift-to-press"
+        },
+        {
+          "id": "renegade-row"
+        },
+        {
+          "id": "db-front-squat"
+        },
+        {
+          "id": "lunge-with-press"
+        },
+        {
+          "id": "lying-leg-raises"
+        },
+        {
+          "id": "sit-up"
+        }
+      ],
+      "notes": "Alternate find (fully specified; held back by the researcher only to keep the time-boxed set format-diverse). 24-minute timer: 20 reps at the start of each minute, rest the remainder, rotate through 6 exercises, 4 rounds. Pair of dumbbells (creator used 2 x 20 lb). Structure is caption-verified; move names rest on the video summary - 'squats' staged as db-front-squat (dumbbells in hand)."
+    },
+    {
+      "id": "emom-15-full-body",
+      "name": "EMOM 15 - Full-Body (Work Minutes + Rest Minute)",
+      "specialty": "time-boxed",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@imthatquez",
+        "ref": "https://www.instagram.com/reel/DbvtwjxRjBN/"
+      },
+      "rounds": 3,
+      "format": "EMOM",
+      "steps": [
+        {
+          "id": "suitcase-squat"
+        },
+        {
+          "id": "db-snatch"
+        },
+        {
+          "id": "push-up-toe-touch"
+        },
+        {
+          "id": "mountain-climbers"
+        }
+      ],
+      "notes": "Alternate find (fully specified). 5-minute block x 3 rounds = 15 min: minute 1 suitcase squat, minute 2 alternating DB snatch, minute 3 push-up toe touches, minute 4 mountain climbers, minute 5 REST (the rest minute is part of the block, hence 4 motion ids for 5 minutes). Work fills the full minute - no rep targets, unlike EMOM 16/24. Dumbbells."
+    },
+    {
+      "id": "morning-mobility-athlete-flow",
+      "name": "Morning Mobility - 15-Move Athlete Flow",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@tayroduncut_",
+        "ref": "https://www.instagram.com/reel/DaLPpRmTK9Z/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "pogo-jumps"
+        },
+        {
+          "id": "standing-torso-twist"
+        },
+        {
+          "id": "body-waves"
+        },
+        {
+          "id": "elephant-walk"
+        },
+        {
+          "id": "deep-squat-hip-stretch"
+        },
+        {
+          "id": "thoracic-rotations"
+        },
+        {
+          "id": "cossack-squat"
+        },
+        {
+          "id": "pancake-fold"
+        },
+        {
+          "id": "worlds-greatest-stretch"
+        },
+        {
+          "id": "cat-cow"
+        },
+        {
+          "id": "thread-the-needle"
+        },
+        {
+          "id": "ninety-ninety"
+        },
+        {
+          "id": "ninety-ninety-folds"
+        },
+        {
+          "id": "shoulder-swings"
+        },
+        {
+          "id": "standing-torso-twist"
+        }
+      ],
+      "notes": "Single sequence (presented as a 5-10 min morning routine; no rounds). Per-move doses from on-screen labels: pogo jumps 30s, body twists 30s, body waves 30s, elephant walks 10/leg, squat hold 30s (staged as deep-squat-hip-stretch), thoracic rotations 5/side, cossack squats 5/side, pancake fold 30s, world's greatest stretch 5/side, cat-cow 10, thread-the-needle 5/side, 90/90s 10, 90/90 folds 5/side, shoulder dislocations 5 (staged as shoulder-swings - stick/band pass-through), trunk twists 5 (second torso-twist station, as listed in the source). A resistance band appears in the source for the dislocation work. Evidence: on-screen labels / search summary (caption only titles the routine)."
+    },
+    {
+      "id": "chair-mobility-circuit",
+      "name": "Chair Mobility Circuit (No Floor Work)",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@coachjohnnoel",
+        "ref": "https://www.instagram.com/reel/DaS9kOiRFzF/"
+      },
+      "rounds": 2,
+      "steps": [
+        {
+          "id": "seated-frog-rotations"
+        },
+        {
+          "id": "seated-frog-twist-reach"
+        },
+        {
+          "id": "hip-flexor-hamstring-flow"
+        },
+        {
+          "id": "worlds-greatest-stretch"
+        },
+        {
+          "id": "cat-cow"
+        }
+      ],
+      "notes": "Caption-verified: seated frog rotations 30s, seated frog twist and reach 30s, foot-elevated hip flexor-hamstring flow 5/side, foot-elevated world's greatest stretch 5/side, hands-elevated cat-cow 30s; repeat 2x through (~5 min). One chair; no floor work, no kneeling. Distinct from the staged seated posture routine (different movement family)."
+    },
+    {
+      "id": "hip-mobility-flow",
+      "name": "Hip Mobility Flow - Knee Stirs to Frog Rocks",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@kendalltoole",
+        "ref": "https://www.instagram.com/reel/DbL0cBdpiwP/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "knee-stirs"
+        },
+        {
+          "id": "ninety-ninety"
+        },
+        {
+          "id": "ninety-ninety-lift-off"
+        },
+        {
+          "id": "hip-circles"
+        },
+        {
+          "id": "frog-rocks"
+        }
+      ],
+      "notes": "Single timed floor sequence: knee stirs (supine) 60s, 90/90s 60s, 90/90 lift-offs 30s/leg, all-fours hip circles 30s/leg, frog rocks 60s. Evidence: on-screen labels / search summary (caption recommends it before workouts / on recovery days but does not list the moves)."
+    },
+    {
+      "id": "hip-ankle-spine-mobility",
+      "name": "Hip, Ankle & Spine Mobility (Sets-Based)",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@djkim.yoga",
+        "ref": "https://www.instagram.com/reel/DcFU9XCRLNP/"
+      },
+      "steps": [
+        {
+          "id": "hip-active-stretch"
+        },
+        {
+          "id": "kneeling-ankle-mobility"
+        },
+        {
+          "id": "deep-squat-heel-raises"
+        },
+        {
+          "id": "lotus-forward-fold"
+        },
+        {
+          "id": "lotus-sphinx"
+        },
+        {
+          "id": "cobra-hip-rotation"
+        }
+      ],
+      "notes": "Caption-verified sets per move: hip active stretch 10 reps + 10s hold x3, kneeling ankle mobility 60s + 10 reps/side x3, deep squat heel raises 20 reps x3 (holding a block), full lotus forward fold 20s hold/side x1-2, full lotus sphinx 20s hold/side x1-2, cobra hip & spine rotation 10s hold + 10s rotation/side x1-2. Yoga mat + block. CAUTION: the two full-lotus moves are advanced - flagged in their motion entries; the source supplies no easier substitute."
+    },
+    {
+      "id": "desk-chest-opener",
+      "name": "Desk Chest-Opening Flow (Foam Roller)",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@cescayogaa",
+        "ref": "https://www.instagram.com/reel/DbtwtmUhffo/"
+      },
+      "rounds": 1,
+      "workSec": 60,
+      "steps": [
+        {
+          "id": "elbow-clams"
+        },
+        {
+          "id": "cactus-arms"
+        },
+        {
+          "id": "arm-switches"
+        },
+        {
+          "id": "heart-opener-hold"
+        }
+      ],
+      "notes": "Caption-verified: 4 moves held 1 minute each (4 min total), hips in a bridge over a foam roller placed horizontally under the upper back. Foam roller + mat. Source's desk/neck-tension claims not carried."
+    },
+    {
+      "id": "good-morning-mobility",
+      "name": "Good Morning Mobility (5 Minutes)",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@elastaboy",
+        "ref": "https://www.instagram.com/reel/DWg7aX7T--8/"
+      },
+      "rounds": 1,
+      "steps": [
+        {
+          "id": "neck-circles-up-dog"
+        },
+        {
+          "id": "down-dog-calf-walk"
+        },
+        {
+          "id": "pigeon-pose"
+        },
+        {
+          "id": "runners-lunge-rotations"
+        },
+        {
+          "id": "kneeling-side-bends"
+        },
+        {
+          "id": "chin-tuck-spinal-extensions"
+        }
+      ],
+      "notes": "Single timed sequence summing to 5 min: neck circles in upward dog 30s, downward dog calf walk 30s, alternating pigeon pose 60s (catalog pigeon-pose), runner's lunge rotations 60s, kneeling side bends 60s, chin tuck spinal extensions 60s. Evidence: on-screen labels / search summary (caption only says 'Just 5 minutes')."
+    },
+    {
+      "id": "standing-no-jump-db-circuit",
+      "name": "Standing No-Jumping Dumbbell Circuit (45/15 x 3)",
+      "specialty": "low-impact",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@im_soo_homefit",
+        "ref": "https://www.instagram.com/reel/DeP2jfLpuTD/"
+      },
+      "rounds": 3,
+      "workSec": 45,
+      "restSec": 15,
+      "steps": [
+        {
+          "id": "step-squat-back"
+        },
+        {
+          "id": "alternate-arm-rows"
+        },
+        {
+          "id": "squat-twist-high-knee"
+        },
+        {
+          "id": "curtsy-lunge"
+        },
+        {
+          "id": "lunge-high-knee-kick"
+        },
+        {
+          "id": "lunge-high-knee-kick"
+        }
+      ],
+      "notes": "Caption-verified (creator's numbered list; 'NO JUMPING Fullbody'). Light dumbbells (creator used 1 kg). Moves: step squat + back, alternating row (catalog alternate-arm-rows), squat + twist high knee, curtsy + arm lift, lunge + high knee kick right, then left (same motion id listed twice, as the source numbers them separately). Same creator as the scan's arms & back Tabata - a different reel."
+    },
+    {
+      "id": "no-jump-rep-cardio",
+      "name": "No-Jumping Rep Cardio Circuit (x 4 Rounds)",
+      "specialty": "low-impact",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@getfitwith_mansi",
+        "ref": "https://www.instagram.com/reel/DbDdQe8Bo-9/"
+      },
+      "rounds": 4,
+      "steps": [
+        {
+          "id": "standing-knee-raises"
+        },
+        {
+          "id": "squat-to-side-crunch"
+        },
+        {
+          "id": "sumo-squat-to-calf-raise"
+        },
+        {
+          "id": "slow-skaters"
+        },
+        {
+          "id": "mountain-climbers"
+        },
+        {
+          "id": "plank-reach-outs"
+        }
+      ],
+      "notes": "Rep-based, 4 rounds (on-screen). Knee drives 20/side (staged as standing-knee-raises), squat to side crunch 10/side, sumo squat to calf raise 20, slow skaters 15/side (stepping form, no leap), mountain climbers 20/side, plank reaches 15/side (staged as plank-reach-outs). No timed rest stated. Caption confirms no-jumping, knee-friendly framing. This exact template circulates under at least 3 other creators (@befitwith_sakshi, @vaishali_yadav_5189, @fit_for_takeoff) - staged once, from this post. Source's fat-loss claims not carried."
+    },
+    {
+      "id": "db-no-jump-cardio",
+      "name": "Dumbbell No-Jumping Cardio Circuit (20/10 x 2)",
+      "specialty": "low-impact",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@fit_with_windy",
+        "ref": "https://www.instagram.com/reel/DdDPxUJBGs3/"
+      },
+      "rounds": 2,
+      "workSec": 20,
+      "restSec": 10,
+      "steps": [
+        {
+          "id": "knee-drive-curl"
+        },
+        {
+          "id": "knee-drive-press"
+        },
+        {
+          "id": "db-thruster"
+        },
+        {
+          "id": "bent-over-db-row"
+        },
+        {
+          "id": "press-leg-lift"
+        }
+      ],
+      "notes": "Caption-verified as 'without jumping' (caption title: 'NO JUMPING, BUT STILL SWEATY!'). Pair of dumbbells. Squat to overhead press staged as db-thruster (same movement, standing, no jump). Source's calorie-burn claims not carried."
+    },
+    {
+      "id": "standing-no-jump-interval",
+      "name": "Standing No-Jumping Six-Move Interval Circuit (20/10)",
+      "specialty": "low-impact",
+      "source": {
+        "type": "instagram-search",
+        "creator": "@solofit_yt",
+        "ref": "https://www.instagram.com/reel/DaN-evysMet/"
+      },
+      "rounds": 1,
+      "workSec": 20,
+      "restSec": 10,
+      "steps": [
+        {
+          "id": "standing-knee-raises"
+        },
+        {
+          "id": "standing-hip-abduction"
+        },
+        {
+          "id": "step-jacks"
+        },
+        {
+          "id": "bodyweight-squat"
+        },
+        {
+          "id": "high-knees"
+        },
+        {
+          "id": "side-lunge"
+        }
+      ],
+      "notes": "One pass through 6 moves, 20s work / 10s rest (the source labels each interval a 'round'). Source variations staged onto catalog motions: knee-to-chest drives with arms overhead = standing-knee-raises; side leg lifts with arms extended = standing-hip-abduction; step-out jack = step-jacks; squats with upward arm swings = bodyweight-squat; high knees with hands behind head = high-knees; side lunges reaching overhead = side-lunge. Source's belly-fat framing not carried."
+    },
+    {
+      "id": "warm-up-circuit",
+      "name": "Warm-Up Circuit",
+      "level": "All levels",
+      "audience": "Anyone, before any workout",
+      "equipmentTheme": "Bodyweight; jump rope for the advanced variant",
+      "section": "warm-up",
+      "format": "rounds",
+      "rounds": 1,
+      "restGuidance": "Continuous, easy pace \u2014 the goal is to raise temperature and loosen joints, not to tire out.",
+      "notes": "The standard version is a loose ~5-minute menu (the article gives options, not fixed reps). The advanced variant is a fully prescribed list. Maps to warm-up content rather than the Circuits section.",
+      "steps": [
+        {
+          "id": "running-in-place",
+          "name": "Running in Place",
+          "dose": "part of ~5 min total",
+          "block": "Standard"
+        },
+        {
+          "id": "air-punches",
+          "name": "Air Punches",
+          "dose": "part of ~5 min total",
+          "block": "Standard"
+        },
+        {
+          "id": "air-kicks",
+          "name": "Air Kicks",
+          "dose": "part of ~5 min total",
+          "block": "Standard"
+        },
+        {
+          "id": "jumping-jacks",
+          "name": "Jumping Jacks",
+          "dose": "part of ~5 min total",
+          "block": "Standard"
+        },
+        {
+          "id": "jump-rope",
+          "name": "Jump Rope",
+          "dose": "2-3 min",
+          "durationSec": 150,
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "jumping-jacks",
+          "name": "Jumping Jacks",
+          "dose": "25 reps",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "bodyweight-squat",
+          "name": "Bodyweight Squats",
+          "dose": "20 reps",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "db-walking-lunge",
+          "name": "Lunges",
+          "dose": "5 reps each leg",
+          "note": "Article prescribes bodyweight lunges; catalog entry is the dumbbell walking-lunge version of the same movement.",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "glute-bridge",
+          "name": "Hip Extensions",
+          "dose": "10 reps each side",
+          "note": "Exact variant not specified in the article; mapped to the catalog's hip-extension pattern, the glute bridge.",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "hip-rotations",
+          "name": "Hip Rotations",
+          "dose": "5 reps each leg",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "leg-swings",
+          "name": "Forward Leg Swings",
+          "dose": "10 reps each leg",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "leg-swings",
+          "name": "Side Leg Swings",
+          "dose": "10 reps each leg",
+          "note": "Lateral direction; same catalog entry as forward leg swings.",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "10-20 reps",
+          "block": "Advanced Warm-Up"
+        },
+        {
+          "id": "spider-man-steps",
+          "name": "Spider-Man Steps",
+          "dose": "10 reps",
+          "block": "Advanced Warm-Up"
+        }
+      ]
+    },
+    {
+      "id": "beginner-bodyweight-circuit",
+      "name": "Beginner Bodyweight Circuit",
+      "level": "Beginner",
+      "audience": "First-time circuit trainers, at home",
+      "equipmentTheme": "Bodyweight plus a household weight (e.g. a filled jug) for rows",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Move station to station with as little rest as possible; rest after a full round only if needed.",
+      "steps": [
+        {
+          "id": "bodyweight-squat",
+          "name": "Bodyweight Squats",
+          "dose": "20 reps"
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "10 reps"
+        },
+        {
+          "id": "db-walking-lunge",
+          "name": "Walking Lunges",
+          "dose": "10 reps each leg",
+          "note": "Bodyweight in the article; catalog entry is the dumbbell version of the same movement."
+        },
+        {
+          "id": "one-arm-db-row",
+          "name": "Dumbbell Rows",
+          "dose": "10 reps each arm",
+          "note": "Article suggests a gallon jug or similar household weight if no dumbbell is available."
+        },
+        {
+          "id": "plank",
+          "name": "Plank",
+          "dose": "15 sec",
+          "durationSec": 15
+        },
+        {
+          "id": "jumping-jacks",
+          "name": "Jumping Jacks",
+          "dose": "30 reps"
+        }
+      ]
+    },
+    {
+      "id": "advanced-bodyweight-circuit",
+      "name": "Advanced Bodyweight Circuit",
+      "level": "Advanced",
+      "audience": "Experienced bodyweight trainers",
+      "equipmentTheme": "Bodyweight plus a pull-up bar and two sturdy stools/chairs for dips",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations; this circuit is meant to be demanding.",
+      "steps": [
+        {
+          "id": "one-legged-squat",
+          "name": "One-Legged Squats",
+          "dose": "10 reps each side",
+          "note": "Pistol-squat pattern; the article flags it as very difficult and optional for those not ready."
+        },
+        {
+          "id": "bodyweight-squat",
+          "name": "Bodyweight Squats",
+          "dose": "20 reps"
+        },
+        {
+          "id": "db-walking-lunge",
+          "name": "Walking Lunges",
+          "dose": "20 reps (10 each leg)",
+          "note": "Bodyweight in the article; catalog entry is the dumbbell version."
+        },
+        {
+          "id": "jump-step-ups",
+          "name": "Jump Step-Ups",
+          "dose": "20 reps (10 each leg)"
+        },
+        {
+          "id": "pull-ups",
+          "name": "Pull-Ups",
+          "dose": "10 reps",
+          "alternates": [
+            {
+              "name": "Inverted Row",
+              "catalogId": "inverted-row"
+            }
+          ]
+        },
+        {
+          "id": "bench-dip",
+          "name": "Dips",
+          "dose": "10 reps",
+          "note": "Article uses two bar stools; catalog bench dip is the same dip pattern."
+        },
+        {
+          "id": "chin-ups",
+          "name": "Chin-Ups",
+          "dose": "10 reps",
+          "alternates": [
+            {
+              "name": "Inverted Row (underhand grip)",
+              "catalogId": "inverted-row"
+            }
+          ]
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "10 reps"
+        },
+        {
+          "id": "plank",
+          "name": "Plank",
+          "dose": "30 sec",
+          "durationSec": 30
+        }
+      ]
+    },
+    {
+      "id": "playground-circuit-level-1",
+      "name": "Playground Circuit \u2014 Level 1",
+      "level": "Beginner\u2013Intermediate",
+      "audience": "Anyone with access to a playground",
+      "equipmentTheme": "Playground bench/step and swing or low bar",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations.",
+      "notes": "The article states the 3-round instruction after the Level 2 list; applied here to both levels (flagged as an inference).",
+      "steps": [
+        {
+          "id": "kb-step-up",
+          "name": "Alternating Step-Ups",
+          "dose": "20 reps (10 each leg)",
+          "note": "Bodyweight onto a bench/step in the article; catalog entry is the kettlebell step-up version."
+        },
+        {
+          "id": "incline-push-up",
+          "name": "Elevated Push-Ups",
+          "dose": "10 reps"
+        },
+        {
+          "id": "inverted-row",
+          "name": "Swing Rows",
+          "dose": "10 reps",
+          "note": "Bodyweight row holding a swing or low bar; catalog inverted row is the same pattern."
+        },
+        {
+          "id": "stationary-db-lunge",
+          "name": "Assisted Lunges",
+          "dose": "8 reps each leg",
+          "note": "Bodyweight, holding a support for balance; catalog entry is the dumbbell stationary lunge."
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Bent-Leg Reverse Crunches",
+          "dose": "10 reps"
+        }
+      ]
+    },
+    {
+      "id": "playground-circuit-level-2",
+      "name": "Playground Circuit \u2014 Level 2",
+      "level": "Intermediate",
+      "audience": "Anyone with access to a playground",
+      "equipmentTheme": "Playground bench/step and swing or low bar",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations.",
+      "steps": [
+        {
+          "id": "box-jumps",
+          "name": "Bench Jumps",
+          "dose": "10 reps",
+          "note": "Jump onto a sturdy bench; same movement family as box jumps."
+        },
+        {
+          "id": "incline-push-up",
+          "name": "Lower Incline Push-Ups",
+          "dose": "10 reps",
+          "note": "Hands on a lower surface than Level 1, which makes it harder; exact height not specified in the article."
+        },
+        {
+          "id": "inverted-row",
+          "name": "Body Rows",
+          "dose": "10 reps"
+        },
+        {
+          "id": "stationary-db-lunge",
+          "name": "Lunges",
+          "dose": "8 reps each leg",
+          "note": "Bodyweight in the article; catalog entry is the dumbbell stationary lunge."
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Straight-Leg Reverse Crunches",
+          "dose": "10 reps",
+          "note": "Straight-leg variant of the reverse crunch."
+        }
+      ]
+    },
+    {
+      "id": "kettlebell-circuit",
+      "name": "Kettlebell Circuit",
+      "level": "Intermediate",
+      "audience": "Anyone with a single kettlebell",
+      "equipmentTheme": "One kettlebell",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations; finish with stretching after the final round.",
+      "steps": [
+        {
+          "id": "kettlebell-halo",
+          "name": "Halos",
+          "dose": "8 reps each side"
+        },
+        {
+          "id": "kb-goblet-squat",
+          "name": "Goblet Squats",
+          "dose": "10 reps"
+        },
+        {
+          "id": "single-arm-kb-press",
+          "name": "Overhead Presses",
+          "dose": "8 reps each side"
+        },
+        {
+          "id": "kb-swing-light",
+          "name": "Kettlebell Swings",
+          "dose": "15 reps",
+          "note": "Catalog entry is the light/warm-up swing; use a working weight here.",
+          "alternates": [
+            {
+              "name": "Kettlebell Romanian Deadlift",
+              "catalogId": "kb-romanian-deadlift"
+            }
+          ]
+        },
+        {
+          "id": "single-arm-kb-row",
+          "name": "Bent-Over Rows",
+          "dose": "8 reps each side"
+        },
+        {
+          "id": "kettlebell-front-rack-reverse-lunge",
+          "name": "Front Rack Reverse Lunge",
+          "dose": "6 reps each side"
+        }
+      ]
+    },
+    {
+      "id": "dumbbell-circuit-day-1",
+      "name": "Dumbbell Circuit \u2014 Day 1",
+      "level": "Beginner\u2013Intermediate",
+      "audience": "Anyone with dumbbells, minimal space",
+      "equipmentTheme": "Dumbbell(s)",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations.",
+      "notes": "Designed to alternate with Day 2 on different days.",
+      "steps": [
+        {
+          "id": "stationary-db-lunge",
+          "name": "Dumbbell Lunge",
+          "dose": "15 reps each leg"
+        },
+        {
+          "id": "db-shoulder-press",
+          "name": "Dumbbell Overhead Press",
+          "dose": "15 reps each arm",
+          "note": "Article prescribes the press per arm."
+        },
+        {
+          "id": "one-arm-db-row",
+          "name": "Dumbbell One-Arm Row",
+          "dose": "15 reps each arm"
+        },
+        {
+          "id": "db-overhead-triceps-extension",
+          "name": "Dumbbell Tricep Extension",
+          "dose": "15 reps"
+        }
+      ]
+    },
+    {
+      "id": "dumbbell-circuit-day-2",
+      "name": "Dumbbell Circuit \u2014 Day 2",
+      "level": "Beginner\u2013Intermediate",
+      "audience": "Anyone with dumbbells, minimal space",
+      "equipmentTheme": "Dumbbell(s)",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations.",
+      "notes": "Designed to alternate with Day 1 on different days.",
+      "steps": [
+        {
+          "id": "kb-goblet-squat",
+          "name": "Dumbbell Goblet Squat",
+          "dose": "15 reps",
+          "note": "Dumbbell held at the chest in the article; catalog goblet squat entry uses a kettlebell."
+        },
+        {
+          "id": "kb-floor-press",
+          "name": "Dumbbell Floor Press",
+          "dose": "15 reps each arm",
+          "note": "Dumbbell, one arm at a time in the article; catalog floor press entry uses a kettlebell."
+        },
+        {
+          "id": "dumbbell-pullover",
+          "name": "Dumbbell Pullover",
+          "dose": "15 reps"
+        },
+        {
+          "id": "db-bicep-curl",
+          "name": "Dumbbell Bicep Curls",
+          "dose": "15 reps each arm",
+          "note": "Article prescribes the curls per arm."
+        }
+      ]
+    },
+    {
+      "id": "resistance-band-circuit",
+      "name": "Resistance Band Circuit",
+      "level": "Beginner\u2013Intermediate",
+      "audience": "Anyone with a resistance band (home/travel)",
+      "equipmentTheme": "Resistance band",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Minimal rest between stations.",
+      "notes": "The current catalog has no band exercises, so every station is a new motion.",
+      "steps": [
+        {
+          "id": "resistance-band-squat",
+          "name": "Band Squats",
+          "dose": "12 reps"
+        },
+        {
+          "id": "resistance-band-overhead-press",
+          "name": "Overhead Presses",
+          "dose": "10 reps"
+        },
+        {
+          "id": "resistance-band-deadlift",
+          "name": "Band Deadlifts",
+          "dose": "12 reps"
+        },
+        {
+          "id": "resistance-band-row",
+          "name": "Arm Rows",
+          "dose": "10 reps each side"
+        },
+        {
+          "id": "resistance-band-high-to-low-row",
+          "name": "High-to-Low Band Rows",
+          "dose": "10 reps"
+        },
+        {
+          "id": "resistance-band-chest-press",
+          "name": "Arm Chest Presses",
+          "dose": "10 reps each side"
+        },
+        {
+          "id": "pallof-press",
+          "name": "Pallof Presses",
+          "dose": "10 reps each side"
+        }
+      ]
+    },
+    {
+      "id": "beginner-gym-circuit-day-a",
+      "name": "Beginner Gym Circuit \u2014 Day A",
+      "level": "Beginner",
+      "audience": "New gym members",
+      "equipmentTheme": "Barbell and pull-up bar",
+      "section": "circuits",
+      "format": "rounds",
+      "restGuidance": "Alternate Day A and Day B on different days with rest days between.",
+      "notes": "Rounds are not stated in the article \u2014 only the exercises and reps. Also usable as a Workout-section gym session.",
+      "steps": [
+        {
+          "id": "barbell-squat",
+          "name": "Barbell Squats",
+          "dose": "10 reps"
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "10 reps"
+        },
+        {
+          "id": "pull-ups",
+          "name": "Pull-Ups",
+          "dose": "10 reps",
+          "alternates": [
+            {
+              "name": "Lat Pulldown",
+              "catalogId": "lat-pulldown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beginner-gym-circuit-day-b",
+      "name": "Beginner Gym Circuit \u2014 Day B",
+      "level": "Beginner",
+      "audience": "New gym members",
+      "equipmentTheme": "Barbell and dumbbells",
+      "section": "circuits",
+      "format": "rounds",
+      "restGuidance": "Alternate Day A and Day B on different days with rest days between.",
+      "notes": "Rounds are not stated in the article \u2014 only the exercises and reps. Also usable as a Workout-section gym session.",
+      "steps": [
+        {
+          "id": "barbell-deadlift",
+          "name": "Barbell Romanian Deadlift / Deadlift",
+          "dose": "10 reps",
+          "note": "Article allows either the Romanian or the conventional barbell deadlift."
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "10 reps"
+        },
+        {
+          "id": "one-arm-db-row",
+          "name": "Dumbbell Rows",
+          "dose": "10 reps each arm"
+        }
+      ]
+    },
+    {
+      "id": "hotel-circuit-level-1",
+      "name": "Hotel Circuit \u2014 Level 1",
+      "level": "Beginner\u2013Intermediate",
+      "audience": "Travelers in a hotel room",
+      "equipmentTheme": "Bed/desk edge and a suitcase as a weight",
+      "section": "circuits",
+      "format": "amrap",
+      "timeBoxMin": 15,
+      "restGuidance": "Repeat the circuit continuously for 15 minutes, resting only as needed.",
+      "notes": "The 15-minute AMRAP instruction is printed after the Level 2 list; applied here to the hotel workout as a whole (flagged as an inference).",
+      "steps": [
+        {
+          "id": "bodyweight-squat",
+          "name": "Bodyweight Squats",
+          "dose": "20 reps"
+        },
+        {
+          "id": "incline-push-up",
+          "name": "Incline Push-Ups",
+          "dose": "15 reps",
+          "note": "Hands on the edge of a bed or desk, feet on the floor."
+        },
+        {
+          "id": "one-arm-db-row",
+          "name": "One-Arm Luggage Rows",
+          "dose": "10 reps each arm",
+          "note": "A suitcase serves as the weight; same one-arm row pattern."
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Reverse Crunches",
+          "dose": "10 reps"
+        }
+      ]
+    },
+    {
+      "id": "hotel-circuit-level-2",
+      "name": "Hotel Circuit \u2014 Level 2",
+      "level": "Intermediate",
+      "audience": "Travelers in a hotel room",
+      "equipmentTheme": "Desk (for rows) and floor space",
+      "section": "circuits",
+      "format": "amrap",
+      "timeBoxMin": 15,
+      "restGuidance": "Repeat the circuit continuously for 15 minutes, resting only as needed.",
+      "steps": [
+        {
+          "id": "overhead-squat",
+          "name": "Overhead Squats",
+          "dose": "25 reps"
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "20 reps"
+        },
+        {
+          "id": "inverted-row",
+          "name": "Inverted Rows",
+          "dose": "10 reps",
+          "note": "Under a sturdy desk in the article."
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Reverse Crunches",
+          "dose": "15 reps"
+        }
+      ]
+    },
+    {
+      "id": "batman-workout",
+      "name": "The Batman Workout",
+      "level": "Advanced",
+      "audience": "Advanced bodyweight/skill trainers",
+      "equipmentTheme": "Pull-up bar and a wall",
+      "section": "circuits",
+      "format": "rounds",
+      "restGuidance": "Not stated in the article.",
+      "notes": "Two alternating day routines. Rounds and rest are not stated in the article. Step names are the plain movement names; the article gives them playful themed labels.",
+      "steps": [
+        {
+          "id": "rolling-squat-tuck-up-jump",
+          "name": "Rolling Squat Tuck-Up Jumps",
+          "dose": "5 reps",
+          "block": "Day 1"
+        },
+        {
+          "id": "side-to-side-push-ups",
+          "name": "Side-to-Side Push-Ups",
+          "dose": "5 reps",
+          "block": "Day 1"
+        },
+        {
+          "id": "headstand-push-up",
+          "name": "Modified Headstand Push-Ups",
+          "dose": "5 reps",
+          "note": "Modified (regressed) version of the headstand push-up.",
+          "block": "Day 1"
+        },
+        {
+          "id": "pull-ups",
+          "name": "Jump Pull-Up with Tuck",
+          "dose": "5 reps",
+          "note": "Pull-up variant: jump into the rep and tuck the knees.",
+          "block": "Day 1"
+        },
+        {
+          "id": "wall-handstand-hold",
+          "name": "Handstand Against Wall",
+          "dose": "8 sec hold",
+          "durationSec": 8,
+          "block": "Day 1"
+        },
+        {
+          "id": "180-degree-jump-turns",
+          "name": "180-Degree Jump Turns",
+          "dose": "5 reps",
+          "block": "Day 2"
+        },
+        {
+          "id": "tuck-front-lever-hold",
+          "name": "Tuck Front Lever Hold",
+          "dose": "8 sec hold",
+          "durationSec": 8,
+          "block": "Day 2"
+        },
+        {
+          "id": "tuck-back-lever-hold",
+          "name": "Tuck Back Lever Hold",
+          "dose": "8 sec hold",
+          "durationSec": 8,
+          "block": "Day 2"
+        },
+        {
+          "id": "frog-hold",
+          "name": "Low Frog Hold",
+          "dose": "8 sec hold",
+          "durationSec": 8,
+          "block": "Day 2"
+        }
+      ]
+    },
+    {
+      "id": "lord-of-the-rings-workout",
+      "name": "The Lord of the Rings Workout",
+      "level": "Intermediate\u2013Advanced",
+      "audience": "Fans of themed novelty circuits with basic gym gear",
+      "equipmentTheme": "Medicine ball, dumbbells, a box/bench, a bar for rows, a wall",
+      "section": "circuits",
+      "format": "rounds",
+      "rounds": 3,
+      "restGuidance": "Rest between supersets is not stated in the article.",
+      "notes": "Three supersets, each repeated 3 times before moving on. Step names are the plain movement names; the article gives them playful themed labels, which were not carried over.",
+      "steps": [
+        {
+          "id": "ball-slam",
+          "name": "Medicine Ball Slams",
+          "dose": "3 reps",
+          "block": "Superset 1"
+        },
+        {
+          "id": "renegade-row",
+          "name": "Renegade Rows",
+          "dose": "7 reps",
+          "block": "Superset 1"
+        },
+        {
+          "id": "db-walking-lunge",
+          "name": "Lunges",
+          "dose": "9 reps each leg",
+          "note": "Load not specified in the article; catalog entry is the dumbbell walking lunge.",
+          "block": "Superset 1"
+        },
+        {
+          "id": "glute-bridge",
+          "name": "Hip Raises",
+          "dose": "1 min, hold the top position",
+          "durationSec": 60,
+          "block": "Superset 1"
+        },
+        {
+          "id": "inverted-row",
+          "name": "Bodyweight Rows",
+          "dose": "3 reps",
+          "block": "Superset 2"
+        },
+        {
+          "id": "box-jumps",
+          "name": "Box Jumps",
+          "dose": "7 reps",
+          "block": "Superset 2"
+        },
+        {
+          "id": "bodyweight-squat",
+          "name": "Bodyweight Squats",
+          "dose": "9 reps",
+          "block": "Superset 2"
+        },
+        {
+          "id": "wall-handstand-hold",
+          "name": "Handstand Hold (against wall)",
+          "dose": "1 min accumulated, as few sets as possible",
+          "durationSec": 60,
+          "block": "Superset 2"
+        },
+        {
+          "id": "manmaker",
+          "name": "Manmakers",
+          "dose": "3 reps",
+          "block": "Superset 3"
+        },
+        {
+          "id": "db-shoulder-press",
+          "name": "Dumbbell Overhead Presses",
+          "dose": "7 reps",
+          "block": "Superset 3"
+        },
+        {
+          "id": "barbell-deadlift",
+          "name": "Deadlifts",
+          "dose": "9 reps, light load",
+          "note": "Article allows barbell or dumbbell, kept light.",
+          "block": "Superset 3"
+        },
+        {
+          "id": "farmers-carry",
+          "name": "Farmer Carries",
+          "dose": "1 min",
+          "durationSec": 60,
+          "note": "Article suggests a heavy bag over the shoulder or two dumbbells; catalog entry is the dumbbell carry.",
+          "block": "Superset 3"
+        }
+      ]
+    },
+    {
+      "id": "the-300-workout",
+      "name": "The 300 Workout",
+      "level": "Advanced",
+      "audience": "Very experienced trainers",
+      "equipmentTheme": "Pull-up bar, barbell, 24-inch box, one kettlebell",
+      "section": "circuits",
+      "format": "for-time-single-pass",
+      "rounds": 1,
+      "restGuidance": "One pass through the list; reps may be broken into smaller sets as needed. A second pass is optional for those who can manage it.",
+      "notes": "The step reps total exactly 300. Loads written in the article (135 lb deadlift, 36 lb kettlebell) are the source's prescription and should be scaled to the user.",
+      "steps": [
+        {
+          "id": "pull-ups",
+          "name": "Pull-Ups",
+          "dose": "25 reps"
+        },
+        {
+          "id": "barbell-deadlift",
+          "name": "Deadlifts",
+          "dose": "50 reps",
+          "note": "Article prescribes 135 lb; scale as needed."
+        },
+        {
+          "id": "push-ups",
+          "name": "Push-Ups",
+          "dose": "50 reps"
+        },
+        {
+          "id": "box-jumps",
+          "name": "Box Jumps",
+          "dose": "50 reps",
+          "note": "Article specifies a 24-inch box."
+        },
+        {
+          "id": "floor-wipers",
+          "name": "Floor Wipers",
+          "dose": "50 reps"
+        },
+        {
+          "id": "kettlebell-clean-and-press",
+          "name": "Single-Arm Kettlebell Clean-and-Press",
+          "dose": "25 reps each side",
+          "note": "Article prescribes a 36 lb kettlebell; scale as needed."
+        },
+        {
+          "id": "pull-ups",
+          "name": "Pull-Ups",
+          "dose": "25 reps"
+        }
+      ]
+    },
+    {
+      "id": "the-wolverine-workout",
+      "name": "The Wolverine Workout",
+      "level": "Intermediate\u2013Advanced",
+      "audience": "Experienced trainers with a timer",
+      "equipmentTheme": "Deadlift implement (barbell, dumbbells or band), medicine ball, dumbbells",
+      "section": "circuits",
+      "format": "amrap",
+      "timeBoxMin": 12,
+      "restGuidance": "AMRAP in the suggested 12-minute window; genuine rest is needed between efforts \u2014 take it as required.",
+      "steps": [
+        {
+          "id": "barbell-deadlift",
+          "name": "Deadlift / Good Morning Option",
+          "dose": "10 reps",
+          "note": "Article offers a choice: barbell deadlift, dumbbell Romanian deadlift, banded good morning, or bodyweight good morning.",
+          "alternates": [
+            {
+              "name": "KB Romanian Deadlift",
+              "catalogId": "kb-romanian-deadlift"
+            },
+            {
+              "name": "Good Morning",
+              "catalogId": "good-morning"
+            },
+            {
+              "name": "DB Staggered Romanian Deadlift",
+              "catalogId": "db-staggered-romanian-deadlift"
+            }
+          ]
+        },
+        {
+          "id": "ball-slam",
+          "name": "Medicine Ball Slam",
+          "dose": "10 reps",
+          "alternates": [
+            {
+              "name": "Bodyweight Squat (fast down)",
+              "catalogId": "bodyweight-squat"
+            }
+          ]
+        },
+        {
+          "id": "renegade-row",
+          "name": "Push-Up to Renegade Row",
+          "dose": "5 rows each side",
+          "note": "One push-up, row left, one push-up, row right, repeated."
+        },
+        {
+          "id": "transverse-lunge-and-chop",
+          "name": "Transverse Lunge and Chop",
+          "dose": "5 reps each side"
+        }
+      ]
+    },
+    {
+      "id": "mobility-flow-10-min",
+      "name": "Full-Body Mobility Flow (10-Minute)",
+      "specialty": "mobility",
+      "source": {
+        "type": "instagram",
+        "creator": "Sam Zellien (@samgetsfittt)",
+        "ref": "https://www.instagram.com/reel/DZAugbkotEh/"
+      },
+      "steps": [
+        {
+          "id": "worlds-greatest-stretch",
+          "name": "World's Greatest Stretch",
+          "dose": "2 x 10 each side"
+        },
+        {
+          "id": "hamstring-to-hip-flow",
+          "name": "Hamstring-to-Hip Flow",
+          "dose": "2 x 10 each side"
+        },
+        {
+          "id": "cobra-pose",
+          "name": "Cobra Pose",
+          "dose": "2 x 30 sec"
+        },
+        {
+          "id": "childs-pose",
+          "name": "Child's Pose",
+          "dose": "2 x 30 sec"
+        },
+        {
+          "id": "pigeon-pose",
+          "name": "Pigeon Pose",
+          "dose": "2 x 30 sec each side"
+        },
+        {
+          "id": "ankle-rolls",
+          "name": "Ankle Rolls",
+          "dose": "2 x 10 each side"
+        },
+        {
+          "id": "standing-calf-stretch",
+          "name": "Standing Calf Stretch",
+          "dose": "2 x 30 sec each side"
+        }
+      ],
+      "notes": "Full-body 10-minute mobility flow; every move is a hold or slow flow, exactly as sequenced by the creator. No claims carried."
+    }
+  ],
+  "formats": [
+    {
+      "id": "rounds-circuit",
+      "name": "Rounds Circuit (standard)",
+      "definition": "A fixed list of exercises (stations) performed back to back for a set number of rounds, with little or no rest between stations and at most a short rest between rounds.",
+      "parameters": {
+        "rounds": "typically 3",
+        "restBetweenStationsSec": 0,
+        "restBetweenRoundsSec": "optional, short"
+      },
+      "source": "Nerd Fitness circuit training guide (article's core model)"
+    },
+    {
+      "id": "amrap",
+      "name": "AMRAP",
+      "definition": "As Many Rounds As Possible: cycle through a fixed circuit continuously inside a set time box, tracking completed rounds and reps as the score.",
+      "parameters": {
+        "timeBoxMin": "commonly 10-20 (12 and 15 used in the source circuits)",
+        "rest": "self-regulated"
+      },
+      "source": "Adamas CrossFit format explainer; Gold's Gym acronym guide"
+    },
+    {
+      "id": "emom",
+      "name": "EMOM",
+      "definition": "Every Minute On the Minute: at the start of each minute, perform the prescribed reps for that minute's exercise; whatever time remains in the minute is rest.",
+      "parameters": {
+        "intervalSec": 60,
+        "totalMinutes": "commonly 10-30",
+        "rest": "remainder of each minute"
+      },
+      "source": "Gold's Gym acronym guide; Adamas CrossFit format explainer"
+    },
+    {
+      "id": "tabata",
+      "name": "Tabata (20/10)",
+      "definition": "Eight cycles of 20 seconds of maximal-effort work and 10 seconds of rest \u2014 four minutes total per exercise block \u2014 from the 1996 Tabata protocol research.",
+      "parameters": {
+        "workSec": 20,
+        "restSec": 10,
+        "cycles": 8,
+        "blockDurationMin": 4,
+        "intensity": "all-out in the original protocol"
+      },
+      "source": "Tabata et al. 1996 study summary (Medicine & Science in Sports & Exercise), via Parade and Canadian Running explainers"
+    },
+    {
+      "id": "ladder-pyramid",
+      "name": "Ladder / Pyramid",
+      "definition": "The same set of exercises is repeated each round while the rep target climbs (ascending ladder), falls (descending ladder), or climbs then falls (pyramid).",
+      "parameters": {
+        "repSchemeExample": "1-2-3-...-10 ascending, 10-9-...-1 descending, or up-then-down pyramid",
+        "rounds": "determined by the rep scheme"
+      },
+      "source": "CrossFit format references (Adamas CrossFit; Rhapsody Fitness dictionary rep-scheme examples)"
+    },
+    {
+      "id": "timed-stations",
+      "name": "Timed Stations",
+      "definition": "Each station is performed for a fixed work interval with a short transition interval to move to the next station, repeated for a set number of rounds.",
+      "parameters": {
+        "workSec": "configurable, e.g. 40",
+        "transitionSec": "configurable, e.g. 20",
+        "rounds": "configurable"
+      },
+      "source": "Nerd Fitness circuit training guide (station concept); interval-timer references"
+    },
+    {
+      "id": "chipper-for-time",
+      "name": "Chipper (For Time, single pass)",
+      "definition": "One long list of exercises with high rep counts, worked through once from top to bottom as fast as good form allows; large sets may be split into smaller sets as needed.",
+      "parameters": {
+        "rounds": 1,
+        "rest": "self-regulated"
+      },
+      "source": "Adamas CrossFit format explainer"
+    }
+  ],
+  "motions": [],
+  "sectionTags": [
+    {
+      "id": "arm-circles",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "bodyweight-squat",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "cross-body-shoulder-stretch",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-triceps-kickback",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "good-morning",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "incline-push-up",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "kb-goblet-squat",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "kb-swing-light",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "leg-swings",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "march-in-place",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "mountain-climbers",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "neck-trapezius-stretch",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "pigeon-pose",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "push-ups",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "russian-twist",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "scapular-squeeze",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "shoulder-rolls",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "shoulder-shrugs",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "single-leg-calf-raise",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "sit-to-stand",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "standing-calf-raises",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "standing-cross-body-crunch",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "standing-hamstring-curl",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "standing-hip-abduction",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "standing-knee-raises",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "step-jacks",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "step-touch",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "wall-push-ups",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "wall-sit",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-jump-step",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "spider-climbers",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "side-shuffles-step",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-to-step-jump",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "stepper-shuffles",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "cross-climbers",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "high-plank-to-squat-hold",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "alternate-arm-swings",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-reverse-fly",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "alternate-arm-rows",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-overhead-raise",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "around-the-world",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "neck-rotations",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "jumping-jacks",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "high-knees",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "arm-swings",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "shoulder-swings",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "windmill-touches",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "supine-leg-open-close",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "supine-butterfly",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "supine-heel-swings",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "supine-knee-drops",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "malasana",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "chakki-chalanasana",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "baddha-konasana",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "malasana-walk",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "shoulder-external-rotation",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-arm-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "scapular-mobility",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "low-lunge-hip-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "half-side-lunge-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "side-leg-hip-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "deep-squat-hip-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-side-leg-hip-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "jump-squat",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "half-crunch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-to-calf-raise",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "knee-claps",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-to-floor-tap",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "standing-side-bend",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "standing-torso-twist",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "overhead-reach",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-clean-to-front-squat",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "bent-over-db-row",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "burpee",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "ball-slam",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "bear-hold-shoulder-tap",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "side-plank-dip",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "crunch-extension",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "standing-leg-extension",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "oblique-crunch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-toe-touches",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "chair-leg-raises",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-leg-raises",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "hollow-hold",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "running-in-place",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-deadlift",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "deficit-push-up",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-clean-and-press",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-front-squat",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "devils-press",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-hang-clean",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-push-press",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-cluster",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-snatch",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "lunge-to-knee-drive",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "offset-push-up",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-thruster",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-front-rack-lunge",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "renegade-row",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "sit-up",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "tyson-push-up",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "overhead-march",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "halo-to-woodchop",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "uppercut-punches",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "double-crunch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "crunch-kicks",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "heel-touches",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-jumps",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-jump-kick-backs",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-hip-dips",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-knee-touches",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-reach-outs",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-ball-pass",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-pull-through",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "froggers",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "lizard-hops",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "plank-jacks",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "kb-toe-touches",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "reverse-plank-hold",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "bicycle-crunch",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "flutter-kicks",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "forward-lunge",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "push-up-rotation",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "side-plank",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "lying-leg-raises",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "in-and-outs",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "star-crunch",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-leg-kicks",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "burpee-box-jump-over",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "hip-turnovers",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "body-kicks",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "teep",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "switch-knees",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "step-up-knee-to-lunge",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-swing",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-rdl-to-front-squat",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "sumo-squat-high-pull",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "db-deadlift-to-press",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "lunge-with-press",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "suitcase-squat",
+      "sections": [
+        "workout",
+        "circuits"
+      ]
+    },
+    {
+      "id": "push-up-toe-touch",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "pogo-jumps",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "body-waves",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "elephant-walk",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "thoracic-rotations",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "cossack-squat",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "pancake-fold",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "thread-the-needle",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "ninety-ninety",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "ninety-ninety-folds",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-frog-rotations",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "seated-frog-twist-reach",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "hip-flexor-hamstring-flow",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "knee-stirs",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "ninety-ninety-lift-off",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "hip-circles",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "frog-rocks",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "hip-active-stretch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "kneeling-ankle-mobility",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "deep-squat-heel-raises",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "lotus-forward-fold",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "lotus-sphinx",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "cobra-hip-rotation",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "elbow-clams",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "cactus-arms",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "arm-switches",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "heart-opener-hold",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "neck-circles-up-dog",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "down-dog-calf-walk",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "runners-lunge-rotations",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "kneeling-side-bends",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "chin-tuck-spinal-extensions",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "step-squat-back",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-twist-high-knee",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "curtsy-lunge",
+      "sections": [
+        "workout",
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "lunge-high-knee-kick",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "squat-to-side-crunch",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "sumo-squat-to-calf-raise",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "slow-skaters",
+      "sections": [
+        "home",
+        "circuits"
+      ]
+    },
+    {
+      "id": "knee-drive-curl",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "knee-drive-press",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "press-leg-lift",
+      "sections": [
+        "circuits"
+      ]
+    },
+    {
+      "id": "wall-handstand-transition",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "kneeling-hip-thrust",
+      "sections": [
+        "home",
+        "workout"
+      ]
+    },
+    {
+      "id": "db-reverse-lunge",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "db-romanian-deadlift",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "hip-thrust",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "pec-deck-fly",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "one-arm-db-row",
+      "sections": [
+        "workout"
+      ]
+    },
+    {
+      "id": "side-lunge",
+      "sections": [
+        "workout",
+        "home"
+      ]
+    },
+    {
+      "id": "medicine-ball-squat-hinge",
+      "sections": [
+        "workout"
+      ]
+    }
+  ]
+}
