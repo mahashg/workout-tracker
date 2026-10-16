@@ -14,6 +14,7 @@
       "cues": "Arms out, small circles;Slowly make circles bigger",
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/HMxqtrsNz60",
+      "shortUrl": "https://www.youtube.com/shorts/HMxqtrsNz60",
       "primary": true,
       "defaultWeight": "BW",
       "home": true,
@@ -31,6 +32,7 @@
       "cues": "Ribs down, glutes tight;Circle bell slowly around head;Keep elbows close",
       "image": "shoulders",
       "url": "https://www.youtube.com/watch?v=BtNHBe5VXxY",
+      "shortUrl": "https://www.youtube.com/shorts/HxrEOOBo_30",
       "primary": true,
       "variation": "Light halo"
     },
@@ -46,6 +48,7 @@
       "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
       "image": "shoulders",
       "url": "https://www.youtube.com/watch?v=iQP1BBmwAgg",
+      "shortUrl": "https://www.youtube.com/shorts/koVLSO7yvX8",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Push-up plus / scap push"
@@ -65,6 +68,7 @@
       "cues": "Ribs down, glutes tight;Press straight overhead;Lower slowly to shoulder height",
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/Gkk-6q7Rq-s",
+      "shortUrl": "https://www.youtube.com/shorts/Gkk-6q7Rq-s",
       "primary": true
     },
     {
@@ -80,6 +84,7 @@
       "cues": "Ribs down, glutes tight;Press straight overhead;Lower slowly to shoulder height",
       "image": "shoulders",
       "url": "https://www.youtube.com/watch?v=gjr-QAdsq4o",
+      "shortUrl": "https://www.youtube.com/shorts/A56mufj-VuI",
       "primary": true,
       "variation": "Half-kneeling variation",
       "easier": "DB Shoulder Press (Light)"
@@ -97,6 +102,7 @@
       "cues": "Slight bend in elbows;Lift to shoulder height only;Lower slowly, no swinging",
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/n1aCZuft1xM",
+      "shortUrl": "https://www.youtube.com/shorts/n1aCZuft1xM",
       "primary": true
     },
     {
@@ -112,6 +118,7 @@
       "cues": "Chest tall, soft elbows;Open arms wide with control;Squeeze shoulder blades together",
       "image": "shoulders",
       "url": "https://www.youtube.com/watch?v=P6-N-VGCVxk",
+      "shortUrl": "https://www.youtube.com/shorts/mOOu8Z3kZSc",
       "primary": true,
       "variation": "Rear delts"
     },
@@ -127,6 +134,7 @@
       "cues": "Hips high, head between arms;Bend elbows, head toward floor;Press floor away to straighten",
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/Jod-jg8s0mk",
+      "shortUrl": "https://www.youtube.com/shorts/Jod-jg8s0mk",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Wall pike easier",
@@ -145,6 +153,7 @@
       "cues": "Press dumbbells straight up;Lower slowly to shoulder height;Keep ribs down the whole time",
       "image": "shoulders",
       "url": "https://www.youtube.com/results?search_query=DB+Shoulder+Press+form",
+      "shortUrl": "https://www.youtube.com/shorts/NXzncwfn8tc",
       "primary": false
     },
     {
@@ -160,6 +169,7 @@
       "cues": "Pulleys at hand height to start;Lift to shoulder height only;Lower slowly - feel the side shoulder",
       "image": "shoulders",
       "url": "https://www.youtube.com/results?search_query=Cable+Lateral+Raise+form",
+      "shortUrl": "https://www.youtube.com/shorts/uNA-Pl255og",
       "primary": false
     },
     {
@@ -175,6 +185,7 @@
       "cues": "Set pulley at face height;Pull rope to forehead;Squeeze shoulder blades at the end",
       "image": "shoulders",
       "url": "https://www.youtube.com/results?search_query=Face+Pull+form",
+      "shortUrl": "https://www.youtube.com/shorts/PBgkmXOjTqs",
       "primary": false
     },
     {
@@ -190,9 +201,286 @@
       "cues": "Shoulders up, back, and down;Big slow circles;Reverse direction halfway",
       "image": "shoulders",
       "url": "https://www.youtube.com/results?search_query=Shoulder+Rolls+exercise+form",
+      "shortUrl": "https://www.youtube.com/shorts/Kd1XvvMTokU",
       "primary": false,
       "home": true,
       "counterSec": 30
+    },
+    {
+      "id": "alternate-arm-swings",
+      "name": "Alternate Arm Swings",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "20 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Hinge at the hips with a flat back, knees soft;Light dumbbells only - this is a fast swing, not a lift;Alternate arms like a pendulum, torso stays still;Keep the neck neutral, eyes down",
+      "cues": "Hinge, back flat;Swing arms alternately;Torso stays quiet",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-reverse-fly",
+      "name": "DB Reverse Fly",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "shoulders",
+      "precautions": "Hinge forward, back flat, soft knees;Slight bend in the elbows stays fixed;Open arms wide until shoulder-blade height - no higher;Squeeze shoulder blades, lower slowly",
+      "cues": "Hinge with a flat back;Open wide like wings;Squeeze blades, lower slow",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-overhead-raise",
+      "name": "DB Overhead Raise",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "20 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Stand tall, ribs down, glutes squeezed;Raise both light dumbbells in front, up overhead;Never swing or arch your back to get them up;Lower with control to thigh level",
+      "cues": "Stand tall and brace;Raise in front to overhead;Lower slowly",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "around-the-world",
+      "name": "Around the World",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "20 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Light dumbbells circle the head in one smooth loop;Keep elbows softly bent and ribs down;Move slowly - no momentum swinging the weights;Stop if shoulders pinch",
+      "cues": "Circle weights around your head;Smooth and slow;Switch direction halfway",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "arm-swings",
+      "name": "Arm Swings",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Swing arms across the chest and open wide, alternating which arm is on top;Keep the torso facing forward - rotation comes from the shoulders;Gradually grow the swing, never force it;Stay relaxed through the neck",
+      "cues": "Hug, then open wide;Alternate top arm;Smooth growing swings",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "shoulder-swings",
+      "name": "Shoulder Swings (Stick)",
+      "equipment": "Other",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Hold a stick or towel wide - wider is easier;Move in a slow arc over and behind the head only as far as comfortable;Keep ribs down, no back arching;Never force through a pinch",
+      "cues": "Wide grip on the stick;Slow arc over and back;Only comfortable range",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "shoulder-external-rotation",
+      "name": "Shoulder External Rotation",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "shoulders",
+      "precautions": "Seated tall, elbows bent 90 and tucked at your sides;Rotate forearms outward like opening a gate;Elbows stay glued to your ribs;Move slowly, squeeze at the end range",
+      "cues": "Elbows tucked, bent 90;Open forearms outward;Slow and controlled",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "overhead-reach",
+      "name": "Overhead Reach",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "shoulders",
+      "precautions": "Stand tall and reach both arms overhead;Rise onto your toes if comfortable;Keep ribs down - reach tall, don't arch back;Lower slowly and breathe",
+      "cues": "Reach tall overhead;Ribs stay down;Slow lower",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-clean-and-press",
+      "name": "DB Clean & Press",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "8",
+      "targetMuscles": "shoulders",
+      "precautions": "Hinge, then pull the dumbbells up close to your body;Catch them at shoulder height with a soft dip;Press overhead by driving with the legs and bracing your middle;Lower to shoulders, then to the hang, under control",
+      "cues": "Pull close, catch soft;Drive and press;Lower in two steps",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "devils-press",
+      "name": "Devil's Press",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Burpee with hands on the dumbbells - weights must not roll;Jump or step feet back, chest down between the weights;As you stand, swing the dumbbells straight overhead in one motion;Start light - this is an advanced conditioning move",
+      "cues": "Down like a burpee;Stand and swing overhead;Smooth, powerful rhythm",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-hang-clean",
+      "name": "DB Hang Clean",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "8",
+      "targetMuscles": "shoulders",
+      "precautions": "Start with dumbbells hanging at thigh level, slight hinge;Explode through the hips and shrug, pulling weights close;Catch at shoulder height with a soft quarter-dip;Stand fully before the next rep",
+      "cues": "Hinge, explode, shrug;Catch soft at shoulders;Stand tall, reset",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-push-press",
+      "name": "DB Push Press",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "8",
+      "targetMuscles": "shoulders",
+      "precautions": "Dumbbells at shoulder height, stand tall;Dip a few inches at the knees, then drive up hard;Press the weights overhead as the legs extend;Lower back to shoulders with control",
+      "cues": "Dip and drive;Press as legs extend;Lock out tall",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-snatch",
+      "name": "DB Snatch",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "6 ea",
+      "targetMuscles": "shoulders",
+      "precautions": "One dumbbell between your feet, hinge with a flat back;Pull it up in one motion, keeping it close to your body;Punch your hand through and lock it out overhead;Lower to the shoulder, then the floor, with control",
+      "cues": "Hinge, pull close;Punch to lockout overhead;Lower in control",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "db-thruster",
+      "name": "DB Thruster",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "40 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Dumbbells racked at shoulders;Squat to full depth, chest tall;As you stand, press the weights overhead in the same motion;Lower back to shoulders before the next squat",
+      "cues": "Squat deep;Stand and press together;Reset at the shoulders",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "press-leg-lift",
+      "name": "Overhead Press with Alternating Leg Lift",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "20 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Press light dumbbells overhead;While holding tall, lift one straight leg out to the front or side, alternating;Keep ribs down - the balance challenge is the point;Set the weights down if you start wobbling hard",
+      "cues": "Press and hold tall;Lift one leg, then the other;Ribs stay down",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "wall-handstand-transition",
+      "name": "Wall Handstand Transition",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "1 flow",
+      "targetMuscles": "shoulders",
+      "precautions": "Advanced skill - only attempt with a clear wall space and a soft floor;Kick up gently, heels to the wall;Keep arms locked and push the floor away;Come down one foot at a time, under control",
+      "cues": "Kick up softly to the wall;Push tall through the hands;Lower one foot at a time",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "air-punches",
+      "name": "Air Punches",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Extend the arm fully but never snap the elbow locked;Punch at shoulder height, rotating slightly through the hips;Keep shoulders down, away from your ears;Wrists straight, fists loose",
+      "cues": "Alternate punches at shoulder height;Turn the hips a little with each punch;Breathe out on each punch",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "frog-hold",
+      "name": "Frog Hold",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "8 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Advanced balance hold - practise near a wall or on a soft surface;Wrists warm, hands flat, fingers spread wide;Lean forward slowly until your feet lighten - never lurch;Come out by tipping back gently, not collapsing",
+      "cues": "Hands flat, elbows bent as shelves for your knees;Lean forward slowly;Hold, breathing steadily",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "headstand-push-up",
+      "name": "Headstand Push-Up",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5",
+      "targetMuscles": "shoulders",
+      "precautions": "Advanced - only with a wall behind you and a padded surface;Build a tripod base: head and both hands, neck neutral;Press only through a pain-free range;Come down the moment your form breaks",
+      "cues": "Tripod base against the wall;Lower with control;Press the floor away",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "kettlebell-clean-and-press",
+      "name": "Kettlebell Clean and Press",
+      "equipment": "Kettlebell",
+      "sets": 1,
+      "targetReps": "25 ea",
+      "targetMuscles": "shoulders",
+      "precautions": "Clean the bell to the rack without banging your forearm;Keep your wrist straight, bell resting on the forearm;Press straight up with ribs down and glutes tight;Lower to the rack, then hinge it down with a flat back",
+      "cues": "Hike the bell, clean to the rack softly;Press tall overhead;Reverse with control",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "resistance-band-overhead-press",
+      "name": "Resistance Band Overhead Press",
+      "equipment": "Resistance Band",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "shoulders",
+      "precautions": "Stand on the band, feet hip-width, core braced;Press straight up without arching your back;Keep wrists straight and elbows slightly forward;Inspect the band before every set",
+      "cues": "Band under feet, hands at shoulders;Press tall overhead;Lower with control",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "tuck-back-lever-hold",
+      "name": "Tuck Back Lever Hold",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "8 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Advanced gymnastic hold - the bar must be fully secure;Start from an inverted hang with knees tucked tight;Lower only as far as you can with a flat back;Exit by pulling back up or lowering your feet - never drop",
+      "cues": "Hang, tuck your knees to your chest;Lean back slowly;Hold briefly, return safely",
+      "image": "shoulders",
+      "primary": false
+    },
+    {
+      "id": "wall-handstand-hold",
+      "name": "Wall Handstand Hold",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "8 sec",
+      "targetMuscles": "shoulders",
+      "precautions": "Practise against a clear wall with space to come down safely;Kick up gently, heels resting on the wall;Push the floor away, body in one line;Come down one foot at a time",
+      "cues": "Kick up softly to the wall;Push tall through your hands;Hold steady and breathe",
+      "image": "shoulders",
+      "primary": false
     }
   ],
   "stretches": [
@@ -208,8 +496,21 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "shoulders",
       "url": "https://www.youtube.com/shorts/fmvywFQkKAw",
+      "shortUrl": "https://www.youtube.com/shorts/fmvywFQkKAw",
       "primary": true,
       "defaultWeight": "BW"
+    },
+    {
+      "id": "seated-arm-stretch",
+      "name": "Seated Arm Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "15",
+      "targetMuscles": "shoulders",
+      "precautions": "Seated tall, extend one arm and draw it across or overhead gently;Hold where you feel a mild stretch, never pain;Keep shoulders down away from ears;Breathe into the stretch",
+      "cues": "Sit tall;Draw the arm in gently;Mild stretch only",
+      "image": "shoulders",
+      "primary": false
     }
   ]
 }

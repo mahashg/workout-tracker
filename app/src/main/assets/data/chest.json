@@ -13,6 +13,7 @@
       "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
       "image": "chest",
       "url": "https://www.youtube.com/watch?v=iQP1BBmwAgg",
+      "shortUrl": "https://www.youtube.com/shorts/koVLSO7yvX8",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Scapula push-up"
@@ -30,6 +31,7 @@
       "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
       "image": "chest",
       "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
+      "shortUrl": "https://www.youtube.com/shorts/W0GFFzyYUWI",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Easy warm-up set"
@@ -49,6 +51,7 @@
       "cues": "Feet flat, back on pad;Push handles forward smoothly;Lower slowly to chest stretch",
       "image": "chest",
       "url": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
+      "shortUrl": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
       "primary": true,
       "easier": "Incline Push-up"
     },
@@ -65,6 +68,7 @@
       "cues": "Set up tall with good posture;Move slowly and with control;Breathe out on the hard part",
       "image": "chest",
       "url": "https://www.youtube.com/shorts/f-q2SJAuVDc",
+      "shortUrl": "https://www.youtube.com/shorts/f-q2SJAuVDc",
       "primary": true,
       "easier": "Chest Press Machine (Light)"
     },
@@ -81,6 +85,7 @@
       "cues": "Upper arms rest lightly on floor;Press up until arms straight;Lower slowly and controlled",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=kettlebell%20floor%20press%20hindi",
+      "shortUrl": "https://www.youtube.com/shorts/Vv381eNsbwA",
       "primary": true
     },
     {
@@ -96,6 +101,7 @@
       "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
       "image": "chest",
       "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
+      "shortUrl": "https://www.youtube.com/shorts/-qrpfzf_jD0",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Knee/incline/decline",
@@ -114,6 +120,7 @@
       "cues": "Handles at shoulder height;Sweep hands together wide;Slowly open back to a stretch",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=Cable+Fly+form",
+      "shortUrl": "https://www.youtube.com/shorts/ow_VWkwpv7g",
       "primary": false
     },
     {
@@ -129,6 +136,7 @@
       "cues": "Start dumbbells over chest;Open wide with control;Squeeze chest to bring them back",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=DB+Chest+Fly+form",
+      "shortUrl": "https://www.youtube.com/shorts/5ooEUsETVc8",
       "primary": false
     },
     {
@@ -144,6 +152,7 @@
       "cues": "Set assist, grip bars firmly;Lower with control;Press up without locking elbows",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=Assisted+Dip+(Chest)+form",
+      "shortUrl": "https://www.youtube.com/shorts/safuwXpdelM",
       "primary": false
     },
     {
@@ -158,6 +167,7 @@
       "cues": "Hands flat, body straight;Bend elbows, lean in;Push the wall away",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=Wall+Push+Ups+form",
+      "shortUrl": "https://www.youtube.com/shorts/G2z_j7iED3g",
       "primary": false,
       "home": true,
       "counterSec": 45
@@ -175,9 +185,142 @@
       "cues": "Hands on the edge, body straight;Lower chest to the edge;Press back up tall",
       "image": "chest",
       "url": "https://www.youtube.com/results?search_query=Incline+Push+Up+form",
+      "shortUrl": "https://www.youtube.com/shorts/qNiJ4HreZg0",
       "primary": false,
       "home": true,
       "counterSec": 40
+    },
+    {
+      "id": "deficit-push-up",
+      "name": "Deficit Push-Up (on Dumbbells)",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "chest",
+      "precautions": "Grip the dumbbell handles so wrists stay straight and weights cannot roll;Body one straight line head-to-heels;Lower until your chest passes hand level for the extra range;Keep elbows about 45 degrees from your sides",
+      "cues": "Grip handles, body straight;Chest below hand level;Press the floor away",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "offset-push-up",
+      "name": "Offset Push-Up",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "6 ea",
+      "targetMuscles": "chest",
+      "precautions": "One hand on a dumbbell handle, the other flat on the floor;Keep hips square - the raised side wants to twist;Body stays one straight line;Alternate sides or finish one side, then switch",
+      "cues": "One hand raised on the dumbbell;Hips stay square;Straight line, press strong",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "tyson-push-up",
+      "name": "Tyson Push-Up",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "8",
+      "targetMuscles": "chest",
+      "precautions": "Hands on the dumbbells in a plank;Push back toward your heels like a pike, then rock forward into a push-up;The rock and the press are one rhythm;Keep the motion smooth - no collapsing at the bottom",
+      "cues": "Rock back to pike;Roll forward into the push-up;One smooth rhythm",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "push-up-rotation",
+      "name": "Push-Up with Rotation",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "chest",
+      "precautions": "Do a full push-up, then rotate into a side plank and reach the top arm up;Keep the rotation smooth - feet pivot, hips stack;Alternate sides each rep;Drop to knees for the push-up if needed",
+      "cues": "Push up, rotate open;Top arm reaches tall;Alternate sides",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "elbow-clams",
+      "name": "Elbow Clams (Foam Roller)",
+      "equipment": "Other",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "chest",
+      "precautions": "Lie back over a foam roller under your upper back, hips in a bridge;Elbows bent, open and close the forearms like clamshells;Move slowly within a comfortable chest stretch;Keep ribs from flaring hard",
+      "cues": "Bridge over the roller;Open and close the elbows slowly;Comfortable stretch only",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "cactus-arms",
+      "name": "Cactus Arms (Foam Roller)",
+      "equipment": "Other",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "chest",
+      "precautions": "Lying over the foam roller, bend elbows at 90 degrees like a cactus;Let the arms open and settle with gravity;Slide them slowly up and down if comfortable;Never force the shoulders back",
+      "cues": "Elbows bent like a cactus;Let gravity open the chest;Slow small slides",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "arm-switches",
+      "name": "Arm Switches (Foam Roller)",
+      "equipment": "Other",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "chest",
+      "precautions": "Lying over the foam roller, arms extended out;Alternate which arm reaches up and which reaches down, like a slow see-saw;Keep both arms heavy and relaxed;Breathe out as you switch",
+      "cues": "Arms long over the roller;Alternate reach up and down;Slow see-saw",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "pec-deck-fly",
+      "name": "Pec Deck Fly",
+      "equipment": "Machine",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "chest",
+      "precautions": "Seat set so handles start at chest height;Slight elbow bend stays fixed;Bring handles together in a wide hugging arc;Open back slowly until a gentle chest stretch",
+      "cues": "Handles at chest height;Hug in a wide arc;Open back slowly",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "dumbbell-pullover",
+      "name": "Dumbbell Pullover",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "15",
+      "targetMuscles": "chest",
+      "precautions": "Only head and shoulders supported on the bench, hips up;Lower the weight in an arc until you feel a stretch - no further;Keep a slight bend in the elbows throughout;Control the weight - never let it drop back fast",
+      "cues": "Hold one dumbbell over your chest;Lower it in an arc behind your head;Pull it back over using chest and lats",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "resistance-band-chest-press",
+      "name": "Resistance Band Chest Press",
+      "equipment": "Resistance Band",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "chest",
+      "precautions": "Anchor the band behind you at chest height;Keep wrists straight and elbows just below shoulder line;Press forward without shrugging;Inspect the band for nicks before every set",
+      "cues": "Step into tension, brace tall;Press one arm forward at a time;Control the return",
+      "image": "chest",
+      "primary": false
+    },
+    {
+      "id": "side-to-side-push-ups",
+      "name": "Side-to-Side Push-Ups",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5",
+      "targetMuscles": "chest",
+      "precautions": "Hands wider than usual;Body in one straight line, core braced;Shift your weight over one hand as you lower;Keep the range pain-free for your shoulders",
+      "cues": "Wide hands, straight body;Lower toward one hand;Push up and shift to the other side",
+      "image": "chest",
+      "primary": false
     }
   ],
   "stretches": [
@@ -194,8 +337,21 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "chest",
       "url": "https://www.youtube.com/shorts/ArixC7ODJiI",
+      "shortUrl": "https://www.youtube.com/shorts/ArixC7ODJiI",
       "primary": true,
       "defaultWeight": "BW"
+    },
+    {
+      "id": "heart-opener-hold",
+      "name": "Heart Opener Hold (Foam Roller)",
+      "equipment": "Other",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "chest",
+      "precautions": "Rest back over the foam roller under your upper back, arms open wide;Let the chest open with gravity for the full minute;Support your head if your neck tires;Breathe slowly and deeply",
+      "cues": "Rest open over the roller;Arms wide, chest open;Slow deep breaths",
+      "image": "chest",
+      "primary": false
     }
   ]
 }

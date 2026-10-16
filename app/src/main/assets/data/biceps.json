@@ -15,6 +15,7 @@
       "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
       "image": "biceps",
       "url": "https://www.youtube.com/watch?v=5EQ1Nu1ODgE",
+      "shortUrl": "https://www.youtube.com/shorts/DkN1C6sLdrk",
       "primary": true
     },
     {
@@ -30,6 +31,7 @@
       "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
       "image": "biceps",
       "url": "https://www.youtube.com/shorts/I6saX6C_G4E",
+      "shortUrl": "https://www.youtube.com/shorts/I6saX6C_G4E",
       "primary": true
     },
     {
@@ -45,6 +47,7 @@
       "cues": "Bar at thigh height to start;Curl without swinging;Lower slowly all the way",
       "image": "biceps",
       "url": "https://www.youtube.com/results?search_query=Cable+Bicep+Curl+form",
+      "shortUrl": "https://www.youtube.com/shorts/y9EgFCrU7XI",
       "primary": false
     },
     {
@@ -60,6 +63,7 @@
       "cues": "Sit back on 45-degree bench;Curl both dumbbells up;Lower slowly into full stretch",
       "image": "biceps",
       "url": "https://www.youtube.com/results?search_query=Incline+DB+Curl+form",
+      "shortUrl": "https://www.youtube.com/shorts/DyOGV6NyjI8",
       "primary": false
     },
     {
@@ -75,6 +79,7 @@
       "cues": "Adjust seat so arms rest flat;Curl handle up smoothly;Lower slowly, feel the stretch",
       "image": "biceps",
       "url": "https://www.youtube.com/results?search_query=Machine+Preacher+Curl+form",
+      "shortUrl": "https://www.youtube.com/shorts/S4dDLfp3e8w",
       "primary": false
     },
     {
@@ -90,6 +95,19 @@
       "cues": "Arms flat on the pad;Curl handles up smoothly;Lower slowly to full stretch",
       "image": "biceps",
       "url": "https://www.youtube.com/results?search_query=Bicep+Curl+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/7NC5kToljDw",
+      "primary": false
+    },
+    {
+      "id": "chin-ups",
+      "name": "Chin-Ups",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "biceps",
+      "precautions": "Underhand grip, hands shoulder-width, bar fully secure;Start from a dead hang with shoulders engaged;Pull until your chin clears the bar - no swinging or kicking;Lower slowly all the way down",
+      "cues": "Hang tall, grip tight;Pull your elbows down to your ribs;Lower under control",
+      "image": "biceps",
       "primary": false
     }
   ],

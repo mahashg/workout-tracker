@@ -1,6 +1,19 @@
 {
   "bodyPart": "traps",
-  "warmups": [],
+  "warmups": [
+    {
+      "id": "scapular-mobility",
+      "name": "Scapular Mobility (Shoulder Blade Glides)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "traps",
+      "precautions": "Seated tall, arms relaxed;Glide shoulder blades up, down, together and apart in slow circles;Keep the neck long and still;Full comfortable range, no forcing",
+      "cues": "Circle the shoulder blades;Slow full glides;Neck stays long",
+      "image": "traps",
+      "primary": false
+    }
+  ],
   "exercises": [
     {
       "id": "db-shrug",
@@ -15,6 +28,7 @@
       "cues": "Arms straight, stand tall;Lift shoulders to ears;Pause, then lower slowly",
       "image": "traps",
       "url": "https://www.youtube.com/watch?v=vMr-kzeElVo",
+      "shortUrl": "https://www.youtube.com/shorts/gBMyVQRLbus",
       "primary": true
     },
     {
@@ -45,6 +59,7 @@
       "cues": "Pick up heavy dumbbells;Walk tall and slow;Set down with a flat back",
       "image": "traps",
       "url": "https://www.youtube.com/results?search_query=Farmer's+Carry+form",
+      "shortUrl": "https://www.youtube.com/shorts/cTJLuCn4vSU",
       "primary": false
     },
     {
@@ -60,6 +75,7 @@
       "cues": "Hinge and grip the bell;Snap hips to stand;Pull elbows high, lower with control",
       "image": "traps",
       "url": "https://www.youtube.com/results?search_query=KB+High+Pull+(Light)+form",
+      "shortUrl": "https://www.youtube.com/shorts/UMJ6tKsUFw8",
       "primary": false
     },
     {
@@ -90,9 +106,34 @@
       "cues": "Blades together and down;Hold for 3 seconds;Release slowly, repeat",
       "image": "traps",
       "url": "https://www.youtube.com/results?search_query=Scapular+Squeeze+exercise+form",
+      "shortUrl": "https://www.youtube.com/shorts/ypeosmSrPOU",
       "primary": false,
       "home": true,
       "counterSec": 30
+    },
+    {
+      "id": "neck-rotations",
+      "name": "Neck Rotations",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "traps",
+      "precautions": "Slow half or full circles - never force the range;Keep shoulders down and still;Stop if you feel dizzy;Never crank the neck backward hard",
+      "cues": "Slow gentle circles;Shoulders stay down;Breathe easy",
+      "image": "traps",
+      "primary": false
+    },
+    {
+      "id": "neck-circles-up-dog",
+      "name": "Neck Circles (Upward Dog)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "traps",
+      "precautions": "In a gentle upward dog, circle your head slowly;Keep circles small and smooth;Shoulders stay down away from your ears;Stop if dizzy",
+      "cues": "Gentle up-dog;Small slow head circles;Shoulders stay down",
+      "image": "traps",
+      "primary": false
     }
   ],
   "stretches": [
@@ -109,6 +150,7 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "traps",
       "url": "https://www.youtube.com/watch?v=3hw6r9zrraU",
+      "shortUrl": "https://www.youtube.com/shorts/j2x1KCUzElw",
       "primary": true,
       "defaultWeight": "BW"
     }

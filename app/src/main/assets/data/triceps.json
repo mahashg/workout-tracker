@@ -15,6 +15,7 @@
       "cues": "Elbows tucked at your sides;Push down until arms straight;Control the way back up",
       "image": "triceps",
       "url": "https://www.youtube.com/shorts/DxPIwrcRcKA",
+      "shortUrl": "https://www.youtube.com/shorts/DxPIwrcRcKA",
       "primary": true
     },
     {
@@ -30,6 +31,7 @@
       "cues": "Elbows pointing forward, still;Lower weight behind head slowly;Straighten arms without flaring elbows",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=dumbbell%20overhead%20triceps%20extension%20hindi",
+      "shortUrl": "https://www.youtube.com/shorts/GTVxSixh8lA",
       "primary": true
     },
     {
@@ -45,6 +47,7 @@
       "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
       "image": "triceps",
       "url": "https://www.youtube.com/watch?v=QCUUyCsTMxQ",
+      "shortUrl": "https://www.youtube.com/shorts/PPTj-MW2tcs",
       "primary": true,
       "defaultWeight": "BW",
       "easier": "Wall Push-up"
@@ -62,6 +65,7 @@
       "cues": "Sit on bench, hands at hips;Walk feet out a little;Dip down and press up slowly",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=Bench+Dip+form",
+      "shortUrl": "https://www.youtube.com/shorts/5kDp3V6JWZU",
       "primary": false
     },
     {
@@ -77,6 +81,7 @@
       "cues": "Upper arm parallel to floor;Kick dumbbell straight back;Squeeze triceps, lower slowly",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=DB+Triceps+Kickback+form",
+      "shortUrl": "https://www.youtube.com/shorts/2JUSjX_gpkk",
       "primary": false
     },
     {
@@ -92,6 +97,7 @@
       "cues": "Press dumbbells up over chest;Bend elbows to lower by ears;Straighten arms without moving elbows",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=DB+Skull+Crusher+form",
+      "shortUrl": "https://www.youtube.com/shorts/iuYB_fLp26Q",
       "primary": false
     },
     {
@@ -107,6 +113,7 @@
       "cues": "Shoulders down, chest tall;Press handles down smoothly;Control the way back up",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=Seated+Dip+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/M-ZBzqha-xs",
       "primary": false
     },
     {
@@ -122,6 +129,7 @@
       "cues": "Elbows pinned, back on pad;Press forward to straight arms;Lower slowly with control",
       "image": "triceps",
       "url": "https://www.youtube.com/results?search_query=Triceps+Extension+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/KqUa_PH0-gc",
       "primary": false
     }
   ],

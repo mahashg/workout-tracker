@@ -31,6 +31,7 @@
       "cues": "Hips stay down on the pad;Curl heels toward you with control;Lower slowly all the way",
       "image": "hamstrings",
       "url": "https://www.youtube.com/watch?v=QolPPQFk8SE",
+      "shortUrl": "https://www.youtube.com/shorts/qD8_7aGWKAs",
       "primary": true,
       "variation": "Seated/lying leg curl"
     },
@@ -47,6 +48,7 @@
       "cues": "Soft knees, push hips back;Flat back, weight close to legs;Stand tall by squeezing glutes",
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=kettlebell%20romanian%20deadlift%20hindi",
+      "shortUrl": "https://www.youtube.com/shorts/mCdqZc5_cR0",
       "primary": true,
       "easier": "Glute Bridge"
     },
@@ -63,6 +65,7 @@
       "cues": "Soft knees, push hips back;Flat back, weight close to legs;Stand tall by squeezing glutes",
       "image": "hamstrings",
       "url": "https://www.youtube.com/watch?v=zSKeYOuv_60",
+      "shortUrl": "https://www.youtube.com/shorts/922wb2nHwwY",
       "primary": true,
       "easier": "Glute Bridge"
     },
@@ -79,6 +82,7 @@
       "cues": "Sit tall, pad behind ankles;Curl heels down and back;Return slowly to the stretch",
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=Seated+Leg+Curl+form",
+      "shortUrl": "https://www.youtube.com/shorts/qD8_7aGWKAs",
       "primary": false
     },
     {
@@ -94,6 +98,7 @@
       "cues": "Lie face-down, pad at ankles;Curl heels toward glutes;Lower slowly with control",
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=Lying+Leg+Curl+form",
+      "shortUrl": "https://www.youtube.com/shorts/ec6XWx8DJE8",
       "primary": false
     },
     {
@@ -109,6 +114,7 @@
       "cues": "Rope between legs, hinge back;Snap hips forward tall;Keep arms straight and relaxed",
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=Cable+Pull-Through+form",
+      "shortUrl": "https://www.youtube.com/shorts/r3pkvkGbPg0",
       "primary": false
     },
     {
@@ -139,9 +145,154 @@
       "cues": "Hips back, flat back;Feel the stretch behind thighs;Push hips forward to stand",
       "image": "hamstrings",
       "url": "https://www.youtube.com/results?search_query=Bodyweight+Good+Morning+exercise+form",
+      "shortUrl": "https://www.youtube.com/shorts/cznArrATosA",
       "primary": false,
       "home": true,
       "counterSec": 40
+    },
+    {
+      "id": "windmill-touches",
+      "name": "Windmill Touches",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "hamstrings",
+      "precautions": "Feet wide, arms out like a windmill;Rotate and reach one hand to the opposite foot;Keep legs straight-ish with soft knees;Rise and alternate smoothly",
+      "cues": "Arms wide like a windmill;Hand to opposite foot;Alternate sides",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "supine-heel-swings",
+      "name": "Supine Heel Swings",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "hamstrings",
+      "precautions": "Lie on your back with legs extended;Swing one leg gently across and back, heel leading;Keep hips on the surface - small range is fine;Move slowly, no momentum jerks",
+      "cues": "Legs long;Swing gently side to side;Hips stay down",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "db-deadlift",
+      "name": "DB Deadlift",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10",
+      "targetMuscles": "hamstrings",
+      "precautions": "Dumbbells start on the floor beside your feet;Hinge and grip, chest up, back flat before you lift;Stand by pushing the floor away, weights close to your legs;Lower by hinging, weights sliding down your thighs",
+      "cues": "Flat back, chest up;Push the floor away;Weights stay close",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "db-rdl-to-front-squat",
+      "name": "DB RDL to Front Squat",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "40 sec",
+      "targetMuscles": "hamstrings",
+      "precautions": "Hinge into a Romanian deadlift with dumbbells skimming your thighs;At the bottom, sit straight down into a front squat, weights racked;Stand tall, then flow into the next hinge;Two clean halves - never rush the transition",
+      "cues": "Hinge low;Sit into the squat;Stand, repeat the flow",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "db-deadlift-to-press",
+      "name": "DB Deadlift to Overhead Press",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "hamstrings",
+      "precautions": "Deadlift the dumbbells with a flat back;Roll them up to your shoulders as you stand;Press overhead with ribs down and glutes squeezed;Reverse the whole chain slowly",
+      "cues": "Deadlift tall;Rack at shoulders;Press overhead, brace",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "elephant-walk",
+      "name": "Elephant Walk",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "hamstrings",
+      "precautions": "Hinge forward with hands reaching toward the floor;Bend one knee while straightening the other, alternating like slow marching;Keep hips high and back long;Only straighten as far as a mild hamstring stretch",
+      "cues": "Hinge, hands low;Straighten one leg at a time;Alternate slowly",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "pancake-fold",
+      "name": "Pancake Fold",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "hamstrings",
+      "precautions": "Sit with legs wide, knees soft if needed;Hinge from the hips and walk hands forward between your feet;Keep your back as long as you can - reach, don't round hard;Come out slowly",
+      "cues": "Legs wide, sit tall;Hinge and walk hands forward;Long back",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "hip-flexor-hamstring-flow",
+      "name": "Hip Flexor-Hamstring Flow (Foot Elevated)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5 ea",
+      "targetMuscles": "hamstrings",
+      "precautions": "One foot elevated on a chair seat, knee bent;Rock gently forward into the hip flexor stretch, then straighten the leg into a hamstring stretch;Flow between the two positions slowly;Hold the chair or a wall for balance",
+      "cues": "Foot up on the chair;Rock forward, then straighten and hinge;Slow flow between stretches",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "db-romanian-deadlift",
+      "name": "DB Romanian Deadlift",
+      "equipment": "Dumbbell",
+      "sets": 3,
+      "targetReps": "10-12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Dumbbells skim your thighs as you hinge;Soft knees, hips push BACK - this is a hinge, not a squat;Back stays flat the whole way;Stop the descent at a strong hamstring stretch, then stand tall",
+      "cues": "Hips back, weights skim thighs;Flat back;Stand tall, squeeze glutes",
+      "image": "hamstrings",
+      "primary": true
+    },
+    {
+      "id": "barbell-deadlift",
+      "name": "Barbell Deadlift",
+      "equipment": "Barbell",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "hamstrings",
+      "precautions": "Bar close to your shins, back flat, chest up;Hinge at the hips - never round your lower back;Lock out by standing tall, not by leaning back;Start light and add weight only with clean form",
+      "cues": "Grip just outside your knees, brace hard;Push the floor away, bar slides up your thighs;Stand tall, lower with control",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "resistance-band-deadlift",
+      "name": "Resistance Band Deadlift",
+      "equipment": "Resistance Band",
+      "sets": 1,
+      "targetReps": "12",
+      "targetMuscles": "hamstrings",
+      "precautions": "Stand on the band, feet hip-width, handles at your sides;Hinge with a flat back - never round;Keep tension on the band through the whole rep;Inspect the band for damage before use",
+      "cues": "Hinge back with soft knees;Stand tall, squeezing your glutes;Lower with a flat back",
+      "image": "hamstrings",
+      "primary": false
+    },
+    {
+      "id": "hamstring-to-hip-flow",
+      "name": "Hamstring-to-Hip Flow",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "hamstrings",
+      "precautions": "Move slowly between the hamstring stretch and the deep hip position;Keep your back long - hinge, do not round;Support yourself with hands on the floor or a block;Never force the hip or hamstring range",
+      "cues": "Hinge into a hamstring stretch;Flow down into a deep squat hip opener;Alternate smoothly side to side",
+      "image": "hamstrings",
+      "primary": false
     }
   ],
   "stretches": [
@@ -158,6 +309,7 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "hamstrings",
       "url": "https://www.youtube.com/watch?v=ZeSAX3QlZxQ",
+      "shortUrl": "https://www.youtube.com/shorts/epeiIEhq7fg",
       "primary": true,
       "defaultWeight": "BW"
     }

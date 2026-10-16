@@ -1,6 +1,19 @@
 {
   "bodyPart": "calves",
-  "warmups": [],
+  "warmups": [
+    {
+      "id": "kneeling-ankle-mobility",
+      "name": "Kneeling Ankle Mobility",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "calves",
+      "precautions": "Half-kneeling, front foot flat a few inches from a wall or block;Drive the front knee forward over your toes, heel glued down;Rock in and out slowly;Stop if the ankle pinches at the front",
+      "cues": "Half kneel, heel down;Drive knee over toes;Rock slowly",
+      "image": "calves",
+      "primary": false
+    }
+  ],
   "exercises": [
     {
       "id": "standing-calf-raise-machine",
@@ -45,6 +58,7 @@
       "cues": "One foot on step, hold support;Rise onto toes tall;Lower slowly, repeat, switch",
       "image": "calves",
       "url": "https://www.youtube.com/results?search_query=Single-Leg+Calf+Raise+form",
+      "shortUrl": "https://www.youtube.com/shorts/wZfr_svtSr0",
       "primary": false,
       "home": true,
       "counterSec": 40
@@ -61,9 +75,70 @@
       "cues": "Hold support, stand tall;Rise onto your toes;Lower slowly, repeat",
       "image": "calves",
       "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raises+form",
+      "shortUrl": "https://www.youtube.com/shorts/a-OQ3nfWbUI",
       "primary": false,
       "home": true,
       "counterSec": 45
+    },
+    {
+      "id": "pogo-jumps",
+      "name": "Pogo Jumps",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "calves",
+      "precautions": "Small springy hops on the balls of your feet;Knees stay nearly straight - the bounce comes from the ankles;Stay tall and light;Keep hops low, rhythm steady",
+      "cues": "Bounce from the ankles;Small, quick, light;Stay tall",
+      "image": "calves",
+      "primary": false
+    },
+    {
+      "id": "deep-squat-heel-raises",
+      "name": "Deep Squat Heel Raises",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "calves",
+      "precautions": "Hold a block or support and sit into your deepest squat;Raise both heels, then lower them, without standing up;Stay in the squat the whole set;Use support generously - balance is not the exercise",
+      "cues": "Stay deep in the squat;Heels rise and lower;Hold support as needed",
+      "image": "calves",
+      "primary": false
+    },
+    {
+      "id": "down-dog-calf-walk",
+      "name": "Downward Dog Calf Walk",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "calves",
+      "precautions": "In downward dog, bend one knee and press the other heel toward the floor;Alternate like pedalling;Keep hips high and back long;Never force the straight heel down",
+      "cues": "Hips high in down dog;Pedal the heels alternately;Back stays long",
+      "image": "calves",
+      "primary": false
+    },
+    {
+      "id": "jump-rope",
+      "name": "Jump Rope",
+      "equipment": "Jump Rope",
+      "sets": 1,
+      "targetReps": "2 min",
+      "targetMuscles": "calves",
+      "precautions": "Land on the balls of your feet, soft and quiet;Keep jumps low - just enough for the rope to pass;Turn the rope with your wrists, shoulders relaxed;Rest the moment your form gets sloppy",
+      "cues": "Light bounces, rope skims the floor;Steady rhythm, breathe easy;Stay tall and relaxed",
+      "image": "calves",
+      "primary": false
+    },
+    {
+      "id": "ankle-rolls",
+      "name": "Ankle Rolls",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10 ea",
+      "targetMuscles": "calves",
+      "precautions": "Stand tall, holding support if you need it;Roll the ankle in a full, slow circle;Keep the movement smooth and pain-free;Do both directions on both sides",
+      "cues": "Lift one foot slightly;Circle the ankle slowly;Reverse direction, switch sides",
+      "image": "calves",
+      "primary": false
     }
   ],
   "stretches": [
@@ -80,6 +155,7 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "calves",
       "url": "https://www.youtube.com/watch?v=zeTV7lvAWyg",
+      "shortUrl": "https://www.youtube.com/shorts/59-A2COfLLo",
       "primary": true,
       "defaultWeight": "BW"
     }
