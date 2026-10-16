@@ -153,3 +153,56 @@ Notes on the v3.6 matches:
 - **Cross-Body Shoulder Stretch → dropped-after-check**: "Shoulder Stretch" frame 0 shows only a neutral standing pose, not the stretch; no other genuine cross-body stretch entry exists.
 - **Unmatched mains**: Pike Push-up (only "Hanging Pike", a leg raise), Wall Sit (no wall-sit entry), Fire Hydrant (no entry at all).
 - **Unmatched warmups/stretches**: Kettlebell Halo, Scap Push-up, Push-Up Plus, Scapula Pulls, Leg Swings, Kettlebell Deadlift (Light) (only a one-legged KB deadlift exists), Lat Stretch (only a partner-assisted "Overhead Lat"), Pigeon Pose, Cobra Pose.
+
+
+## Media pass — merged catalog additions (201 entries, 2026-10-16)
+
+Second pass over the 201 entries merged into the per-body-part files on 2026-10-16 (Instagram scan/search staging + Nerd Fitness circuits). Same source and processing as above (images[0] -> `<our-id>.jpg`, images[1] -> `<our-id>-2.jpg`, max width 640px, JPEG quality 80). Matching held the same line: variant-tolerant, never forced across movements. **43 of 201 matched**; the other 158 entries (mostly niche hip-mobility, yoga/mobility flows, stepper/step variants and combo movements with no dataset counterpart) are `unmatched` and stay photo-less (body-map fallback). The 86 new image files live only in the local repo assets (binary files are not pushed to GitHub); this mapping is their provenance record.
+
+| Our ID | Our exercise | Dataset exercise | Image paths | Status |
+|---|---|---|---|---|
+| ankle-rolls | Ankle Rolls | Ankle Circles | Ankle_Circles/0.jpg, Ankle_Circles/1.jpg | matched |
+| ball-slam | Ball Slam | Overhead Slam | Overhead_Slam/0.jpg, Overhead_Slam/1.jpg | matched |
+| barbell-deadlift | Barbell Deadlift | Barbell Deadlift | Barbell_Deadlift/0.jpg, Barbell_Deadlift/1.jpg | matched |
+| barbell-squat | Barbell Squat | Barbell Squat | Barbell_Squat/0.jpg, Barbell_Squat/1.jpg | matched |
+| bent-over-db-row | Bent-Over DB Row | Bent Over Two-Dumbbell Row | Bent_Over_Two-Dumbbell_Row/0.jpg, Bent_Over_Two-Dumbbell_Row/1.jpg | matched |
+| bicycle-crunch | Bicycle Crunch | Air Bike | Air_Bike/0.jpg, Air_Bike/1.jpg | matched |
+| box-jumps | Box Jumps | Front Box Jump | Front_Box_Jump/0.jpg, Front_Box_Jump/1.jpg | matched |
+| chin-ups | Chin-Ups | Chin-Up | Chin-Up/0.jpg, Chin-Up/1.jpg | matched |
+| db-front-rack-lunge | DB Front-Rack Lunge | Dumbbell Lunges | Dumbbell_Lunges/0.jpg, Dumbbell_Lunges/1.jpg | matched |
+| db-hang-clean | DB Hang Clean | Dumbbell Clean | Dumbbell_Clean/0.jpg, Dumbbell_Clean/1.jpg | matched |
+| db-overhead-raise | DB Overhead Raise | Standing Dumbbell Straight-Arm Front Delt Raise Above Head | Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head/0.jpg, Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head/1.jpg | matched |
+| db-reverse-fly | DB Reverse Fly | Reverse Flyes | Reverse_Flyes/0.jpg, Reverse_Flyes/1.jpg | matched |
+| db-reverse-lunge | DB Reverse Lunge | Dumbbell Rear Lunge | Dumbbell_Rear_Lunge/0.jpg, Dumbbell_Rear_Lunge/1.jpg | matched |
+| db-romanian-deadlift | DB Romanian Deadlift | Stiff-Legged Dumbbell Deadlift | Stiff-Legged_Dumbbell_Deadlift/0.jpg, Stiff-Legged_Dumbbell_Deadlift/1.jpg | matched |
+| db-swing | DB Swing | Vertical Swing | Vertical_Swing/0.jpg, Vertical_Swing/1.jpg | matched |
+| dumbbell-pullover | Dumbbell Pullover | Bent-Arm Dumbbell Pullover | Bent-Arm_Dumbbell_Pullover/0.jpg, Bent-Arm_Dumbbell_Pullover/1.jpg | matched |
+| flutter-kicks | Flutter Kicks | Flutter Kicks | Flutter_Kicks/0.jpg, Flutter_Kicks/1.jpg | matched |
+| half-crunch | Half Crunch | Crunches | Crunches/0.jpg, Crunches/1.jpg | matched |
+| hanging-leg-raises | Hanging Leg Raises | Hanging Leg Raise | Hanging_Leg_Raise/0.jpg, Hanging_Leg_Raise/1.jpg | matched |
+| heel-touches | Heel Touches | Alternate Heel Touchers | Alternate_Heel_Touchers/0.jpg, Alternate_Heel_Touchers/1.jpg | matched |
+| hip-thrust | Hip Thrust (Bench) | Barbell Hip Thrust | Barbell_Hip_Thrust/0.jpg, Barbell_Hip_Thrust/1.jpg | matched |
+| in-and-outs | In & Outs | Seated Leg Tucks | Seated_Leg_Tucks/0.jpg, Seated_Leg_Tucks/1.jpg | matched |
+| jump-rope | Jump Rope | Rope Jumping | Rope_Jumping/0.jpg, Rope_Jumping/1.jpg | matched |
+| jump-squat | Jump Squat | Freehand Jump Squat | Freehand_Jump_Squat/0.jpg, Freehand_Jump_Squat/1.jpg | matched |
+| kb-toe-touches | KB Toe Touches | Toe Touchers | Toe_Touchers/0.jpg, Toe_Touchers/1.jpg | matched |
+| lying-leg-raises | Lying Leg Raises | Flat Bench Lying Leg Raise | Flat_Bench_Lying_Leg_Raise/0.jpg, Flat_Bench_Lying_Leg_Raise/1.jpg | matched |
+| one-arm-db-row | One-Arm DB Row | One-Arm Dumbbell Row | One-Arm_Dumbbell_Row/0.jpg, One-Arm_Dumbbell_Row/1.jpg | matched |
+| overhead-reach | Overhead Reach | Overhead Stretch | Overhead_Stretch/0.jpg, Overhead_Stretch/1.jpg | matched |
+| pallof-press | Pallof Press | Pallof Press | Pallof_Press/0.jpg, Pallof_Press/1.jpg | matched |
+| pec-deck-fly | Pec Deck Fly | Butterfly | Butterfly/0.jpg, Butterfly/1.jpg | matched |
+| pull-ups | Pull-Ups | Pullups | Pullups/0.jpg, Pullups/1.jpg | matched |
+| push-up-rotation | Push-Up with Rotation | Push Up to Side Plank | Push_Up_to_Side_Plank/0.jpg, Push_Up_to_Side_Plank/1.jpg | matched |
+| resistance-band-overhead-press | Resistance Band Overhead Press | Shoulder Press - With Bands | Shoulder_Press_-_With_Bands/0.jpg, Shoulder_Press_-_With_Bands/1.jpg | matched |
+| resistance-band-squat | Resistance Band Squat | Squats - With Bands | Squats_-_With_Bands/0.jpg, Squats_-_With_Bands/1.jpg | matched |
+| reverse-crunch | Reverse Crunch | Reverse Crunch | Reverse_Crunch/0.jpg, Reverse_Crunch/1.jpg | matched |
+| seated-arm-stretch | Seated Arm Stretch | Shoulder Stretch | Shoulder_Stretch/0.jpg, Shoulder_Stretch/1.jpg | matched |
+| shoulder-swings | Shoulder Swings (Stick) | Round The World Shoulder Stretch | Round_The_World_Shoulder_Stretch/0.jpg, Round_The_World_Shoulder_Stretch/1.jpg | matched |
+| side-shuffles-step | Side Shuffles (Step) | Side to Side Box Shuffle | Side_to_Side_Box_Shuffle/0.jpg, Side_to_Side_Box_Shuffle/1.jpg | matched |
+| sit-up | Sit-Up | Sit-Up | Sit-Up/0.jpg, Sit-Up/1.jpg | matched |
+| spider-climbers | Spider Climbers | Spider Crawl | Spider_Crawl/0.jpg, Spider_Crawl/1.jpg | matched |
+| suitcase-squat | Suitcase Squat | Dumbbell Squat | Dumbbell_Squat/0.jpg, Dumbbell_Squat/1.jpg | matched |
+| supine-heel-swings | Supine Heel Swings | Windmills | Windmills/0.jpg, Windmills/1.jpg | matched |
+| worlds-greatest-stretch | World's Greatest Stretch | World's Greatest Stretch | Worlds_Greatest_Stretch/0.jpg, Worlds_Greatest_Stretch/1.jpg | matched |
+
+Unmatched (photo-less) IDs: 180-degree-jump-turns, air-kicks, air-punches, alternate-arm-rows, alternate-arm-swings, arm-swings, arm-switches, around-the-world, baddha-konasana, bear-hold-shoulder-tap, body-kicks, body-waves, burpee, burpee-box-jump-over, cactus-arms, chair-leg-raises, chakki-chalanasana, chin-tuck-spinal-extensions, cobra-hip-rotation, cossack-squat, cross-climbers, crunch-extension, crunch-kicks, curtsy-lunge, db-clean-and-press, db-clean-to-front-squat, db-cluster, db-deadlift, db-deadlift-to-press, db-front-squat, db-push-press, db-rdl-to-front-squat, db-snatch, db-thruster, deep-squat-heel-raises, deep-squat-hip-stretch, deficit-push-up, devils-press, double-crunch, down-dog-calf-walk, elbow-clams, elephant-walk, floor-wipers, forward-lunge, frog-hold, frog-rocks, froggers, half-side-lunge-stretch, halo-to-woodchop, hamstring-to-hip-flow, headstand-push-up, heart-opener-hold, high-knees, high-plank-to-squat-hold, hip-active-stretch, hip-circles, hip-flexor-hamstring-flow, hip-rotations, hip-turnovers, hollow-hold, jump-step-ups, jumping-jacks, kettlebell-clean-and-press, kettlebell-front-rack-reverse-lunge, knee-claps, knee-drive-curl, knee-drive-press, knee-stirs, kneeling-ankle-mobility, kneeling-hip-thrust, kneeling-side-bends, lizard-hops, lotus-forward-fold, lotus-sphinx, low-lunge-hip-stretch, lunge-high-knee-kick, lunge-to-knee-drive, lunge-with-press, malasana, malasana-walk, manmaker, medicine-ball-squat-hinge, neck-circles-up-dog, neck-rotations, ninety-ninety, ninety-ninety-folds, ninety-ninety-lift-off, oblique-crunch, offset-push-up, one-legged-squat, overhead-march, overhead-squat, pancake-fold, plank-ball-pass, plank-hip-dips, plank-jacks, plank-jump-kick-backs, plank-jumps, plank-knee-touches, plank-pull-through, plank-reach-outs, pogo-jumps, press-leg-lift, push-up-toe-touch, renegade-row, resistance-band-chest-press, resistance-band-deadlift, resistance-band-high-to-low-row, resistance-band-row, reverse-plank-hold, rolling-squat-tuck-up-jump, runners-lunge-rotations, running-in-place, scapular-mobility, seated-frog-rotations, seated-frog-twist-reach, seated-leg-kicks, seated-leg-raises, seated-side-leg-hip-stretch, seated-toe-touches, shoulder-external-rotation, side-leg-hip-stretch, side-lunge, side-plank, side-plank-dip, side-to-side-push-ups, slow-skaters, spider-man-steps, squat-jump-step, squat-to-calf-raise, squat-to-floor-tap, squat-to-side-crunch, squat-to-step-jump, squat-twist-high-knee, standing-leg-extension, standing-side-bend, standing-torso-twist, star-crunch, step-squat-back, step-up-knee-to-lunge, stepper-shuffles, sumo-squat-high-pull, sumo-squat-to-calf-raise, supine-butterfly, supine-knee-drops, supine-leg-open-close, switch-knees, teep, thoracic-rotations, thread-the-needle, transverse-lunge-and-chop, tuck-back-lever-hold, tuck-front-lever-hold, tyson-push-up, uppercut-punches, wall-handstand-hold, wall-handstand-transition, windmill-touches
