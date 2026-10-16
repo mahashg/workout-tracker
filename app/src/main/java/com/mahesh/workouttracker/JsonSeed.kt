@@ -26,6 +26,12 @@ object JsonSeed {
          *  config, "" when absent). HealthSync resolves segments from this
          *  instead of guessing from the exercise name. */
         val hcType: String = "",
+        /** v3.10: the entry's YouTube Short (the quick-glance reel),
+         *  "" when no Short was verified for it. The exercise card's ▶
+         *  plays this first and falls back to [url]; the long video
+         *  stays one long-press away. Runtime-read like [hcType] —
+         *  never a DB column. */
+        val shortUrl: String = "",
         /** v3.8.1: home-mode markers. [home] flags a zero-equipment
          *  living-room movement (the deferred Home Workout build reads
          *  it); [counterSec] (30–60, 0 = none) marks membership in the
@@ -62,6 +68,7 @@ object JsonSeed {
                             defaultWeight = o.optString("defaultWeight"), variation = o.optString("variation"),
                             easier = o.optString("easier"), photo = o.optString("photo"), type = type,
                             hcType = o.optString("hcType"),
+                            shortUrl = o.optString("shortUrl"),
                             home = o.optBoolean("home", false), counterSec = o.optInt("counterSec", 0)
                         ))
                     }
@@ -90,6 +97,41 @@ object JsonSeed {
         }
         applyV36AdditionsIfNeeded(context, db, prefs)
         applyV381AdditionsIfNeeded(context, db, prefs)
+        applyV310CatalogIfNeeded(context, db, prefs)
+    }
+
+    /** v3.10: one-time refresh for the enhanced catalog (318 bundled
+     *  entries — the Instagram/Nerd Fitness merge + media pass). Runs
+     *  the v3.8.3 [restorePreloaded] UPSERT against the CURRENT bundled
+     *  JSONs: entries an existing install has never seen are inserted
+     *  by sourceId, and canonical rows get their canonical fields
+     *  refreshed (this is also how corrected urls land; shortUrl,
+     *  hcType, home, counterSec and photo stay runtime-read from the
+     *  JSON, so they are current the moment the new APK is installed).
+     *  User-added rows (sourceId="") and all history are untouched,
+     *  and the upsert only writes rows that actually differ — a second
+     *  run would report 0 inserted / 0 refreshed. Gated by its own
+     *  one-time pref; on a fresh install the v3 seed has just inserted
+     *  the same content, so the upsert is a no-op there. */
+    private fun applyV310CatalogIfNeeded(context: Context, db: DbHelper, prefs: SharedPreferences) {
+        if (prefs.getBoolean("v310CatalogApplied", false)) return
+        restorePreloaded(context, db)
+        prefs.edit().putBoolean("v310CatalogApplied", true).apply()
+    }
+
+    /** v3.10: the Short for a session exercise, resolved from the
+     *  bundled JSON (origin exercise's sourceId, else a name match —
+     *  the same resolution [PhotoLib.assetForSessionExercise] uses).
+     *  Null when the entry has no verified Short; callers fall back
+     *  to the exercise's own url. */
+    fun shortUrlForSessionExercise(context: Context, db: DbHelper, se: SessionExercise): String? {
+        if (se.originExerciseId > 0) {
+            db.getExercise(se.originExerciseId)?.let { e ->
+                val entry = entryById(context, e.sourceId) ?: entryByName(context, e.name)
+                entry?.shortUrl?.takeIf { it.isNotBlank() }?.let { return it }
+            }
+        }
+        return entryByName(context, se.name)?.shortUrl?.takeIf { it.isNotBlank() }
     }
 
     /** v3.8.1: one-time additive step for the 15 Movie deck movements,

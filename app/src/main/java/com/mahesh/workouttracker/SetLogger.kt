@@ -82,6 +82,16 @@ object SetLogger {
     ) {
         val last = db.lastPerformedForExercise(ex.name, sessionId)
 
+        // v3.10 (Mahesh's spec): a Bodyweight-equipment exercise logs
+        // REPS ONLY. Its rows are forced to the app's BW representation
+        // (isBodyweight with an empty weight string — the same
+        // convention the session-set factory uses when it creates a
+        // bodyweight exercise's sets, and the one the BW pill toggles),
+        // and the sheet drops the weight stepper, the per-row BW pill
+        // and the ⚖ unit bubble entirely. Weighted exercises render
+        // and behave exactly as before.
+        val bwExercise = ex.equipment.equals("Bodyweight", ignoreCase = true)
+
         fun makeRow(set: SessionSet, idx: Int): RowState {
             // Prefill (mock frame 6): an unlogged set takes its own
             // index's values from the last performance when they exist,
@@ -92,12 +102,12 @@ object SetLogger {
                 set,
                 ls.weight.toDoubleOrNull() ?: 0.0,
                 ls.reps.filter { it.isDigit() }.toIntOrNull() ?: 10,
-                ls.isBodyweight, false
+                ls.isBodyweight || bwExercise, false
             ) else RowState(
                 set,
                 set.weight.toDoubleOrNull() ?: 0.0,
                 set.reps.filter { it.isDigit() }.toIntOrNull() ?: 10,
-                set.isBodyweight, set.isDone
+                set.isBodyweight || bwExercise, set.isDone
             )
         }
 
@@ -144,17 +154,21 @@ object SetLogger {
             nameTv.maxLines = 2; nameTv.ellipsize = android.text.TextUtils.TruncateAt.END
             (nameTv.layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, act.dp(8), 0) }
             header.addView(nameTv)
-            val unitBubble = act.settingsIcon("⚖️", IconTints.LILAC, 38, 18f)
-            unitBubble.isClickable = true
-            unitBubble.setOnClickListener {
-                // r4: one tap flips the app-wide unit pref in place —
-                // the sheet re-renders with the new step + KG/LB labels
-                // (stored values are unit-relative, exactly as the old
-                // logger treated them; only labels/steps change).
-                WeekManager.setUnit(act, if (unit == "kg") "lb" else "kg")
-                renderSheet()
+            // v3.10: no ⚖ bubble for a bodyweight exercise — there is
+            // no weight to unit-flip.
+            if (!bwExercise) {
+                val unitBubble = act.settingsIcon("⚖️", IconTints.LILAC, 38, 18f)
+                unitBubble.isClickable = true
+                unitBubble.setOnClickListener {
+                    // r4: one tap flips the app-wide unit pref in place —
+                    // the sheet re-renders with the new step + KG/LB labels
+                    // (stored values are unit-relative, exactly as the old
+                    // logger treated them; only labels/steps change).
+                    WeekManager.setUnit(act, if (unit == "kg") "lb" else "kg")
+                    renderSheet()
+                }
+                header.addView(unitBubble)
             }
-            header.addView(unitBubble)
             val closeTv = TextView(act).apply {
                 text = "✕"; textSize = 17f; gravity = Gravity.CENTER; setTextColor(Theme.textSecondary)
                 layoutParams = LinearLayout.LayoutParams(act.dp(38), act.dp(38)).apply { setMargins(act.dp(6), 0, 0, 0) }
@@ -243,7 +257,9 @@ object SetLogger {
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 }
                 line1.addView(setLab)
-                line1.addView(TextView(act).apply {
+                // v3.10: no BW toggle pill on a bodyweight exercise —
+                // every row is BW by construction (see bwExercise).
+                if (!bwExercise) line1.addView(TextView(act).apply {
                     text = "BW"; textSize = 10f
                     typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
                     if (st.isBw) { setTextColor(Color.WHITE); background = act.roundedBg("#5B21B6", 999) }
@@ -295,22 +311,26 @@ object SetLogger {
                 // Weight stepper second (step 2.5 kg / 5 lb, as the
                 // old logger) — its own group so the swap is a pure
                 // reorder; every handler is byte-identical.
-                val weightGroup = LinearLayout(act).apply {
-                    orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(14), 0, 0, 0) }
+                // v3.10: skipped entirely for a bodyweight exercise —
+                // the row is reps + ✓ and nothing else.
+                if (!bwExercise) {
+                    val weightGroup = LinearLayout(act).apply {
+                        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(14), 0, 0, 0) }
+                    }
+                    weightGroup.addView(roundBtn("−") {
+                        if (st.isBw) { st.isBw = false; st.weight = 0.0 } else st.weight = (st.weight - wStep).coerceAtLeast(0.0)
+                        renderSheet()
+                    })
+                    weightGroup.addView(valueStack(if (st.isBw) "BW" else fmtWeight(st.weight), unit.uppercase(Locale.US)) {
+                        customValueDialog(act, true, st.weight, "Custom weight ($unit)") { v -> st.isBw = false; st.weight = v; renderSheet() }
+                    })
+                    weightGroup.addView(roundBtn("+") {
+                        if (st.isBw) { st.isBw = false; st.weight = wStep } else st.weight += wStep
+                        renderSheet()
+                    })
+                    line2.addView(weightGroup)
                 }
-                weightGroup.addView(roundBtn("−") {
-                    if (st.isBw) { st.isBw = false; st.weight = 0.0 } else st.weight = (st.weight - wStep).coerceAtLeast(0.0)
-                    renderSheet()
-                })
-                weightGroup.addView(valueStack(if (st.isBw) "BW" else fmtWeight(st.weight), unit.uppercase(Locale.US)) {
-                    customValueDialog(act, true, st.weight, "Custom weight ($unit)") { v -> st.isBw = false; st.weight = v; renderSheet() }
-                })
-                weightGroup.addView(roundBtn("+") {
-                    if (st.isBw) { st.isBw = false; st.weight = wStep } else st.weight += wStep
-                    renderSheet()
-                })
-                line2.addView(weightGroup)
                 line2.addView(android.view.View(act), LinearLayout.LayoutParams(0, 1, 1f))
                 // The big ✓: filled green when logged, hollow when not.
                 line2.addView(TextView(act).apply {
@@ -352,8 +372,10 @@ object SetLogger {
                 root.addView(rowCard)
             }
             // Hint line (the mock's footer copy, unit-aware).
+            // v3.10: a bodyweight sheet has no weight steps to describe.
             val hint = act.makeText(
-                "Tap a number to type it exactly · weight steps ±${if (unit == "kg") "2.5 kg" else "5 lb"}, reps ±1",
+                if (bwExercise) "Tap a number to type it exactly · reps ±1"
+                else "Tap a number to type it exactly · weight steps ±${if (unit == "kg") "2.5 kg" else "5 lb"}, reps ±1",
                 11f, false, Theme.textTertiary)
             hint.gravity = Gravity.CENTER
             (hint.layoutParams as LinearLayout.LayoutParams).setMargins(0, act.dp(8), 0, 0)
