@@ -4,6 +4,7 @@
     {
       "id": "push-up-plus",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/push-up-plus.jpg",
       "name": "Push-Up Plus",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -158,6 +159,7 @@
     {
       "id": "wall-push-ups",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/wall-push-ups.jpg",
       "name": "Wall Push-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -193,6 +195,7 @@
     {
       "id": "deficit-push-up",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/deficit-push-up.jpg",
       "name": "Deficit Push-Up (on Dumbbells)",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -223,6 +226,7 @@
     {
       "id": "tyson-push-up",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/tyson-push-up.jpg",
       "name": "Tyson Push-Up",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -328,6 +332,7 @@
     {
       "id": "resistance-band-chest-press",
       "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
+      "photo": "exercise-images/resistance-band-chest-press.jpg",
       "name": "Resistance Band Chest Press",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -343,6 +348,7 @@
     {
       "id": "side-to-side-push-ups",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/side-to-side-push-ups.jpg",
       "name": "Side-to-Side Push-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -376,6 +382,7 @@
     {
       "id": "heart-opener-hold",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/heart-opener-hold.jpg",
       "name": "Heart Opener Hold (Foam Roller)",
       "equipment": "Other",
       "sets": 1,
