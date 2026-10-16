@@ -88,6 +88,7 @@
     {
       "id": "torso-rotation-machine",
       "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "photo": "exercise-images/torso-rotation-machine.jpg",
       "name": "Torso Rotation Machine",
       "equipment": "Machine",
       "sets": 3,
@@ -103,6 +104,7 @@
     {
       "id": "standing-knee-raises",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/standing-knee-raises.jpg",
       "name": "Standing Knee Raises",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -120,6 +122,7 @@
     {
       "id": "standing-cross-body-crunch",
       "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "photo": "exercise-images/standing-cross-body-crunch.jpg",
       "name": "Standing Cross-Body Crunch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -153,6 +156,7 @@
     {
       "id": "cross-climbers",
       "hcType": "EXERCISE_SEGMENT_TYPE_MOUNTAIN_CLIMBER",
+      "photo": "exercise-images/cross-climbers.jpg",
       "name": "Cross Climbers",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -184,6 +188,7 @@
     {
       "id": "chakki-chalanasana",
       "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "photo": "exercise-images/chakki-chalanasana.jpg",
       "name": "Chakki Chalanasana (Seated Churning)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -215,6 +220,7 @@
     {
       "id": "knee-claps",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/knee-claps.jpg",
       "name": "Knee Claps",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -230,6 +236,7 @@
     {
       "id": "standing-side-bend",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/standing-side-bend.jpg",
       "name": "Standing Side Bend",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -245,6 +252,7 @@
     {
       "id": "standing-torso-twist",
       "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "photo": "exercise-images/standing-torso-twist.jpg",
       "name": "Standing Torso Twist",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -276,6 +284,7 @@
     {
       "id": "side-plank-dip",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/side-plank-dip.jpg",
       "name": "Side Plank Dip",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -291,6 +300,7 @@
     {
       "id": "crunch-extension",
       "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "photo": "exercise-images/crunch-extension.jpg",
       "name": "Crunch Extension",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -305,6 +315,7 @@
     {
       "id": "oblique-crunch",
       "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "photo": "exercise-images/oblique-crunch.jpg",
       "name": "Oblique Crunches",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -320,6 +331,7 @@
     {
       "id": "seated-toe-touches",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/seated-toe-touches.jpg",
       "name": "Seated Alternating Toe Touches",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -335,6 +347,7 @@
     {
       "id": "seated-leg-raises",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/seated-leg-raises.jpg",
       "name": "Seated Leg Raises",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -366,6 +379,7 @@
     {
       "id": "overhead-march",
       "hcType": "EXERCISE_SEGMENT_TYPE_WALKING",
+      "photo": "exercise-images/overhead-march.jpg",
       "name": "Overhead March",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -381,6 +395,7 @@
     {
       "id": "halo-to-woodchop",
       "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "photo": "exercise-images/halo-to-woodchop.jpg",
       "name": "Halo to Woodchop",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -410,6 +425,7 @@
     {
       "id": "double-crunch",
       "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "photo": "exercise-images/double-crunch.jpg",
       "name": "Double Crunch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -499,6 +515,7 @@
     {
       "id": "plank-knee-touches",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/plank-knee-touches.jpg",
       "name": "Plank Knee Touches",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -514,6 +531,7 @@
     {
       "id": "plank-reach-outs",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/plank-reach-outs.jpg",
       "name": "Plank Reach Outs",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -529,6 +547,7 @@
     {
       "id": "plank-ball-pass",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/plank-ball-pass.jpg",
       "name": "Plank Ball Pass",
       "equipment": "Other",
       "sets": 1,
@@ -543,6 +562,7 @@
     {
       "id": "plank-pull-through",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/plank-pull-through.jpg",
       "name": "Plank Pull-Through",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -558,6 +578,7 @@
     {
       "id": "froggers",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/froggers.jpg",
       "name": "Froggers",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -572,6 +593,7 @@
     {
       "id": "lizard-hops",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/lizard-hops.jpg",
       "name": "Lizard Hops",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -649,6 +671,7 @@
     {
       "id": "side-plank",
       "hcType": "EXERCISE_SEGMENT_TYPE_PLANK",
+      "photo": "exercise-images/side-plank.jpg",
       "name": "Side Plank",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -696,6 +719,7 @@
     {
       "id": "star-crunch",
       "hcType": "EXERCISE_SEGMENT_TYPE_CRUNCH",
+      "photo": "exercise-images/star-crunch.jpg",
       "name": "Star Crunch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -739,6 +763,7 @@
     {
       "id": "switch-knees",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/switch-knees.jpg",
       "name": "Switch Knees (Muay Thai)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -753,6 +778,7 @@
     {
       "id": "push-up-toe-touch",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/push-up-toe-touch.jpg",
       "name": "Push-Up Toe Touch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -767,6 +793,7 @@
     {
       "id": "kneeling-side-bends",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/kneeling-side-bends.jpg",
       "name": "Kneeling Side Bends",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -782,6 +809,7 @@
     {
       "id": "squat-twist-high-knee",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/squat-twist-high-knee.jpg",
       "name": "Squat + Twist High Knee",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -811,6 +839,7 @@
     {
       "id": "knee-drive-curl",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/knee-drive-curl.jpg",
       "name": "Knee Drive with Bicep Curl",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -839,6 +868,7 @@
     {
       "id": "floor-wipers",
       "hcType": "EXERCISE_SEGMENT_TYPE_UPPER_TWIST",
+      "photo": "exercise-images/floor-wipers.jpg",
       "name": "Floor Wipers",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -902,6 +932,7 @@
     {
       "id": "spider-man-steps",
       "hcType": "EXERCISE_SEGMENT_TYPE_MOUNTAIN_CLIMBER",
+      "photo": "exercise-images/spider-man-steps.jpg",
       "name": "Spider-Man Steps",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -919,6 +950,7 @@
     {
       "id": "high-plank-to-squat-hold",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/high-plank-to-squat-hold.jpg",
       "name": "High Plank to Squat Hold",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -948,6 +980,7 @@
     {
       "id": "hollow-hold",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/hollow-hold.jpg",
       "name": "Hollow Hold",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -963,6 +996,7 @@
     {
       "id": "reverse-plank-hold",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/reverse-plank-hold.jpg",
       "name": "Reverse Plank Hold",
       "equipment": "Bodyweight",
       "sets": 1,

@@ -57,6 +57,7 @@
     {
       "id": "leg-swings",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/leg-swings.jpg",
       "name": "Leg Swings",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -160,6 +161,7 @@
     {
       "id": "wall-sit",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/wall-sit.jpg",
       "name": "Wall Sit",
       "equipment": "Bodyweight",
       "sets": 2,
@@ -225,6 +227,7 @@
     {
       "id": "march-in-place",
       "hcType": "EXERCISE_SEGMENT_TYPE_WALKING",
+      "photo": "exercise-images/march-in-place.jpg",
       "name": "March in Place",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -242,6 +245,7 @@
     {
       "id": "sit-to-stand",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/sit-to-stand.jpg",
       "name": "Sit-to-Stand",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -259,6 +263,7 @@
     {
       "id": "step-jacks",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/step-jacks.jpg",
       "name": "Step Jacks",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -276,6 +281,7 @@
     {
       "id": "step-touch",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/step-touch.jpg",
       "name": "Step Touch",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -293,6 +299,7 @@
     {
       "id": "squat-jump-step",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/squat-jump-step.jpg",
       "name": "Squat Jump (Step)",
       "equipment": "Other",
       "sets": 1,
@@ -322,6 +329,7 @@
     {
       "id": "squat-to-step-jump",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/squat-to-step-jump.jpg",
       "name": "Squat to Step Jump",
       "equipment": "Other",
       "sets": 1,
@@ -336,6 +344,7 @@
     {
       "id": "stepper-shuffles",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/stepper-shuffles.jpg",
       "name": "Stepper Shuffles (Fast Feet)",
       "equipment": "Other",
       "sets": 1,
@@ -350,6 +359,7 @@
     {
       "id": "jumping-jacks",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/jumping-jacks.jpg",
       "name": "Jumping Jacks",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -412,6 +422,7 @@
     {
       "id": "squat-to-floor-tap",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/squat-to-floor-tap.jpg",
       "name": "Squat to Floor Tap",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -426,6 +437,7 @@
     {
       "id": "db-clean-to-front-squat",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/db-clean-to-front-squat.jpg",
       "name": "DB Clean to Front Squat",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -440,6 +452,7 @@
     {
       "id": "burpee",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/burpee.jpg",
       "name": "Burpee",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -471,6 +484,7 @@
     {
       "id": "running-in-place",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/running-in-place.jpg",
       "name": "Running in Place",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -486,6 +500,7 @@
     {
       "id": "db-front-squat",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/db-front-squat.jpg",
       "name": "DB Front Squat",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -515,6 +530,7 @@
     {
       "id": "lunge-to-knee-drive",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/lunge-to-knee-drive.jpg",
       "name": "Lunge to Knee Drive",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -560,6 +576,7 @@
     {
       "id": "burpee-box-jump-over",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/burpee-box-jump-over.jpg",
       "name": "Burpee Box Jump Over",
       "equipment": "Other",
       "sets": 1,
@@ -589,6 +606,7 @@
     {
       "id": "step-up-knee-to-lunge",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/step-up-knee-to-lunge.jpg",
       "name": "Step-Up Knee to Back Lunge",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -603,6 +621,7 @@
     {
       "id": "sumo-squat-high-pull",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/sumo-squat-high-pull.jpg",
       "name": "Sumo Squat to High Pull",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -617,6 +636,7 @@
     {
       "id": "lunge-with-press",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/lunge-with-press.jpg",
       "name": "Alternating Lunge with Press",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -648,6 +668,7 @@
     {
       "id": "step-squat-back",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/step-squat-back.jpg",
       "name": "Step Squat + Back",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -662,6 +683,7 @@
     {
       "id": "lunge-high-knee-kick",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/lunge-high-knee-kick.jpg",
       "name": "Lunge + High Knee Kick",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -676,6 +698,7 @@
     {
       "id": "sumo-squat-to-calf-raise",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/sumo-squat-to-calf-raise.jpg",
       "name": "Sumo Squat to Calf Raise",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -706,6 +729,7 @@
     {
       "id": "side-lunge",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/side-lunge.jpg",
       "name": "Side Lunge",
       "equipment": "Bodyweight",
       "sets": 3,
@@ -721,6 +745,7 @@
     {
       "id": "180-degree-jump-turns",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/180-degree-jump-turns.jpg",
       "name": "180-Degree Jump Turns",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -735,6 +760,7 @@
     {
       "id": "air-kicks",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/air-kicks.jpg",
       "name": "Air Kicks",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -781,6 +807,7 @@
     {
       "id": "jump-step-ups",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/jump-step-ups.jpg",
       "name": "Jump Step-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -796,6 +823,7 @@
     {
       "id": "kettlebell-front-rack-reverse-lunge",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/kettlebell-front-rack-reverse-lunge.jpg",
       "name": "Kettlebell Front Rack Reverse Lunge",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -810,6 +838,7 @@
     {
       "id": "manmaker",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/manmaker.jpg",
       "name": "Manmaker",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -825,6 +854,7 @@
     {
       "id": "one-legged-squat",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/one-legged-squat.jpg",
       "name": "One-Legged Squat",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -840,6 +870,7 @@
     {
       "id": "overhead-squat",
       "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/overhead-squat.jpg",
       "name": "Overhead Squat",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -870,6 +901,7 @@
     {
       "id": "rolling-squat-tuck-up-jump",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/rolling-squat-tuck-up-jump.jpg",
       "name": "Rolling Squat Tuck-Up Jump",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -884,6 +916,7 @@
     {
       "id": "transverse-lunge-and-chop",
       "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/transverse-lunge-and-chop.jpg",
       "name": "Transverse Lunge and Chop",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -935,6 +968,7 @@
     {
       "id": "malasana",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/malasana.jpg",
       "name": "Malasana (Deep Squat Hold)",
       "equipment": "Bodyweight",
       "sets": 1,
