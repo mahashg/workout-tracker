@@ -4,6 +4,7 @@
     {
       "id": "kneeling-ankle-mobility",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/kneeling-ankle-mobility.jpg",
       "name": "Kneeling Ankle Mobility",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -68,6 +69,7 @@
     {
       "id": "standing-calf-raises",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/standing-calf-raises.jpg",
       "name": "Standing Calf Raises",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -85,6 +87,7 @@
     {
       "id": "pogo-jumps",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/pogo-jumps.jpg",
       "name": "Pogo Jumps",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -100,6 +103,7 @@
     {
       "id": "deep-squat-heel-raises",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/deep-squat-heel-raises.jpg",
       "name": "Deep Squat Heel Raises",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -114,6 +118,7 @@
     {
       "id": "down-dog-calf-walk",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/down-dog-calf-walk.jpg",
       "name": "Downward Dog Calf Walk",
       "equipment": "Bodyweight",
       "sets": 1,

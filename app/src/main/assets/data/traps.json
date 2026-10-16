@@ -83,6 +83,7 @@
     {
       "id": "shoulder-shrugs",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/shoulder-shrugs.jpg",
       "name": "Shoulder Shrugs",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -99,6 +100,7 @@
     {
       "id": "scapular-squeeze",
       "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+      "photo": "exercise-images/scapular-squeeze.jpg",
       "name": "Scapular Squeeze",
       "equipment": "Bodyweight",
       "sets": 1,

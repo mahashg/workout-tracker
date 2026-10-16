@@ -4,6 +4,7 @@
     {
       "id": "kettlebell-deadlift-light",
       "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/kettlebell-deadlift-light.jpg",
       "name": "Kettlebell Deadlift (Light)",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -120,6 +121,7 @@
     {
       "id": "standing-hamstring-curl",
       "hcType": "EXERCISE_SEGMENT_TYPE_LEG_CURL",
+      "photo": "exercise-images/standing-hamstring-curl.jpg",
       "name": "Standing Hamstring Curl",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -136,6 +138,7 @@
     {
       "id": "good-morning",
       "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/good-morning.jpg",
       "name": "Good Morning",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -153,6 +156,7 @@
     {
       "id": "windmill-touches",
       "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/windmill-touches.jpg",
       "name": "Windmill Touches",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -182,6 +186,7 @@
     {
       "id": "db-deadlift",
       "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/db-deadlift.jpg",
       "name": "DB Deadlift",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -206,7 +211,8 @@
       "cues": "Hinge low;Sit into the squat;Stand, repeat the flow",
       "image": "hamstrings",
       "url": "https://www.instagram.com/reel/DabAPd6CjMM/",
-      "primary": false
+      "primary": false,
+      "photo": "exercise-images/db-rdl-to-front-squat.jpg"
     },
     {
       "id": "db-deadlift-to-press",
@@ -235,11 +241,13 @@
       "image": "hamstrings",
       "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
       "shortUrl": "https://www.youtube.com/shorts/f5wJmWNxdmo",
-      "primary": false
+      "primary": false,
+      "photo": "exercise-images/elephant-walk.jpg"
     },
     {
       "id": "pancake-fold",
       "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+      "photo": "exercise-images/pancake-fold.jpg",
       "name": "Pancake Fold",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -301,6 +309,7 @@
     {
       "id": "resistance-band-deadlift",
       "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/resistance-band-deadlift.jpg",
       "name": "Resistance Band Deadlift",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -325,7 +334,8 @@
       "cues": "Hinge into a hamstring stretch;Flow down into a deep squat hip opener;Alternate smoothly side to side",
       "image": "hamstrings",
       "url": "https://www.instagram.com/reel/DZAugbkotEh/",
-      "primary": false
+      "primary": false,
+      "photo": "exercise-images/hamstring-to-hip-flow.jpg"
     }
   ],
   "stretches": [
