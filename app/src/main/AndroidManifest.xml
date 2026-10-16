@@ -29,6 +29,12 @@
         <activity android:name=".WorkoutSectionsActivity" android:exported="false" />
         <activity android:name=".WorkoutHubActivity" android:exported="false" />
         <activity android:name=".MovieDeckActivity" android:exported="false" />
+        <!-- v3.11: the Circuits section (chooser door -> circuits home /
+             motions A-Z -> circuit detail -> circuit player). -->
+        <activity android:name=".CircuitsHomeActivity" android:exported="false" />
+        <activity android:name=".CircuitMotionsActivity" android:exported="false" />
+        <activity android:name=".CircuitDetailActivity" android:exported="false" />
+        <activity android:name=".CircuitPlayerActivity" android:exported="false" />
         <activity android:name=".CardSessionActivity" android:exported="false" />
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".LibraryActivity" android:exported="false" />

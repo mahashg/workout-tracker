@@ -47,7 +47,12 @@ class HistoryActivity : AppCompatActivity() {
             info.addView(name)
             val durText = if (s.startedAt > 0) WorkoutTimer.formatDuration(if (s.completed) s.elapsedSec else WorkoutTimer.liveElapsedSec(this, s)) else ""
             // v3 sessions store focus as part ids ("back,biceps") — show names.
-            val focusLabel = s.focus.split(",").map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ") { tok -> BodyParts.byId(tok)?.name ?: tok }
+            // v3.11: circuit sessions store focus as "circuit:<id>" — label
+            // them as a circuit instead of leaking the raw token.
+            val focusLabel = when {
+                s.focus.startsWith(CircuitsData.FOCUS_PREFIX) -> "⚡ Circuit"
+                else -> s.focus.split(",").map { it.trim() }.filter { it.isNotEmpty() }.joinToString(", ") { tok -> BodyParts.byId(tok)?.name ?: tok }
+            }
             // v3.8.3: build the sub-line from non-empty segments only —
             // a Movie Movements session has no focus parts, and the old
             // concatenation rendered a stray leading "· 8 min".

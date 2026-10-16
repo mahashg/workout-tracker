@@ -15,7 +15,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 /** v3.9 Home = the CHOOSER (approved mock r4, frame 1): "What are we
- *  doing today?" over two doors. v3.9.3 (approved mock
+ *  doing today?" over two doors; v3.11 adds a third, Circuits (⚡,
+ *  with a NEW badge), and circuit sessions join the one-active-
+ *  workout exclusivity + the in-progress bar below. v3.9.3 (approved mock
  *  v3.9.3-progress-bar-mock-r1) adds three things:
  *  1. THE IN-PROGRESS BAR: while any session runs, a bar at the very
  *     top of Home shows it — icon, label, live elapsed timer — and a
@@ -85,10 +87,17 @@ class MainActivity : AppCompatActivity() {
      *  is also "in progress" in the sessions table, but it belongs to
      *  the home door — never to the Workout door. */
     private fun gymInProgress(): SessionInfo? =
-        db.getSessions().firstOrNull { !it.completed && it.routineName != MovieDeck.ROUTINE_NAME }
+        db.getSessions().firstOrNull { !it.completed && it.routineName != MovieDeck.ROUTINE_NAME && !CircuitsData.isCircuit(it) }
 
     private fun movieInProgress(): SessionInfo? =
         db.inProgressSessions().firstOrNull { it.routineName == MovieDeck.ROUTINE_NAME }
+
+    /** v3.11: the circuit in-progress session, if any. Circuit
+     *  sessions live in the same table (focus "circuit:<id>",
+     *  routineName = the circuit's name) but belong to the Circuits
+     *  door — never to the Workout door (see gymInProgress). */
+    private fun circuitInProgress(): SessionInfo? =
+        db.inProgressSessions().firstOrNull { CircuitsData.isCircuit(it) }
 
     private fun refreshBarTimer() {
         val label = barTimerLabel ?: return
@@ -122,11 +131,15 @@ class MainActivity : AppCompatActivity() {
      *  "TAP TO CONTINUE →" right. Registers the timer label/session
      *  for the ticker; the caller starts the ticker after render. */
     private fun progressBar(session: SessionInfo): LinearLayout {
+        // v3.11: a circuit session gets its own branch (checked BEFORE
+        // the gym fallback — a circuit's routineName is the circuit's
+        // name, so without this it would read as a gym workout).
+        val isCircuit = CircuitsData.isCircuit(session)
         val isMovie = session.routineName == MovieDeck.ROUTINE_NAME
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             background = GradientDrawable().apply {
-                setColor(if (isMovie) movieBarColor() else Theme.primary)
+                setColor(when { isCircuit -> Theme.success; isMovie -> movieBarColor(); else -> Theme.primary })
                 cornerRadius = dp(14).toFloat()
             }
             elevation = dp(4).toFloat()
@@ -134,19 +147,26 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, 0) }
             isClickable = true
             setOnClickListener {
-                if (isMovie) startActivity(Intent(this@MainActivity, MovieDeckActivity::class.java))
-                else startActivity(firstPendingCardIntent(db, session.id))
+                when {
+                    isCircuit -> startActivity(Intent(this@MainActivity, CircuitPlayerActivity::class.java).putExtra("sessionId", session.id))
+                    isMovie -> startActivity(Intent(this@MainActivity, MovieDeckActivity::class.java))
+                    else -> startActivity(firstPendingCardIntent(db, session.id))
+                }
             }
         }
         bar.addView(TextView(this).apply {
-            text = if (isMovie) "🏠" else "🏋️"; textSize = 20f; gravity = Gravity.CENTER
+            text = when { isCircuit -> "⚡"; isMovie -> "🏠"; else -> "🏋️" }; textSize = 20f; gravity = Gravity.CENTER
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.argb(56, 255, 255, 255)) }
             layoutParams = LinearLayout.LayoutParams(dp(38), dp(38))
         })
         val exs = db.getSessionExercises(session.id)
         val titleText: String
         val subText: String
-        if (isMovie) {
+        if (isCircuit) {
+            titleText = "Circuit in progress"
+            val done = exs.count { db.effectiveStatus(it) == "done" }
+            subText = "${session.routineName} · $done of ${exs.size} motions done"
+        } else if (isMovie) {
             titleText = "Movements in progress"
             subText = "${exs.count { db.effectiveStatus(it) == "done" }} movements done so far"
         } else {
@@ -195,6 +215,41 @@ class MainActivity : AppCompatActivity() {
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
+    /** v3.11: the Circuits door's text column — doorTextCol's exact
+     *  line shapes (name 16.5f bold / desc 12.5f / meta 12f, same
+     *  margins) rebuilt locally because doorTextCol has no badge
+     *  support: the name line is a horizontal row of the name + the
+     *  mock's small green "NEW" pill. */
+    private fun circuitTextCol(desc: String, meta: String?): LinearLayout {
+        val col = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, dp(6), 0) }
+        }
+        fun line(t: String, sp: Float, bold: Boolean, color: Int, top: Int, maxLines: Int = 2): TextView {
+            val tv = makeText(t, sp, bold, color)
+            (tv.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(top), 0, 0)
+            tv.maxLines = maxLines; tv.ellipsize = android.text.TextUtils.TruncateAt.END
+            return tv
+        }
+        val nameRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        }
+        val nameTv = line("Circuits", 16.5f, true, Theme.textPrimary, 0, 1)
+        (nameTv.layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, 0, 0) }
+        nameRow.addView(nameTv)
+        nameRow.addView(TextView(this).apply {
+            text = "NEW"; textSize = 10f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            background = roundedBg(Theme.success, 8)
+            setPadding(dp(6), dp(2), dp(6), dp(2))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(6), 0, 0, 0) }
+        })
+        col.addView(nameRow)
+        col.addView(line(desc, 12.5f, false, Theme.textSecondary, 2))
+        if (meta != null) col.addView(line(meta, 12f, false, Theme.textTertiary, 3, 1))
+        return col
+    }
+
     private fun render() {
         stopBarTicker()
         val wm = WeekManager.reconcile(this, db)
@@ -206,11 +261,12 @@ class MainActivity : AppCompatActivity() {
 
         val gym = gymInProgress()
         val movie = movieInProgress()
+        val circuit = circuitInProgress()
 
         // ---- In-progress bar (very top, above the title) ----
         // Legacy both-active installs: the most recently STARTED
         // session owns the bar; each door below still resumes its own.
-        val barSession = listOfNotNull(gym, movie)
+        val barSession = listOfNotNull(gym, movie, circuit)
             .maxWithOrNull(compareBy<SessionInfo> { it.startedAt }.thenBy { it.id })
         if (barSession != null) root.addView(progressBar(barSession))
 
@@ -245,7 +301,7 @@ class MainActivity : AppCompatActivity() {
             gymDoor.addView(doorTextCol("Workout", "Gym day — pick parts, follow the cards.", lastGymNote))
             gymDoor.addView(lockGlyph())
         } else {
-            val lastGym = db.getSessions().firstOrNull { it.completed && it.routineName != MovieDeck.ROUTINE_NAME }
+            val lastGym = db.getSessions().firstOrNull { it.completed && it.routineName != MovieDeck.ROUTINE_NAME && !CircuitsData.isCircuit(it) }
             val gymMeta = if (lastGym != null) "Last: ${lastGym.routineName} · ${shortDay(lastGym.date)}" else "No workouts yet"
             gymDoor = doorCard(Palettes.current.doorGymBg, Palettes.current.doorGymBorder) {
                 startActivity(Intent(this, PickPartsActivity::class.java))
@@ -296,6 +352,51 @@ class MainActivity : AppCompatActivity() {
         }
         (homeDoor.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(12), 0, 0)
         root.addView(homeDoor)
+
+        // ---- Circuits door (⚡, v3.11) ----
+        // Active: body + ▶ resume the player directly. Gym/movie
+        // active: locked (dim + 🔒 + "finish first" toast), the same
+        // one-active-workout rule the other two doors enforce on each
+        // other. Idle: body + ▶ open the Circuits home.
+        val circuitDoor: LinearLayout
+        if (circuit != null) {
+            val exs = db.getSessionExercises(circuit.id)
+            val done = exs.count { db.effectiveStatus(it) == "done" }
+            val openPlayer = {
+                startActivity(Intent(this@MainActivity, CircuitPlayerActivity::class.java).putExtra("sessionId", circuit.id))
+            }
+            circuitDoor = doorCard(Palettes.current.doorCircuitBg, Palettes.current.doorCircuitBorder) { openPlayer() }
+            circuitDoor.addView(doorIcon("⚡", IconTints.GREEN))
+            circuitDoor.addView(circuitTextCol("Circuit in progress · $done of ${exs.size} motions done", circuit.routineName))
+            circuitDoor.addView(playGlyph { openPlayer() })
+        } else if (gym != null) {
+            circuitDoor = doorCard(Palettes.current.doorCircuitBg, Palettes.current.doorCircuitBorder) {
+                toast("Finish your current workout first")
+            }
+            circuitDoor.alpha = 0.62f
+            circuitDoor.addView(doorIcon("⚡", IconTints.GREEN))
+            circuitDoor.addView(circuitTextCol("Timed rounds of motions.", "Available after you finish this workout"))
+            circuitDoor.addView(lockGlyph())
+        } else if (movie != null) {
+            circuitDoor = doorCard(Palettes.current.doorCircuitBg, Palettes.current.doorCircuitBorder) {
+                toast("Finish your current Movements first")
+            }
+            circuitDoor.alpha = 0.62f
+            circuitDoor.addView(doorIcon("⚡", IconTints.GREEN))
+            circuitDoor.addView(circuitTextCol("Timed rounds of motions.", "Available after you finish at home"))
+            circuitDoor.addView(lockGlyph())
+        } else {
+            val lastCircuit = db.getSessions().firstOrNull { it.completed && CircuitsData.isCircuit(it) }
+            val circuitMeta = if (lastCircuit != null) "Last: ${lastCircuit.routineName} · ${shortDay(lastCircuit.date)}" else "Not tried yet"
+            circuitDoor = doorCard(Palettes.current.doorCircuitBg, Palettes.current.doorCircuitBorder) {
+                startActivity(Intent(this, CircuitsHomeActivity::class.java))
+            }
+            circuitDoor.addView(doorIcon("⚡", IconTints.GREEN))
+            circuitDoor.addView(circuitTextCol("Timed rounds of motions · ${CircuitsData.load(this).size} presets", circuitMeta))
+            circuitDoor.addView(playGlyph { startActivity(Intent(this, CircuitsHomeActivity::class.java)) })
+        }
+        (circuitDoor.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(12), 0, 0)
+        root.addView(circuitDoor)
 
         // Nothing else on the chooser — the rest of the screen is air.
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))

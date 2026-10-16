@@ -100,8 +100,17 @@ class PickPartsActivity : AppCompatActivity() {
         // Workout door is already locked in this state): never CREATE
         // a gym session while a Movie Movements session is in
         // progress. One active workout at a time; back out to Home.
-        if (db.inProgressSessions().any { it.routineName == MovieDeck.ROUTINE_NAME }) {
-            Toast.makeText(this, "Finish your current Movements first", Toast.LENGTH_LONG).show()
+        // v3.11: a circuit session blocks creation too, with its own
+        // toast; the blocker is whichever kind is in progress.
+        val blocker = db.inProgressSessions().firstOrNull {
+            it.routineName == MovieDeck.ROUTINE_NAME || CircuitsData.isCircuit(it)
+        }
+        if (blocker != null) {
+            Toast.makeText(
+                this,
+                if (CircuitsData.isCircuit(blocker)) "Finish your current circuit first" else "Finish your current Movements first",
+                Toast.LENGTH_LONG
+            ).show()
             finish()
             return
         }
