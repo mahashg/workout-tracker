@@ -292,6 +292,7 @@
     },
     {
       "id": "squat-jump-step",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Squat Jump (Step)",
       "equipment": "Other",
       "sets": 1,
@@ -300,10 +301,13 @@
       "precautions": "Use a low, stable step that cannot slide;Land softly with knees tracking over toes;Step down between reps if the jump feels uncontrolled;Stop if knees or ankles complain",
       "cues": "Squat, then jump up onto the step;Land soft and quiet;Stand tall on top before stepping down",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeeWqfwxNzh/",
       "primary": false
     },
     {
       "id": "side-shuffles-step",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/side-shuffles-step.jpg",
       "name": "Side Shuffles (Step)",
       "equipment": "Other",
       "sets": 1,
@@ -312,10 +316,12 @@
       "precautions": "Stay low in an athletic half-squat the whole time;One foot touches the step, other stays on the floor;Move light on your feet - no crossing feet over;Keep chest up, eyes forward",
       "cues": "Stay low;Shuffle side to side over the step;Quick, light feet",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeeWqfwxNzh/",
       "primary": false
     },
     {
       "id": "squat-to-step-jump",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Squat to Step Jump",
       "equipment": "Other",
       "sets": 1,
@@ -324,10 +330,12 @@
       "precautions": "Squat to full depth first, then jump - two clear parts;Land on the step with both feet, soft knees;Step back down, never jump down;Use a low stable step",
       "cues": "Squat deep;Explode up onto the step;Step down, reset, repeat",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeeWqfwxNzh/",
       "primary": false
     },
     {
       "id": "stepper-shuffles",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Stepper Shuffles (Fast Feet)",
       "equipment": "Other",
       "sets": 1,
@@ -336,10 +344,12 @@
       "precautions": "Alternate feet tapping the step as fast as you can control;Stay on the balls of your feet;Keep hips low and core braced;If form breaks, slow the feet down",
       "cues": "Fast feet on and off the step;Stay light and low;Keep the rhythm steady",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeeWqfwxNzh/",
       "primary": false
     },
     {
       "id": "jumping-jacks",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Jumping Jacks",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -348,11 +358,14 @@
       "precautions": "Land softly on the balls of your feet;Arms reach fully overhead each rep;Keep a steady rhythm you can breathe with;Use step jacks instead if joints prefer no jumping",
       "cues": "Jump feet wide, arms up;Jump back together;Soft, quiet landings",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
+      "shortUrl": "https://www.youtube.com/shorts/l7uVPxoBUjs",
       "primary": false,
       "easier": "Step Jacks"
     },
     {
       "id": "malasana-walk",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Malasana Walk",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -361,10 +374,13 @@
       "precautions": "Stay in the deep squat and walk forward in small steps;Keep heels down as much as you can;Chest up, hands in prayer or on the floor for balance;Stand up and reset if form collapses",
       "cues": "Stay low in the squat;Small steps forward;Chest stays up",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dcq6wnzS_SE/",
       "primary": false
     },
     {
       "id": "jump-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/jump-squat.jpg",
       "name": "Jump Squat",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -373,11 +389,14 @@
       "precautions": "Squat down, then jump straight up;Land softly straight into the next squat;Knees track over toes, chest stays up;Swap to bodyweight squats if landings get noisy or sloppy",
       "cues": "Squat, jump, land soft;Flow straight into the next rep;Chest up",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dc5DFP1RB8n/",
+      "shortUrl": "https://www.youtube.com/shorts/VS8pO1Rj3lc",
       "primary": false,
       "easier": "Bodyweight Squat"
     },
     {
       "id": "squat-to-calf-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Squat to Calf Raise",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -386,10 +405,13 @@
       "precautions": "Squat to comfortable depth;As you stand, rise straight onto your toes;Lower heels, flow into the next squat;Hold a wall for balance if needed",
       "cues": "Squat, stand, up on toes;Smooth rhythm;Heels lower softly",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DZr8W6Yiehg/",
+      "shortUrl": "https://www.youtube.com/shorts/AegCCUrLDTs",
       "primary": false
     },
     {
       "id": "squat-to-floor-tap",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Squat to Floor Tap",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -398,10 +420,12 @@
       "precautions": "Squat down and tap the floor with your fingertips;Keep heels down and chest as tall as you can;Stand fully between reps;Touch a raised surface instead if the floor is too far",
       "cues": "Squat, tap the floor;Stand tall;Repeat in rhythm",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DZr8W6Yiehg/",
       "primary": false
     },
     {
       "id": "db-clean-to-front-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "DB Clean to Front Squat",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -410,10 +434,12 @@
       "precautions": "Hinge and clean the dumbbells up to shoulder height in one motion;Catch them softly at the shoulders, elbows up;Squat with chest tall, then stand and lower with control;Start light - the clean is a skill first",
       "cues": "Clean to shoulders;Elbows up, squat tall;Stand, lower, repeat",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeTuvQdCkD9/",
       "primary": false
     },
     {
       "id": "burpee",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Burpee",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -422,11 +448,14 @@
       "precautions": "Hands down, jump or step feet back to plank;Chest to floor or plank hold - keep the back flat;Jump feet in, stand and finish with a small jump;Step back instead of jumping to scale it down",
       "cues": "Down to plank;Feet in, stand, jump;Keep a steady rhythm",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeQrTZjPvy7/",
+      "shortUrl": "https://www.youtube.com/shorts/dpFi7WuhGzc",
       "primary": false,
       "easier": "Step-back Burpee (no jump)"
     },
     {
       "id": "standing-leg-extension",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LEG_EXTENSION",
       "name": "Standing Leg Extension",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -435,10 +464,13 @@
       "precautions": "Stand tall holding a counter or wall for balance;Straighten one knee fully without locking it hard;Keep the thigh still - only the lower leg moves;Lower slowly, no swinging",
       "cues": "Hold support, thigh still;Straighten the knee;Lower slowly",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DUqoQVkkefF/",
+      "shortUrl": "https://www.youtube.com/shorts/9WtJqHm5eqg",
       "primary": false
     },
     {
       "id": "running-in-place",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Running in Place",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -447,10 +479,13 @@
       "precautions": "Jog lightly on the spot, landing on the balls of your feet;Keep the pace conversational for circuits;Pump the arms naturally;Slow to a march if your breathing spikes",
       "cues": "Light jog on the spot;Soft feet;Arms pumping gently",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DW5ACYSDWSF/",
+      "shortUrl": "https://www.youtube.com/shorts/y5GSK_qZHW8",
       "primary": false
     },
     {
       "id": "db-front-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "DB Front Squat",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -459,10 +494,13 @@
       "precautions": "Rest the dumbbells on your shoulders, elbows up;Squat with your torso tall and heels down;Knees track over toes;Stand by driving the floor away, chest still tall",
       "cues": "Elbows up, chest tall;Squat deep;Drive up through heels",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
+      "shortUrl": "https://www.youtube.com/shorts/gCL4Y67P62k",
       "primary": false
     },
     {
       "id": "db-cluster",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "DB Cluster",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -471,10 +509,12 @@
       "precautions": "A cluster is clean + front squat + press in one flowing rep;Catch the clean, squat immediately, and press as you stand;Keep the middle braced the whole rep;Use a weight you can press strictly when tired",
       "cues": "Clean, squat, press - one flow;Brace throughout;Smooth transitions",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DcbzbBGgyI0/",
       "primary": false
     },
     {
       "id": "lunge-to-knee-drive",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Lunge to Knee Drive",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -483,10 +523,14 @@
       "precautions": "One dumbbell racked at the shoulder;Step back into a lunge, then drive the back knee up as you stand;Stay tall - the drive comes from the front leg;Complete all reps on one side before switching",
       "cues": "Lunge back;Drive the knee up tall;All reps one side, then switch",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DZPT_9dMBYU/",
+      "shortUrl": "https://www.youtube.com/shorts/gyW9LZWdrgA",
       "primary": false
     },
     {
       "id": "db-front-rack-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/db-front-rack-lunge.jpg",
       "name": "DB Front-Rack Lunge",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -495,10 +539,12 @@
       "precautions": "Dumbbells racked at your shoulders the whole set;Step forward (or back) into the lunge, torso tall;Elbows stay up so the weights do not pull you forward;Push through the front heel to stand",
       "cues": "Racked tall, elbows up;Lunge with a tall torso;Drive through the front heel",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DcOkTncv5ts/",
       "primary": false
     },
     {
       "id": "forward-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Forward Lunge",
       "equipment": "Bodyweight",
       "sets": 3,
@@ -507,10 +553,13 @@
       "precautions": "Step forward into a long stride;Drop the back knee toward the floor, torso tall;Front knee tracks over its toes, never caves in;Push through the front heel to return",
       "cues": "Step long, drop tall;Front knee tracks straight;Push back through the heel",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dd5UhHvomHz/",
+      "shortUrl": "https://www.youtube.com/shorts/BxsTq6cJZLE",
       "primary": false
     },
     {
       "id": "burpee-box-jump-over",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Burpee Box Jump Over",
       "equipment": "Other",
       "sets": 1,
@@ -519,10 +568,12 @@
       "precautions": "Advanced move - use a low, rock-solid box or step;Burpee beside the box, then jump laterally onto and over it;Land soft with both feet, knees tracking straight;Step over instead of jumping if there is any doubt",
       "cues": "Burpee, then jump over;Land soft, both feet;Reset each rep",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Ddy94EStn0D/",
       "primary": false
     },
     {
       "id": "teep",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Teep (Front Push Kick)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -531,10 +582,13 @@
       "precautions": "From a fighting stance, lift the knee then extend the leg in a forward push;Push through the ball of the foot, like pushing a door;Keep hands up and standing leg soft;Retract the leg before setting it down",
       "cues": "Knee up, push forward;Through the ball of the foot;Retract, reset stance",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dbq4CISAGsx/",
+      "shortUrl": "https://www.youtube.com/shorts/9ScY1oftbO4",
       "primary": false
     },
     {
       "id": "step-up-knee-to-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Step-Up Knee to Back Lunge",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -543,10 +597,12 @@
       "precautions": "Step onto a chair-height platform and drive the free knee up;Step back down into a reverse lunge;Keep the torso tall through both parts;Use a low step until the combo is smooth",
       "cues": "Step up, knee drives;Down into a back lunge;Tall torso throughout",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dbq4CISAGsx/",
       "primary": false
     },
     {
       "id": "sumo-squat-high-pull",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Sumo Squat to High Pull",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -555,10 +611,12 @@
       "precautions": "Wide stance, toes turned out, one dumbbell held by one head between your legs;Squat, then as you stand pull the weight up to chest height, elbows wide;Keep knees tracking out over your toes;Lower the weight with the squat, under control",
       "cues": "Wide squat;Stand and pull to chest;Elbows wide and high",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DabAPd6CjMM/",
       "primary": false
     },
     {
       "id": "lunge-with-press",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Alternating Lunge with Press",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -567,10 +625,14 @@
       "precautions": "Dumbbells at shoulder height;Lunge forward or back and press overhead as you reach the bottom (or as you stand);Keep the torso tall - never press by arching your back;Alternate legs each rep",
       "cues": "Lunge tall;Press as you move;Alternate legs",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DayOgSqvRr_/",
+      "shortUrl": "https://www.youtube.com/shorts/xVPv-osWTxo",
       "primary": false
     },
     {
       "id": "suitcase-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/suitcase-squat.jpg",
       "name": "Suitcase Squat",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -579,10 +641,13 @@
       "precautions": "Hold one dumbbell at your side like a suitcase;Squat without leaning toward or away from the weight;The anti-lean brace is the whole point;Switch hands each round or halfway",
       "cues": "Weight at your side;Squat tall, no leaning;Brace against the load",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DbvtwjxRjBN/",
+      "shortUrl": "https://www.youtube.com/shorts/OdkancsC1ZI",
       "primary": false
     },
     {
       "id": "step-squat-back",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Step Squat + Back",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -591,10 +656,12 @@
       "precautions": "Light dumbbells at your sides;Step to the side into a squat, then step back to centre;Keep knees tracking over toes;Alternate the stepping side",
       "cues": "Step wide, squat;Step back to centre;Alternate sides",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeP2jfLpuTD/",
       "primary": false
     },
     {
       "id": "lunge-high-knee-kick",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Lunge + High Knee Kick",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -603,10 +670,12 @@
       "precautions": "Lunge back with one leg;As you return, drive that knee up high (kick-through in the source);Stay tall and balanced - light dumbbells only;Finish all reps on one side before switching, as the source numbers them",
       "cues": "Lunge back;Drive the knee up tall;All reps one side, then switch",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeP2jfLpuTD/",
       "primary": false
     },
     {
       "id": "sumo-squat-to-calf-raise",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Sumo Squat to Calf Raise",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -615,10 +684,13 @@
       "precautions": "Wide sumo stance, toes turned out;Squat down, and as you stand rise onto your toes;Knees track out over the toes the whole time;Lower heels softly before the next squat",
       "cues": "Wide squat;Stand up onto toes;Heels lower softly",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DbDdQe8Bo-9/",
       "primary": false
     },
     {
       "id": "db-reverse-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
+      "photo": "exercise-images/db-reverse-lunge.jpg",
       "name": "DB Reverse Lunge",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -627,10 +699,13 @@
       "precautions": "Dumbbells hang at your sides;Step BACK into the lunge, torso tall;Front knee tracks over its toes;Push through the front heel to stand",
       "cues": "Step back, drop tall;Front knee tracks straight;Drive through the front heel",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DeTuvQdCkD9/",
+      "shortUrl": "https://www.youtube.com/shorts/ZM9nq6UMGY8",
       "primary": false
     },
     {
       "id": "side-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Side Lunge",
       "equipment": "Bodyweight",
       "sets": 3,
@@ -639,10 +714,13 @@
       "precautions": "Step wide to one side and sit hips back and down;The other leg stays straight, toes forward;Bent knee tracks over its toes;Push through the bent leg's heel to return",
       "cues": "Step wide, sit to one side;Straight leg stays straight;Push back through the heel",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/DaN-evysMet/",
+      "shortUrl": "https://www.youtube.com/shorts/K2dmzIR5zaI",
       "primary": false
     },
     {
       "id": "180-degree-jump-turns",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "180-Degree Jump Turns",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -651,10 +729,12 @@
       "precautions": "Land softly on the balls of your feet, knees tracking over toes;Turn only as far as you can control in the air;Keep landings quiet - if they get loud, slow down;Stop if your knees or ankles feel unstable",
       "cues": "Squat a little, jump and turn;Land soft, facing the new way;Reset your feet, repeat",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=180-Degree+Jump+Turns+form",
       "primary": false
     },
     {
       "id": "air-kicks",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Air Kicks",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -663,10 +743,13 @@
       "precautions": "Stay light on your feet - small kicks only;Keep your core braced and posture tall;Kick only as high as your hamstrings comfortably allow;Stop if you feel a pull behind the knee",
       "cues": "Alternate gentle front kicks;Stay tall and relaxed;Keep a steady rhythm",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Air+Kicks+form",
       "primary": false
     },
     {
       "id": "barbell-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/barbell-squat.jpg",
       "name": "Barbell Squat",
       "equipment": "Barbell",
       "sets": 1,
@@ -675,10 +758,14 @@
       "precautions": "Bar rests on your upper back, not on your neck;Feet shoulder-width, toes slightly out, whole foot grounded;Knees track over toes - never cave inward;Only squat as deep as you can with a flat back",
       "cues": "Brace your core, sit hips back and down;Drive up through the whole foot;Keep your chest tall throughout",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/kTdo8zzWoEk",
+      "shortUrl": "https://www.youtube.com/shorts/kTdo8zzWoEk",
       "primary": false
     },
     {
       "id": "box-jumps",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/box-jumps.jpg",
       "name": "Box Jumps",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -687,10 +774,13 @@
       "precautions": "Use a low, rock-solid box or step that cannot tip;Land softly with both feet flat and knees soft;Always step down - never jump backwards off;Stop the set when your landings get heavy",
       "cues": "Swing your arms and jump up;Land quiet and stand tall on top;Step down, reset, repeat",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/Z4KTwUR-lu0",
+      "shortUrl": "https://www.youtube.com/shorts/Z4KTwUR-lu0",
       "primary": false
     },
     {
       "id": "jump-step-ups",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Jump Step-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -699,10 +789,13 @@
       "precautions": "Use a low step that cannot slide or tip;Land with your whole foot on the step;Explode up, but land controlled on every rep;Step down carefully between reps",
       "cues": "Drive off one leg onto the step;Land soft, stand tall;Alternate legs",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/Tr5_yGUKuo4",
+      "shortUrl": "https://www.youtube.com/shorts/Tr5_yGUKuo4",
       "primary": false
     },
     {
       "id": "kettlebell-front-rack-reverse-lunge",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Kettlebell Front Rack Reverse Lunge",
       "equipment": "Kettlebell",
       "sets": 1,
@@ -711,10 +804,12 @@
       "precautions": "Bell rests in the rack: wrist straight, elbow tucked to ribs;Step back into the lunge with a tall torso;Front knee tracks over toes;Push through the front heel to stand",
       "cues": "Rack the bell, stand tall;Step back, lower straight down;Drive up through the front leg",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Kettlebell+Front+Rack+Reverse+Lunge+form",
       "primary": false
     },
     {
       "id": "manmaker",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Manmaker",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -723,10 +818,13 @@
       "precautions": "Dumbbells on the floor, wrists straight under shoulders;Row from a strong plank - no hip rocking;Jump your feet in and clean the bells to your shoulders as you stand;Use a weight you fully control through the press",
       "cues": "Plank, row each side;Jump in, stand and clean;Press tall, then reset",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/jLTvwydY2s4",
+      "shortUrl": "https://www.youtube.com/shorts/jLTvwydY2s4",
       "primary": false
     },
     {
       "id": "one-legged-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "One-Legged Squat",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -735,10 +833,13 @@
       "precautions": "Advanced - hold a support or sit back to a box;Knee tracks over toes on the standing leg;Lower only as deep as you can control;Free leg stays off the floor if you can - a light toe tap is fine",
       "cues": "Stand on one leg, arms forward;Sit back and down slowly;Drive up through the whole foot",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/pIdAfW3OoIM",
+      "shortUrl": "https://www.youtube.com/shorts/pIdAfW3OoIM",
       "primary": false
     },
     {
       "id": "overhead-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
       "name": "Overhead Squat",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -747,10 +848,13 @@
       "precautions": "Arms locked overhead, biceps by your ears;If your heels lift or arms drift forward, reduce the depth;Knees track over toes throughout;Move slowly - this is a mobility-strength drill",
       "cues": "Reach tall, brace your core;Squat keeping your arms vertical;Stand, staying tall",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Overhead+Squat+form",
       "primary": false
     },
     {
       "id": "resistance-band-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_SQUAT",
+      "photo": "exercise-images/resistance-band-squat.jpg",
       "name": "Resistance Band Squat",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -759,10 +863,13 @@
       "precautions": "Stand on the band, feet shoulder-width, handles at your shoulders;Sit back and down, knees tracking over toes;Keep tension on the band throughout;Inspect the band before every set",
       "cues": "Brace with the band at your shoulders;Squat down with control;Drive up through both feet",
       "image": "quads",
+      "url": "https://www.youtube.com/shorts/GeLGUJj55tk",
+      "shortUrl": "https://www.youtube.com/shorts/GeLGUJj55tk",
       "primary": false
     },
     {
       "id": "rolling-squat-tuck-up-jump",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Rolling Squat Tuck-Up Jump",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -771,10 +878,12 @@
       "precautions": "Advanced plyometric - needs clear floor space;Roll back only onto your upper back, never your neck;Use the roll momentum to stand, then jump straight up;Land soft and reset fully between reps",
       "cues": "Squat down, roll back smoothly;Roll up into the squat;Explode into a tuck jump",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Rolling+Squat+Tuck-Up+Jump+form",
       "primary": false
     },
     {
       "id": "transverse-lunge-and-chop",
+      "hcType": "EXERCISE_SEGMENT_TYPE_LUNGE",
       "name": "Transverse Lunge and Chop",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -783,6 +892,7 @@
       "precautions": "Step out to the side and slightly back, knee tracking over toes;Rotate through your trunk as your arms chop across;Keep the front heel grounded;Move under control - balance first",
       "cues": "Step wide and rotate;Chop your arms across your body;Push back to centre",
       "image": "quads",
+      "url": "https://www.youtube.com/results?search_query=Transverse+Lunge+and+Chop+form",
       "primary": false
     }
   ],
@@ -824,6 +934,7 @@
     },
     {
       "id": "malasana",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Malasana (Deep Squat Hold)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -832,6 +943,8 @@
       "precautions": "Feet flat if you can - heels on a folded towel is fine;Elbows press gently into inner knees;Chest stays lifted, back long;Come out slowly if knees or ankles feel strained",
       "cues": "Sit deep between your heels;Elbows into knees, chest up;Breathe and settle",
       "image": "quads",
+      "url": "https://www.instagram.com/reel/Dcq6wnzS_SE/",
+      "shortUrl": "https://www.youtube.com/shorts/DHagOsZkxX8",
       "primary": false
     }
   ]
