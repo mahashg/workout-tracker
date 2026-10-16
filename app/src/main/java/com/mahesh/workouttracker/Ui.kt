@@ -69,7 +69,7 @@ class Palette(
     val pendingFg: Int, val pendingBg: Int, val accentSky: Int, val warmAmber: Int, val coolTeal: Int,
     val error: Int,
     val tintBlue: Int, val tintWarm: Int, val tintGreen: Int, val tintLilac: Int, val tintYolk: Int, val tintPink: Int,
-    val doorGymBg: Int, val doorGymBorder: Int, val doorHomeBg: Int, val doorHomeBorder: Int,
+    val doorGymBg: Int, val doorGymBorder: Int, val doorHomeBg: Int, val doorHomeBorder: Int, val doorCircuitBg: Int, val doorCircuitBorder: Int,
     val stepperBg: Int, val switchOff: Int, val checkOffStroke: Int, val sheetRow: Int,
     val tagPartBg: Int, val tagPartFg: Int, val tagGearBg: Int, val tagGearFg: Int, val tagHomeBg: Int, val tagHomeFg: Int
 ) {
@@ -88,6 +88,7 @@ class Palette(
             tintLilac = c("#E6E0FF"), tintYolk = c("#FFF0B3"), tintPink = c("#FFE0EC"),
             doorGymBg = c("#E8EFFD"), doorGymBorder = c("#B9CCF5"),
             doorHomeBg = c("#FFF7E8"), doorHomeBorder = c("#F2C94C"),
+            doorCircuitBg = c("#EAF7EE"), doorCircuitBorder = c("#8FBF97"),
             stepperBg = c("#E3ECF7"), switchOff = c("#CBD8E4"), checkOffStroke = c("#CBD8E4"), sheetRow = Color.WHITE,
             tagPartBg = c("#E0E7FF"), tagPartFg = c("#3730A3"), tagGearBg = c("#E8EEF4"), tagGearFg = c("#52687E"),
             tagHomeBg = c("#FFF1CF"), tagHomeFg = c("#92600A")
@@ -109,6 +110,7 @@ class Palette(
             tintLilac = c("#E8DEF8"), tintYolk = c("#FFE088"), tintPink = c("#FFD8E4"),
             doorGymBg = c("#EADDFF"), doorGymBorder = c("#B09AD8"),
             doorHomeBg = c("#FFD8E4"), doorHomeBorder = c("#DE9FBB"),
+            doorCircuitBg = c("#CDEBCF"), doorCircuitBorder = c("#8FBF97"),
             stepperBg = c("#E8DEF8"), switchOff = c("#CAC4D0"), checkOffStroke = c("#CAC4D0"), sheetRow = c("#FFFBFE"),
             tagPartBg = c("#E8DEF8"), tagPartFg = c("#4A4458"), tagGearBg = c("#E6E0E9"), tagGearFg = c("#49454F"),
             tagHomeBg = c("#FFE088"), tagHomeFg = c("#574500")
