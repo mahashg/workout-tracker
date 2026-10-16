@@ -323,7 +323,12 @@ object CircuitsData {
                         }
                     }
                     val jumping = when {
-                        specialty == "low-impact" -> false
+                        // A circuit that IS low-impact never jumps,
+                        // whatever its notes say (one staged circuit's
+                        // notes mention "jumping jacks" only to say it
+                        // avoids them — specialty or name decides).
+                        specialty == "low-impact" || id.contains("low-impact") ||
+                            c.optString("name", "").contains("low-impact", ignoreCase = true) -> false
                         else -> steps.any { step ->
                             val hay = ((entriesById[step.entryId]?.name ?: "") + " " + step.entryId).lowercase(Locale.US)
                             listOf("jump", "burpee", "hop", "skipping").any { hay.contains(it) }
