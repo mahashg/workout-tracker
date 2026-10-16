@@ -81,6 +81,62 @@ object RestTimer {
     private var fired = false
     private var restId = 0 // increments per show()/end; stale async work checks it
 
+    // ---- v3.12: pause + persistence --------------------------------
+    // Pausing (via the timer chip) freezes the countdown in place:
+    // pausedRemainingMs >= 0 means paused with that much left; the
+    // wall-clock deadline is meaningless while paused.
+    @Volatile private var pausedRemainingMs: Long = -1L
+    // The active rest is mirrored into SharedPreferences ("workout_prefs",
+    // restp_* keys) so rotation — and even process death — can re-attach
+    // to it via attach(). Only rests started with a sessionId persist;
+    // legacy no-session rests (SessionActivity) stay memory-only.
+    private var appCtx: Context? = null
+    @Volatile private var pSessionId: Long = -1
+    @Volatile private var pKind: String = ""
+    @Volatile private var pTargetId: Long = -1
+    @Volatile private var pFromId: Long = -1
+    private const val PREFS = "workout_prefs"
+    private val RESTP_KEYS = listOf(
+        "restp_deadline", "restp_total", "restp_label", "restp_cues", "restp_kind",
+        "restp_session", "restp_target", "restp_from", "restp_ring", "restp_paused_rem"
+    )
+
+    /** v3.12: mirror the current rest state into prefs (or clear every
+     *  restp_* key when this rest carries no session). The deadline is
+     *  stored as 0 while paused — pausedRemainingMs is the truth then. */
+    private fun persist() {
+        val ctx = appCtx ?: return
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (pSessionId <= 0) { clearPersisted(prefs); return }
+        prefs.edit()
+            .putLong("restp_deadline", if (pausedRemainingMs >= 0) 0L else endsAtMs)
+            .putLong("restp_total", ringTotalMs)
+            .putString("restp_label", nextLabel)
+            .putString("restp_cues", cleanCues.joinToString("\u0001"))
+            .putString("restp_kind", pKind)
+            .putLong("restp_session", pSessionId)
+            .putLong("restp_target", pTargetId)
+            .putLong("restp_from", pFromId)
+            .putInt("restp_ring", if (dialog?.isShowing == true) 1 else 0)
+            .putLong("restp_paused_rem", pausedRemainingMs)
+            .apply()
+    }
+
+    private fun clearPersisted(prefs: android.content.SharedPreferences) {
+        val e = prefs.edit()
+        for (k in RESTP_KEYS) e.remove(k)
+        e.apply()
+    }
+
+    private fun clearPersisted() {
+        val ctx = appCtx ?: return
+        clearPersisted(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE))
+    }
+
+    /** v3.12: public persist hook — hosts call it from onPause so the
+     *  ring-visible flag is captured before rotation teardown. */
+    fun persistNow() { persist() }
+
     private var ticker: CountDownTimer? = null
     private var dialog: AlertDialog? = null
     private var ring: RestRingView? = null
@@ -94,14 +150,47 @@ object RestTimer {
         for (l in copy) try { l() } catch (e: Exception) { /* a dead chip never breaks a rest */ }
     }
 
-    /** True while a rest is counting down (ring visible or not). */
-    fun isActive(): Boolean = onDoneCb != null && endsAtMs > System.currentTimeMillis()
+    /** True while a rest is counting down (ring visible or not).
+     *  v3.12: a PAUSED rest is still active — it holds its remaining
+     *  time frozen instead of counting against the wall clock. */
+    fun isActive(): Boolean = onDoneCb != null && (pausedRemainingMs >= 0 || endsAtMs > System.currentTimeMillis())
+
+    /** v3.12: true while a rest is frozen by pauseRest(). */
+    fun isPaused(): Boolean = pausedRemainingMs >= 0 && onDoneCb != null
 
     /** Seconds left on the active rest (0 when none). */
     fun remainingSec(): Int {
         if (onDoneCb == null) return 0
+        if (pausedRemainingMs >= 0) return ceil(pausedRemainingMs / 1000.0).toInt()
         val left = endsAtMs - System.currentTimeMillis()
         return if (left <= 0) 0 else ceil(left / 1000.0).toInt()
+    }
+
+    /** v3.12: freeze the active rest where it stands (timer-chip
+     *  pause). The ticker stops; the ring, if up, shows the frozen
+     *  remainder. No-op when no rest is active or it is already paused. */
+    fun pauseRest() {
+        if (onDoneCb == null || pausedRemainingMs >= 0) return
+        pausedRemainingMs = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0)
+        ticker?.cancel(); ticker = null
+        ring?.setRemaining(pausedRemainingMs)
+        persist()
+        notifyListeners()
+    }
+
+    /** v3.12: thaw a frozen rest — the deadline re-bases to now + the
+     *  frozen remainder and the ticker restarts. ringTotalMs is left
+     *  unchanged (startTicker's cue indexing keys off it). No-op when
+     *  no rest is paused. */
+    fun resumeRest() {
+        if (onDoneCb == null || pausedRemainingMs < 0) return
+        val rem = pausedRemainingMs
+        endsAtMs = System.currentTimeMillis() + rem
+        pausedRemainingMs = -1L
+        ring?.setRemaining(rem)
+        startTicker(rem)
+        persist()
+        notifyListeners()
     }
 
     /**
@@ -113,21 +202,33 @@ object RestTimer {
      * counting behind the REST chip until it ends or is skipped there.
      * Calling show() while a rest is active replaces it silently (the
      * old rest's onDone is dropped, never fired).
+     *
+     * v3.12: [sessionId]/[kind]/[targetId]/[fromId] are the rest's
+     * persistence identity (defaults keep legacy call sites memory-only).
      */
-    fun show(activity: AppCompatActivity, seconds: Int, nextLabel: String, cues: List<String>, onDone: () -> Unit) {
+    fun show(activity: AppCompatActivity, seconds: Int, nextLabel: String, cues: List<String>,
+             sessionId: Long = -1, kind: String = "", targetId: Long = -1, fromId: Long = -1,
+             onDone: () -> Unit) {
         if (seconds <= 0) { onDone(); return }
         if (activity.isFinishing || activity.isDestroyed) { onDone(); return }
         endInternal(fire = false)
         restId++
         host = activity
+        appCtx = activity.applicationContext
         this.nextLabel = nextLabel
         cleanCues = cues.map { it.trim() }.filter { it.isNotBlank() }
         onDoneCb = onDone
         fired = false
+        pausedRemainingMs = -1L
+        // v3.12: persistence identity — who this rest belongs to and
+        // what its completion means (attach() rebuilds onDone from
+        // these via its factory after rotation / process death).
+        pSessionId = sessionId; pKind = kind; pTargetId = targetId; pFromId = fromId
         ringTotalMs = seconds * 1000L
         endsAtMs = System.currentTimeMillis() + ringTotalMs
         startTicker(ringTotalMs)
         showDialog(activity)
+        persist()
         notifyListeners()
     }
 
@@ -141,6 +242,69 @@ object RestTimer {
 
     /** Ends the active rest as if Skip rest was tapped (fires onDone). */
     fun skipActive() { if (onDoneCb != null) endInternal(fire = true) }
+
+    /** v3.12: ends the active rest WITHOUT firing onDone — the
+     *  finish-workout path, where a mid-flight rest's completion
+     *  callback must never advance a session that is already over. */
+    fun cancelActive() { if (onDoneCb != null) endInternal(fire = false) }
+
+    /**
+     * v3.12: re-attach a screen to the active rest after rotation or
+     * process death. Returns true when a rest for [sessionId] was
+     * live (in memory) or rebuilt from prefs; false when there is
+     * nothing to re-attach to.
+     *
+     * In-memory engine still alive (plain rotation): just reshow the
+     * ring if it was up when the old screen went away. Otherwise the
+     * persisted state is rebuilt and [factory] supplies the fresh
+     * onDone for (kind, targetId, fromId) — the rebuilding screen owns
+     * what completion means now. A rest whose deadline passed while
+     * away completes immediately through that rebuilt callback
+     * (exactly once), which the card's stale-target guard keeps safe.
+     */
+    fun attach(activity: AppCompatActivity, sessionId: Long, factory: (kind: String, targetId: Long, fromId: Long) -> () -> Unit): Boolean {
+        appCtx = activity.applicationContext
+        host = activity
+        val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (isActive()) {
+            if (prefs.getInt("restp_ring", 0) == 1) reshow(activity)
+            return true
+        }
+        if (!prefs.contains("restp_total")) return false
+        if (prefs.getLong("restp_session", -1L) != sessionId) return false
+        nextLabel = prefs.getString("restp_label", "") ?: ""
+        cleanCues = (prefs.getString("restp_cues", "") ?: "").split("\u0001").map { it.trim() }.filter { it.isNotBlank() }
+        ringTotalMs = prefs.getLong("restp_total", 0L)
+        pSessionId = prefs.getLong("restp_session", -1L)
+        pKind = prefs.getString("restp_kind", "") ?: ""
+        pTargetId = prefs.getLong("restp_target", -1L)
+        pFromId = prefs.getLong("restp_from", -1L)
+        onDoneCb = factory(pKind, pTargetId, pFromId)
+        fired = false
+        restId++
+        val ringFlag = prefs.getInt("restp_ring", 0)
+        val pausedRem = prefs.getLong("restp_paused_rem", -1L)
+        if (pausedRem >= 0) {
+            pausedRemainingMs = pausedRem
+            endsAtMs = 0L
+            notifyListeners()
+            if (ringFlag == 1) showDialog(activity)
+            return true
+        }
+        pausedRemainingMs = -1L
+        val deadline = prefs.getLong("restp_deadline", 0L)
+        val remaining = deadline - System.currentTimeMillis()
+        if (remaining > 0) {
+            endsAtMs = deadline
+            startTicker(remaining)
+            notifyListeners()
+            if (ringFlag == 1) showDialog(activity)
+            return true
+        }
+        // Deadline passed while away: fire the rebuilt onDone once.
+        endInternal(fire = true)
+        return true
+    }
 
     private fun startTicker(ms: Long) {
         ticker?.cancel()
@@ -179,7 +343,10 @@ object RestTimer {
 
     private fun showDialog(activity: AppCompatActivity) {
         if (activity.isFinishing || activity.isDestroyed) return
-        val leftMs = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0)
+        appCtx = activity.applicationContext
+        // v3.12: a paused rest has no live deadline — the ring opens on
+        // the frozen remainder instead.
+        val leftMs = if (pausedRemainingMs >= 0) pausedRemainingMs else (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0)
         val r = RestRingView(activity).apply {
             totalMs = ringTotalMs; remainingMs = leftMs
             layoutParams = LinearLayout.LayoutParams(activity.dp(190), activity.dp(190)).apply { gravity = Gravity.CENTER_HORIZONTAL }
@@ -208,14 +375,26 @@ object RestTimer {
             d.getButton(AlertDialog.BUTTON_POSITIVE)?.apply { setTextColor(Theme.primary); textSize = 15f }
             d.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply { setTextColor(Theme.textSecondary); textSize = 15f }
             d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                // Same arithmetic as the pre-v3.7 dialog: remaining + 15s
-                // becomes the ring's new total and it restarts full.
-                val left = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0) + 15_000
-                ringTotalMs = left
-                endsAtMs = System.currentTimeMillis() + left
-                r.totalMs = left; r.setRemaining(left)
-                startTicker(left)
-                notifyListeners()
+                if (pausedRemainingMs >= 0) {
+                    // v3.12: +15s while paused grows the FROZEN remainder
+                    // (which becomes the ring's new total, mirroring the
+                    // running arithmetic below); the ticker stays stopped.
+                    pausedRemainingMs += 15_000
+                    ringTotalMs = pausedRemainingMs
+                    r.totalMs = pausedRemainingMs; r.setRemaining(pausedRemainingMs)
+                    persist()
+                    notifyListeners()
+                } else {
+                    // Same arithmetic as the pre-v3.7 dialog: remaining + 15s
+                    // becomes the ring's new total and it restarts full.
+                    val left = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0) + 15_000
+                    ringTotalMs = left
+                    endsAtMs = System.currentTimeMillis() + left
+                    r.totalMs = left; r.setRemaining(left)
+                    startTicker(left)
+                    notifyListeners()
+                    persist()
+                }
             }
             d.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { endInternal(fire = true) }
         }
@@ -224,6 +403,14 @@ object RestTimer {
         // hide, skip, finish — just drops the dialog view references.
         d.setOnDismissListener {
             if (dialog === d) { dialog = null; ring = null; cueTv = null }
+            // v3.12: the ring is no longer showing — persist that, so a
+            // later attach() doesn't resurrect a ring the user hid.
+            // Teardown dismissals (rotation destroying the host) are
+            // exempt: onPause's persistNow() already captured the
+            // truthful flag, and overwriting it here would lose the
+            // ring across the recreation.
+            val h = host
+            if (h == null || (!h.isFinishing && !h.isDestroyed)) persist()
         }
         try {
             d.show()
@@ -237,8 +424,12 @@ object RestTimer {
     private fun endInternal(fire: Boolean) {
         restId++
         ticker?.cancel(); ticker = null
+        pausedRemainingMs = -1L
         val cb = onDoneCb
         onDoneCb = null; endsAtMs = 0L; ringTotalMs = 0L
+        // v3.12: the rest is over — its persisted mirror goes with it.
+        pSessionId = -1; pKind = ""; pTargetId = -1; pFromId = -1
+        clearPersisted()
         val d = dialog
         dialog = null; ring = null; cueTv = null
         try { if (d?.isShowing == true) d.dismiss() } catch (e: Exception) {}
@@ -302,7 +493,9 @@ class RestChipView(context: Context) : TextView(context) {
     fun refresh() {
         if (RestTimer.isActive()) {
             visibility = View.VISIBLE
-            text = "REST " + WorkoutTimer.formatClock(RestTimer.remainingSec())
+            // v3.12: a frozen rest says so — "REST ⏸ m:ss".
+            text = if (RestTimer.isPaused()) "REST ⏸ " + WorkoutTimer.formatClock(RestTimer.remainingSec())
+                   else "REST " + WorkoutTimer.formatClock(RestTimer.remainingSec())
         } else {
             visibility = View.GONE
         }

@@ -28,7 +28,8 @@ import androidx.appcompat.app.AppCompatActivity
  *     still happens from inside the workout.
  *  2. ONE ACTIVE WORKOUT: while a gym session runs, the Movements
  *     door is dimmed + 🔒 and only toasts "finish first" (mirror for
- *     a movie session). Creation points enforce it too (PickParts /
+ *     a movie session; v3.12: a circuit session locks both doors the
+ *     same way). Creation points enforce it too (PickParts /
  *     MovieDeck refuse to CREATE the other kind) — resuming the
  *     active session is never blocked.
  *  3. The Movements door icon is 🏠 (was 🎬): "do it at home" at a
@@ -300,6 +301,16 @@ class MainActivity : AppCompatActivity() {
             gymDoor.addView(doorIcon("🏋️", IconTints.BLUE))
             gymDoor.addView(doorTextCol("Workout", "Gym day — pick parts, follow the cards.", lastGymNote))
             gymDoor.addView(lockGlyph())
+        } else if (circuit != null) {
+            // v3.12: circuit active — locked (door symmetry fix;
+            // mirror of the movie lock above).
+            gymDoor = doorCard(Palettes.current.doorGymBg, Palettes.current.doorGymBorder) {
+                toast("Finish your current circuit first")
+            }
+            gymDoor.alpha = 0.62f
+            gymDoor.addView(doorIcon("🏋️", IconTints.BLUE))
+            gymDoor.addView(doorTextCol("Workout", "Gym day — pick parts, follow the cards.", "Available after you finish this circuit"))
+            gymDoor.addView(lockGlyph())
         } else {
             val lastGym = db.getSessions().firstOrNull { it.completed && it.routineName != MovieDeck.ROUTINE_NAME && !CircuitsData.isCircuit(it) }
             val gymMeta = if (lastGym != null) "Last: ${lastGym.routineName} · ${shortDay(lastGym.date)}" else "No workouts yet"
@@ -333,6 +344,16 @@ class MainActivity : AppCompatActivity() {
             homeDoor.alpha = 0.62f
             homeDoor.addView(doorIcon("🏠", IconTints.WARM))
             homeDoor.addView(doorTextCol("Movements at Home", "The endless couch deck + home workouts.", "Available after you finish this workout"))
+            homeDoor.addView(lockGlyph())
+        } else if (circuit != null) {
+            // v3.12: circuit active — locked (door symmetry fix;
+            // mirror of the gym lock above).
+            homeDoor = doorCard(Palettes.current.doorHomeBg, Palettes.current.doorHomeBorder) {
+                toast("Finish your current circuit first")
+            }
+            homeDoor.alpha = 0.62f
+            homeDoor.addView(doorIcon("🏠", IconTints.WARM))
+            homeDoor.addView(doorTextCol("Movements at Home", "The endless couch deck + home workouts.", "Available after you finish this circuit"))
             homeDoor.addView(lockGlyph())
         } else {
             val lastMovie = db.getSessions().firstOrNull { it.completed && it.routineName == MovieDeck.ROUTINE_NAME }
