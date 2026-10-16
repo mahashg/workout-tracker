@@ -152,6 +152,7 @@
     },
     {
       "id": "windmill-touches",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Windmill Touches",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -160,10 +161,13 @@
       "precautions": "Feet wide, arms out like a windmill;Rotate and reach one hand to the opposite foot;Keep legs straight-ish with soft knees;Rise and alternate smoothly",
       "cues": "Arms wide like a windmill;Hand to opposite foot;Alternate sides",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
       "primary": false
     },
     {
       "id": "supine-heel-swings",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/supine-heel-swings.jpg",
       "name": "Supine Heel Swings",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -172,10 +176,12 @@
       "precautions": "Lie on your back with legs extended;Swing one leg gently across and back, heel leading;Keep hips on the surface - small range is fine;Move slowly, no momentum jerks",
       "cues": "Legs long;Swing gently side to side;Hips stay down",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DdCBaQ4hzX7/",
       "primary": false
     },
     {
       "id": "db-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "name": "DB Deadlift",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -184,10 +190,13 @@
       "precautions": "Dumbbells start on the floor beside your feet;Hinge and grip, chest up, back flat before you lift;Stand by pushing the floor away, weights close to your legs;Lower by hinging, weights sliding down your thighs",
       "cues": "Flat back, chest up;Push the floor away;Weights stay close",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
+      "shortUrl": "https://www.youtube.com/shorts/V5QB6nqgqHo",
       "primary": false
     },
     {
       "id": "db-rdl-to-front-squat",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "name": "DB RDL to Front Squat",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -196,10 +205,12 @@
       "precautions": "Hinge into a Romanian deadlift with dumbbells skimming your thighs;At the bottom, sit straight down into a front squat, weights racked;Stand tall, then flow into the next hinge;Two clean halves - never rush the transition",
       "cues": "Hinge low;Sit into the squat;Stand, repeat the flow",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DabAPd6CjMM/",
       "primary": false
     },
     {
       "id": "db-deadlift-to-press",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "name": "DB Deadlift to Overhead Press",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -208,10 +219,12 @@
       "precautions": "Deadlift the dumbbells with a flat back;Roll them up to your shoulders as you stand;Press overhead with ribs down and glutes squeezed;Reverse the whole chain slowly",
       "cues": "Deadlift tall;Rack at shoulders;Press overhead, brace",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DayOgSqvRr_/",
       "primary": false
     },
     {
       "id": "elephant-walk",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Elephant Walk",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -220,10 +233,13 @@
       "precautions": "Hinge forward with hands reaching toward the floor;Bend one knee while straightening the other, alternating like slow marching;Keep hips high and back long;Only straighten as far as a mild hamstring stretch",
       "cues": "Hinge, hands low;Straighten one leg at a time;Alternate slowly",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
+      "shortUrl": "https://www.youtube.com/shorts/f5wJmWNxdmo",
       "primary": false
     },
     {
       "id": "pancake-fold",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Pancake Fold",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -232,10 +248,13 @@
       "precautions": "Sit with legs wide, knees soft if needed;Hinge from the hips and walk hands forward between your feet;Keep your back as long as you can - reach, don't round hard;Come out slowly",
       "cues": "Legs wide, sit tall;Hinge and walk hands forward;Long back",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
+      "shortUrl": "https://www.youtube.com/shorts/K9fIbOSaP-o",
       "primary": false
     },
     {
       "id": "hip-flexor-hamstring-flow",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Hip Flexor-Hamstring Flow (Foot Elevated)",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -244,10 +263,13 @@
       "precautions": "One foot elevated on a chair seat, knee bent;Rock gently forward into the hip flexor stretch, then straighten the leg into a hamstring stretch;Flow between the two positions slowly;Hold the chair or a wall for balance",
       "cues": "Foot up on the chair;Rock forward, then straighten and hinge;Slow flow between stretches",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DaS9kOiRFzF/",
       "primary": false
     },
     {
       "id": "db-romanian-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/db-romanian-deadlift.jpg",
       "name": "DB Romanian Deadlift",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -256,10 +278,14 @@
       "precautions": "Dumbbells skim your thighs as you hinge;Soft knees, hips push BACK - this is a hinge, not a squat;Back stays flat the whole way;Stop the descent at a strong hamstring stretch, then stand tall",
       "cues": "Hips back, weights skim thighs;Flat back;Stand tall, squeeze glutes",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DZDLYwQxj_x/",
+      "shortUrl": "https://www.youtube.com/shorts/fiWQ5inQyQA",
       "primary": true
     },
     {
       "id": "barbell-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
+      "photo": "exercise-images/barbell-deadlift.jpg",
       "name": "Barbell Deadlift",
       "equipment": "Barbell",
       "sets": 1,
@@ -268,10 +294,13 @@
       "precautions": "Bar close to your shins, back flat, chest up;Hinge at the hips - never round your lower back;Lock out by standing tall, not by leaning back;Start light and add weight only with clean form",
       "cues": "Grip just outside your knees, brace hard;Push the floor away, bar slides up your thighs;Stand tall, lower with control",
       "image": "hamstrings",
+      "url": "https://www.youtube.com/shorts/ZaTM37cfiDs",
+      "shortUrl": "https://www.youtube.com/shorts/ZaTM37cfiDs",
       "primary": false
     },
     {
       "id": "resistance-band-deadlift",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DEADLIFT",
       "name": "Resistance Band Deadlift",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -280,10 +309,13 @@
       "precautions": "Stand on the band, feet hip-width, handles at your sides;Hinge with a flat back - never round;Keep tension on the band through the whole rep;Inspect the band for damage before use",
       "cues": "Hinge back with soft knees;Stand tall, squeezing your glutes;Lower with a flat back",
       "image": "hamstrings",
+      "url": "https://www.youtube.com/shorts/phmCroxfzv0",
+      "shortUrl": "https://www.youtube.com/shorts/phmCroxfzv0",
       "primary": false
     },
     {
       "id": "hamstring-to-hip-flow",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Hamstring-to-Hip Flow",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -292,6 +324,7 @@
       "precautions": "Move slowly between the hamstring stretch and the deep hip position;Keep your back long - hinge, do not round;Support yourself with hands on the floor or a block;Never force the hip or hamstring range",
       "cues": "Hinge into a hamstring stretch;Flow down into a deep squat hip opener;Alternate smoothly side to side",
       "image": "hamstrings",
+      "url": "https://www.instagram.com/reel/DZAugbkotEh/",
       "primary": false
     }
   ],

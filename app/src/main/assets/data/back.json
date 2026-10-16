@@ -201,6 +201,7 @@
     },
     {
       "id": "alternate-arm-rows",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW",
       "name": "Alternate Arm Rows",
       "equipment": "Dumbbell",
       "sets": 1,
@@ -209,10 +210,13 @@
       "precautions": "Hinged position, back flat and still;Row one dumbbell to your hip while the other arm hangs;Alternate without twisting your torso;Elbow drives back, not up",
       "cues": "Hinge, brace;Row one side, then the other;Keep hips square",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DdAR8Pbpp6z/",
+      "shortUrl": "https://www.youtube.com/shorts/f-oxZ7EKPYc",
       "primary": false
     },
     {
       "id": "supine-knee-drops",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Supine Knee Drops",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -221,10 +225,14 @@
       "precautions": "Lie on your back, knees bent at 90, feet flat;Let both knees drop slowly to one side, then the other;Keep shoulders on the surface;Only go as far as comfortable",
       "cues": "Knees bent, feet flat;Drop knees side to side slowly;Shoulders stay down",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DdCBaQ4hzX7/",
+      "shortUrl": "https://www.youtube.com/shorts/QvgOBNlKXOY",
       "primary": false
     },
     {
       "id": "bent-over-db-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW",
+      "photo": "exercise-images/bent-over-db-row.jpg",
       "name": "Bent-Over DB Row",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -233,10 +241,13 @@
       "precautions": "Hinge to about 45 degrees, back flat, knees soft;Row both dumbbells to your hips together;Elbows skim your sides, squeeze at the top;Lower slowly - no torso bouncing",
       "cues": "Hinge, back flat;Row to hips together;Squeeze and lower slow",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DeTuvQdCkD9/",
+      "shortUrl": "https://www.youtube.com/shorts/R7NZRxo890U",
       "primary": false
     },
     {
       "id": "renegade-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Renegade Row",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -245,10 +256,13 @@
       "precautions": "Plank with hands gripping the dumbbells, feet wide;Row one dumbbell to your hip without rotating your body;Hips stay level and still - that is the exercise;Set the weight down before rowing the other side",
       "cues": "Wide plank on the weights;Row to hip, hips still;Alternate with control",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DcOkTncv5ts/",
+      "shortUrl": "https://www.youtube.com/shorts/_0MBf2FSy0E",
       "primary": false
     },
     {
       "id": "body-waves",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Body Waves",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -257,10 +271,12 @@
       "precautions": "Stand tall and roll a wave through your spine - chest, ribs, hips, in sequence;Move slowly, segment by segment;Never force any single joint;Breathe with the wave",
       "cues": "Wave through the spine slowly;One segment at a time;Stay relaxed",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
       "primary": false
     },
     {
       "id": "thoracic-rotations",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Thoracic Rotations",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -269,10 +285,13 @@
       "precautions": "From all fours or kneeling, place one hand behind your head;Rotate that elbow down toward the floor, then open it up to the ceiling;Follow the elbow with your eyes;Hips stay still - the turn is in the upper back",
       "cues": "Hand behind head;Rotate elbow down, then open up;Hips stay still",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
+      "shortUrl": "https://www.youtube.com/shorts/wmmAM1P_ra8",
       "primary": false
     },
     {
       "id": "thread-the-needle",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Thread the Needle",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -281,10 +300,13 @@
       "precautions": "From all fours, thread one arm under your chest and across the floor;Let the shoulder and side of your head rest down;Breathe into the twist;Return slowly before switching sides",
       "cues": "Thread the arm under and across;Shoulder rests down;Breathe into the stretch",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
+      "shortUrl": "https://www.youtube.com/shorts/Ia3LmfPQcfU",
       "primary": false
     },
     {
       "id": "lotus-sphinx",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Full Lotus Sphinx",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -293,10 +315,13 @@
       "precautions": "ADVANCED - only if full lotus is already comfortable for you;Set the lotus legs, then come onto your forearms in a gentle sphinx;Keep the lower-back curve mild;Any knee pain means come out immediately",
       "cues": "Lotus only if comfortable;Forearms down, gentle lift;Mild curve, easy breathing",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
+      "shortUrl": "https://www.youtube.com/shorts/n3oobgBJtEk",
       "primary": false
     },
     {
       "id": "cobra-hip-rotation",
+      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
       "name": "Cobra Hip & Spine Rotation",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -305,10 +330,12 @@
       "precautions": "Lie face down, prop onto forearms in a low cobra;Hold, then gently rotate the hips/spine to one side;Keep the movement small and pain-free;Lower fully before switching sides",
       "cues": "Low cobra on forearms;Hold, then rotate gently;Small pain-free range",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
       "primary": false
     },
     {
       "id": "chin-tuck-spinal-extensions",
+      "hcType": "EXERCISE_SEGMENT_TYPE_BACK_EXTENSION",
       "name": "Chin Tuck Spinal Extensions",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -317,10 +344,13 @@
       "precautions": "Kneel or sit tall, hands clasped behind your head;Tuck your chin and curl gently forward, then extend and open the chest;Move between the two positions slowly;Never crank the neck - the hands just rest there",
       "cues": "Hands behind head, rest lightly;Curl gently, then open tall;Slow rhythm",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
       "primary": false
     },
     {
       "id": "one-arm-db-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_ROW",
+      "photo": "exercise-images/one-arm-db-row.jpg",
       "name": "One-Arm DB Row",
       "equipment": "Dumbbell",
       "sets": 3,
@@ -329,10 +359,14 @@
       "precautions": "Free hand and same-side knee on a bench;Back flat and parallel to the floor;Row the dumbbell to your hip, elbow close;Lower fully without letting the shoulder roll forward",
       "cues": "Flat back, knee on bench;Row to the hip;Full stretch at the bottom",
       "image": "back",
+      "url": "https://www.instagram.com/reel/DYyaag4Bh17",
+      "shortUrl": "https://www.youtube.com/shorts/ZntWjaXroFU",
       "primary": false
     },
     {
       "id": "pull-ups",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+      "photo": "exercise-images/pull-ups.jpg",
       "name": "Pull-Ups",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -341,10 +375,13 @@
       "precautions": "Overhand grip, bar fully secure, start from a dead hang;Pull until your chin clears the bar - no swinging;Use a band assist or step if you cannot yet do one clean rep;Lower slowly to straight arms",
       "cues": "Hang tall, grip just outside shoulders;Pull your elbows down;Lower under control",
       "image": "back",
+      "url": "https://www.youtube.com/shorts/VgJZ5nerf5Q",
+      "shortUrl": "https://www.youtube.com/shorts/VgJZ5nerf5Q",
       "primary": false
     },
     {
       "id": "resistance-band-high-to-low-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Resistance Band High-to-Low Row",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -353,10 +390,12 @@
       "precautions": "Anchor the band high and step back into tension;Pull your elbows down toward your ribs, chest tall;Do not let your lower back arch as you pull;Inspect the band before every set",
       "cues": "Grip high, sit your hips back slightly;Pull down to your ribs;Return slowly",
       "image": "back",
+      "url": "https://www.youtube.com/results?search_query=Resistance+Band+High-to-Low+Row+form",
       "primary": false
     },
     {
       "id": "resistance-band-row",
+      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
       "name": "Resistance Band Row",
       "equipment": "Resistance Band",
       "sets": 1,
@@ -365,10 +404,13 @@
       "precautions": "Anchor the band at chest height and step back to tension;Pull your elbows straight back, shoulder blades squeezing;Keep your torso still - no rocking;Inspect the band before every set",
       "cues": "Brace tall, arms forward;Pull your elbows back;Squeeze, then return slowly",
       "image": "back",
+      "url": "https://www.youtube.com/shorts/qkirwOJmLSY",
+      "shortUrl": "https://www.youtube.com/shorts/qkirwOJmLSY",
       "primary": false
     },
     {
       "id": "tuck-front-lever-hold",
+      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
       "name": "Tuck Front Lever Hold",
       "equipment": "Bodyweight",
       "sets": 1,
@@ -377,6 +419,8 @@
       "precautions": "Advanced gymnastic hold - the bar must be fully secure;Keep your arms straight and lats engaged;Pull the bar down as you lift your tucked body toward horizontal;Stop well before your form breaks",
       "cues": "Hang with straight arms;Tuck your knees, lift toward horizontal;Hold, then lower slowly",
       "image": "back",
+      "url": "https://www.youtube.com/shorts/s_a3gqLFlNw",
+      "shortUrl": "https://www.youtube.com/shorts/s_a3gqLFlNw",
       "primary": false
     }
   ],
