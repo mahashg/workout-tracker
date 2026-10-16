@@ -14,6 +14,7 @@
       "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
       "image": "glutes",
       "url": "https://www.youtube.com/shorts/STYnAiPREnI",
+      "shortUrl": "https://www.youtube.com/shorts/STYnAiPREnI",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Warm-up activation"
@@ -33,6 +34,7 @@
       "cues": "Hinge at hips, not a squat;Snap hips, let the bell float;Keep back flat and core tight",
       "image": "glutes",
       "url": "https://www.youtube.com/watch?v=O3tXmXn2sog",
+      "shortUrl": "https://www.youtube.com/shorts/YaRKfCO8AiM",
       "primary": true,
       "variation": "Hinge only",
       "easier": "KB Deadlift (Light)"
@@ -50,6 +52,7 @@
       "cues": "Hips still, core tight;Kick heel back, not up;Squeeze glute, lower slowly",
       "image": "glutes",
       "url": "https://www.youtube.com/shorts/jKvvKrs2u_g",
+      "shortUrl": "https://www.youtube.com/shorts/jKvvKrs2u_g",
       "primary": true,
       "easier": "Glute Bridge"
     },
@@ -66,6 +69,7 @@
       "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
       "image": "glutes",
       "url": "https://www.youtube.com/shorts/fjHMwYiMgno",
+      "shortUrl": "https://www.youtube.com/shorts/E6k7nqyy1eg",
       "primary": true,
       "easier": "Glute Bridge"
     },
@@ -82,6 +86,7 @@
       "cues": "Feet flat, knees bent;Push through heels, ribs down;Squeeze glutes hard at the top",
       "image": "glutes",
       "url": "https://www.youtube.com/shorts/STYnAiPREnI",
+      "shortUrl": "https://www.youtube.com/shorts/STYnAiPREnI",
       "primary": true,
       "defaultWeight": "BW"
     },
@@ -98,6 +103,7 @@
       "cues": "Sit tall, pads outside knees;Press knees apart wide;Return slowly to stretch",
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=Hip+Abduction+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/V6Z-yFgQGww",
       "primary": false
     },
     {
@@ -113,6 +119,7 @@
       "cues": "Bell hangs between legs;Squat down wide and tall;Push through heels, squeeze glutes",
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=KB+Sumo+Squat+form",
+      "shortUrl": "https://www.youtube.com/shorts/gK8mzjrOkaA",
       "primary": false
     },
     {
@@ -127,6 +134,7 @@
       "cues": "Lift bent knee out to side;Keep hips level;Lower slowly, repeat, switch sides",
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=Fire+Hydrant+form",
+      "shortUrl": "https://www.youtube.com/shorts/nX4Xjoo2qcQ",
       "primary": false
     },
     {
@@ -142,6 +150,7 @@
       "cues": "Sit tall, pads inside knees;Squeeze legs together slowly;Open slowly to a mild stretch",
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=Hip+Adduction+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/i0SG7HeU6WQ",
       "primary": false
     },
     {
@@ -157,6 +166,7 @@
       "cues": "Hips square, knee on pad;Press heel back, squeeze glute;Return slowly, then switch sides",
       "image": "glutes",
       "url": "https://www.youtube.com/results?search_query=Glute+Kickback+Machine+form",
+      "shortUrl": "https://www.youtube.com/shorts/Zt6kfolzSsI",
       "primary": false,
       "easier": "Glute Bridge"
     },
@@ -175,6 +185,282 @@
       "primary": false,
       "home": true,
       "counterSec": 40
+    },
+    {
+      "id": "supine-leg-open-close",
+      "name": "Supine Leg Open-Close",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "glutes",
+      "precautions": "Lie on your back, legs up toward the ceiling;Open legs wide, then close slowly - control both ways;Lower back stays gently on the surface;Keep the movement smooth, no dropping",
+      "cues": "Legs up;Open wide, close slow;Back stays down",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "supine-butterfly",
+      "name": "Supine Butterfly",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "glutes",
+      "precautions": "Lie on your back, soles of the feet together;Let knees fall open, then draw them back together slowly;Never press the knees down with your hands;Keep breathing slow and easy",
+      "cues": "Soles together;Knees open and close gently;Breathe slow",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "baddha-konasana",
+      "name": "Baddha Konasana (Butterfly Pose)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "3-4 min",
+      "targetMuscles": "glutes",
+      "precautions": "Sit tall, soles together, knees open;Hold feet and gently flutter or rest the knees open;Never force knees to the floor;Sit on a folded blanket if hips feel tight",
+      "cues": "Soles together, sit tall;Knees open gently;Breathe slow",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "chair-leg-raises",
+      "name": "Chair-Supported Leg Raises",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20",
+      "targetMuscles": "glutes",
+      "precautions": "Stand behind a chair, hands resting on its back;Raise one leg out to the side, then behind you, under control;Keep the torso tall and still - the leg does the work;Never swing or lean away",
+      "cues": "Hold the chair, stand tall;Leg out to the side, then back;Torso stays still",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "hip-turnovers",
+      "name": "Hip Turnovers (Muay Thai)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "45 sec",
+      "targetMuscles": "glutes",
+      "precautions": "On all fours or standing tall, rotate the hip open and over like stepping over a low hurdle;Move one leg at a time, under control;Keep the supporting leg soft;Smooth beats fast while learning",
+      "cues": "Lift the knee, turn the hip over;Smooth controlled arcs;Alternate sides",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "db-swing",
+      "name": "DB Swing",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "40 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Hold one dumbbell (or two) by the ends, hinge with a flat back;Snap the hips forward to float the weight to chest height - arms are just ropes;Never lift with your shoulders or lean back;Let the weight fall back into the hinge",
+      "cues": "Hinge, snap the hips;Weight floats to chest height;Arms are ropes",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "cossack-squat",
+      "name": "Cossack Squat",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5 ea",
+      "targetMuscles": "glutes",
+      "precautions": "Wide stance; shift your hips fully onto one leg into a deep side squat;The straight leg's toes point up, heel down;Keep the bent knee tracking over its toes;Use your hands on the floor for balance while learning",
+      "cues": "Shift fully to one side;Straight leg toes up;Sit deep, chest up",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "ninety-ninety",
+      "name": "90/90 Hip Switches",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "glutes",
+      "precautions": "Sit with both knees bent at 90 degrees, one leg in front, one behind;Rotate both knees together to the other side like windshield wipers;Keep your chest tall and hands off the floor if you can;Move slowly - range grows over weeks, not minutes",
+      "cues": "Knees at 90 and 90;Wipe both knees side to side;Chest stays tall",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "ninety-ninety-folds",
+      "name": "90/90 Folds",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5 ea",
+      "targetMuscles": "glutes",
+      "precautions": "From the 90/90 position, hinge your chest over the front shin;Keep the back long as you fold;Only fold as far as the front hip allows;Return tall before switching sides",
+      "cues": "Sit in 90/90;Fold over the front shin;Long back, slow return",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "seated-frog-rotations",
+      "name": "Seated Frog Rotations",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Sit tall on a chair, feet wide, knees bent;Let both knees roll in and out together in small arcs;Keep feet planted and torso tall;Small, gentle range - this is mobility, not stretching to pain",
+      "cues": "Sit tall, feet wide;Roll knees in and out gently;Small smooth arcs",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "seated-frog-twist-reach",
+      "name": "Seated Frog Twist & Reach",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "glutes",
+      "precautions": "From the seated frog position, rotate your torso and reach one arm across and up;Keep both sit bones on the chair;Reach tall rather than far;Alternate sides smoothly",
+      "cues": "Twist and reach tall;Sit bones stay down;Alternate sides",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "knee-stirs",
+      "name": "Knee Stirs (Supine)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Lie on your back, one knee bent with the foot held or resting;Stir the bent leg in slow circles from the hip;Keep your pelvis still and lower back down;Reverse direction, then switch legs",
+      "cues": "Lie back, bend one knee;Stir slow circles from the hip;Pelvis stays still",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "ninety-ninety-lift-off",
+      "name": "90/90 Lift-Offs",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "From the 90/90 position, lift the back knee off the floor using only the hip;Keep the torso tall and still - no leaning away;Small lift is fine, this is end-range strength;Lower slowly, no dropping",
+      "cues": "Sit tall in 90/90;Lift the back knee with the hip;Lower slowly",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "hip-circles",
+      "name": "Hip Circles (All Fours)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "On all fours, lift one knee out to the side;Draw the biggest slow circle you can with that knee;Keep your back flat and pelvis level;Reverse direction halfway, then switch legs",
+      "cues": "All fours, knee lifted;Draw big slow circles;Back stays flat",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "frog-rocks",
+      "name": "Frog Rocks",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "glutes",
+      "precautions": "On all fours with knees wide and feet turned out;Rock your hips slowly back toward your heels, then forward;Keep the range comfortable - inner thighs set the limit;Never bounce at the end range",
+      "cues": "Knees wide, feet out;Rock hips back and forth slowly;Comfortable range only",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "lotus-forward-fold",
+      "name": "Full Lotus Forward Fold",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "20 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "ADVANCED - only if full lotus is already comfortable for you;Never force a knee into lotus - knee pain means stop immediately;Fold forward from the hips with a long back;Use baddha konasana (butterfly) as the substitute if lotus is not yours yet",
+      "cues": "Only if lotus is comfortable;Fold from the hips;Any knee pain = stop",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "runners-lunge-rotations",
+      "name": "Runner's Lunge Rotations",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "60 sec",
+      "targetMuscles": "glutes",
+      "precautions": "In a deep runner's lunge, rotate your torso open toward the front leg;One hand stays down, the other reaches up;Keep the back leg straight and strong;Alternate sides slowly",
+      "cues": "Deep lunge;Rotate open, reach up;Slow switch of sides",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "curtsy-lunge",
+      "name": "Curtsy Lunge",
+      "equipment": "Dumbbell",
+      "sets": 1,
+      "targetReps": "45 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Step one leg diagonally behind the other, like a curtsy;Keep hips and chest facing forward;Front knee tracks over its toes;Push through the front heel to stand (arm lift optional, as in the source)",
+      "cues": "Step behind and across;Hips stay forward;Push up through the front heel",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "slow-skaters",
+      "name": "Slow Skaters (Stepping)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "15 ea",
+      "targetMuscles": "glutes",
+      "precautions": "Step wide to one side, sweeping the other leg behind you - NO leaping in this version;Sink into the standing leg like a small curtsy;Keep the chest up and knee tracking straight;Touch down for balance whenever needed",
+      "cues": "Step wide, sweep behind;Sink into the standing leg;No jumping - step, don't leap",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "kneeling-hip-thrust",
+      "name": "Kneeling Hip Thrust (Chair)",
+      "equipment": "Bodyweight",
+      "sets": 3,
+      "targetReps": "15",
+      "targetMuscles": "glutes",
+      "precautions": "Kneel tall with forearms resting on a chair seat;Hinge hips back toward your heels, then thrust forward;Squeeze glutes hard at the top;Keep the motion in the hips, not the lower back",
+      "cues": "Kneel, forearms on chair;Hinge back, thrust forward;Squeeze glutes on top",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "hip-thrust",
+      "name": "Hip Thrust (Bench)",
+      "equipment": "Other",
+      "sets": 3,
+      "targetReps": "12",
+      "targetMuscles": "glutes",
+      "precautions": "Upper back rests on a bench, feet flat, knees bent;Drive hips up until thighs are level;Chin tucked, ribs down - no back arching at the top;Squeeze glutes for a full second",
+      "cues": "Drive hips to level;Squeeze at the top;Lower slowly",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "medicine-ball-squat-hinge",
+      "name": "Medicine-Ball Squat/Hinge",
+      "equipment": "Other",
+      "sets": 3,
+      "targetReps": "15",
+      "targetMuscles": "glutes",
+      "precautions": "Hold a light medicine ball at your chest;Hinge and squat in one blended motion, back flat;Keep the ball close to the body;Exact pattern uncertain - watch the source reel before first use",
+      "cues": "Ball held close;Hinge and squat together;Back stays flat",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "hip-rotations",
+      "name": "Hip Rotations",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5 ea",
+      "targetMuscles": "glutes",
+      "precautions": "Stand tall and hold support if your balance is wobbly;Move the hip in a smooth circle, pelvis steady;Keep the range comfortable - no pinching;Do both directions on both legs",
+      "cues": "Lift the knee, circle the hip joint;Smooth, slow circles;Switch direction, switch leg",
+      "image": "glutes",
+      "primary": false
     }
   ],
   "stretches": [
@@ -190,9 +476,94 @@
       "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
       "image": "glutes",
       "url": "https://www.youtube.com/shorts/fbMLr8XtVPE",
+      "shortUrl": "https://www.youtube.com/shorts/fbMLr8XtVPE",
       "primary": true,
       "defaultWeight": "BW",
       "variation": "Glute stretch"
+    },
+    {
+      "id": "low-lunge-hip-stretch",
+      "name": "Low Lunge Hip Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "Step into a long lunge, back knee down on padding;Tuck the pelvis slightly and shift hips forward;Feel the stretch in the back leg's front hip;Keep the torso tall, no leaning back",
+      "cues": "Long lunge, knee down;Tuck pelvis, shift forward;Torso tall",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "half-side-lunge-stretch",
+      "name": "Half Side Lunge Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "From a wide stance, sit hips toward one bent knee;Other leg stays straight, toes up;Keep the bent knee tracking over its toes;Hold and breathe, then switch",
+      "cues": "Wide stance;Sit to one side;Straight leg toes up",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "side-leg-hip-stretch",
+      "name": "Side Leg Hip Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "From tabletop, extend one leg out to the side;Shift hips gently toward the extended leg;Keep hands under shoulders for support;Mild stretch only, breathe easy",
+      "cues": "Tabletop, leg out to the side;Shift gently toward it;Breathe",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "deep-squat-hip-stretch",
+      "name": "Deep Squat Hip Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec",
+      "targetMuscles": "glutes",
+      "precautions": "Sit into the deepest comfortable squat;Gently shift weight side to side to open the hips;Use your hands on the floor for balance if needed;Heels down if you can, towel under heels is fine",
+      "cues": "Sit deep;Shift side to side gently;Chest up",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "seated-side-leg-hip-stretch",
+      "name": "Seated Side Leg Hip Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "30 sec ea",
+      "targetMuscles": "glutes",
+      "precautions": "Sit with one leg extended out to the side;Lean the torso gently over the extended leg;Keep the sitting bones grounded;Stop at a mild stretch",
+      "cues": "Leg out to the side;Lean gently over it;Sit bones stay down",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "name": "World's Greatest Stretch",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "5 ea",
+      "targetMuscles": "glutes",
+      "precautions": "From a deep lunge, place both hands inside the front foot;Drop the elbow toward the floor, then rotate and reach the same-side arm to the ceiling;Keep the back leg straight and strong;Flow down and up slowly, then switch sides",
+      "cues": "Lunge deep, hands inside foot;Elbow down, then reach up open;Slow flow, switch sides",
+      "image": "glutes",
+      "primary": false
+    },
+    {
+      "id": "hip-active-stretch",
+      "name": "Hip Active Stretch (Resisted Butterfly)",
+      "equipment": "Bodyweight",
+      "sets": 1,
+      "targetReps": "10",
+      "targetMuscles": "glutes",
+      "precautions": "Sit in butterfly position, hands resting on your knees;Press knees down while resisting with your hands - an active stretch, not a passive push;Build pressure gradually;Finish with a 10-second gentle hold",
+      "cues": "Butterfly position;Press knees against hand resistance;Gradual pressure, hold at the end",
+      "image": "glutes",
+      "primary": false
     }
   ]
 }
