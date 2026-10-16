@@ -205,4 +205,65 @@ Second pass over the 201 entries merged into the per-body-part files on 2026-10-
 | supine-heel-swings | Supine Heel Swings | Windmills | Windmills/0.jpg, Windmills/1.jpg | matched |
 | worlds-greatest-stretch | World's Greatest Stretch | World's Greatest Stretch | Worlds_Greatest_Stretch/0.jpg, Worlds_Greatest_Stretch/1.jpg | matched |
 
-Unmatched (photo-less) IDs: 180-degree-jump-turns, air-kicks, air-punches, alternate-arm-rows, alternate-arm-swings, arm-swings, arm-switches, around-the-world, baddha-konasana, bear-hold-shoulder-tap, body-kicks, body-waves, burpee, burpee-box-jump-over, cactus-arms, chair-leg-raises, chakki-chalanasana, chin-tuck-spinal-extensions, cobra-hip-rotation, cossack-squat, cross-climbers, crunch-extension, crunch-kicks, curtsy-lunge, db-clean-and-press, db-clean-to-front-squat, db-cluster, db-deadlift, db-deadlift-to-press, db-front-squat, db-push-press, db-rdl-to-front-squat, db-snatch, db-thruster, deep-squat-heel-raises, deep-squat-hip-stretch, deficit-push-up, devils-press, double-crunch, down-dog-calf-walk, elbow-clams, elephant-walk, floor-wipers, forward-lunge, frog-hold, frog-rocks, froggers, half-side-lunge-stretch, halo-to-woodchop, hamstring-to-hip-flow, headstand-push-up, heart-opener-hold, high-knees, high-plank-to-squat-hold, hip-active-stretch, hip-circles, hip-flexor-hamstring-flow, hip-rotations, hip-turnovers, hollow-hold, jump-step-ups, jumping-jacks, kettlebell-clean-and-press, kettlebell-front-rack-reverse-lunge, knee-claps, knee-drive-curl, knee-drive-press, knee-stirs, kneeling-ankle-mobility, kneeling-hip-thrust, kneeling-side-bends, lizard-hops, lotus-forward-fold, lotus-sphinx, low-lunge-hip-stretch, lunge-high-knee-kick, lunge-to-knee-drive, lunge-with-press, malasana, malasana-walk, manmaker, medicine-ball-squat-hinge, neck-circles-up-dog, neck-rotations, ninety-ninety, ninety-ninety-folds, ninety-ninety-lift-off, oblique-crunch, offset-push-up, one-legged-squat, overhead-march, overhead-squat, pancake-fold, plank-ball-pass, plank-hip-dips, plank-jacks, plank-jump-kick-backs, plank-jumps, plank-knee-touches, plank-pull-through, plank-reach-outs, pogo-jumps, press-leg-lift, push-up-toe-touch, renegade-row, resistance-band-chest-press, resistance-band-deadlift, resistance-band-high-to-low-row, resistance-band-row, reverse-plank-hold, rolling-squat-tuck-up-jump, runners-lunge-rotations, running-in-place, scapular-mobility, seated-frog-rotations, seated-frog-twist-reach, seated-leg-kicks, seated-leg-raises, seated-side-leg-hip-stretch, seated-toe-touches, shoulder-external-rotation, side-leg-hip-stretch, side-lunge, side-plank, side-plank-dip, side-to-side-push-ups, slow-skaters, spider-man-steps, squat-jump-step, squat-to-calf-raise, squat-to-floor-tap, squat-to-side-crunch, squat-to-step-jump, squat-twist-high-knee, standing-leg-extension, standing-side-bend, standing-torso-twist, star-crunch, step-squat-back, step-up-knee-to-lunge, stepper-shuffles, sumo-squat-high-pull, sumo-squat-to-calf-raise, supine-butterfly, supine-knee-drops, supine-leg-open-close, switch-knees, teep, thoracic-rotations, thread-the-needle, transverse-lunge-and-chop, tuck-back-lever-hold, tuck-front-lever-hold, tyson-push-up, uppercut-punches, wall-handstand-hold, wall-handstand-transition, windmill-touches
+Unmatched (photo-less) IDs — as of the media pass; SUPERSEDED by the photo completion sweep below. Current photo-less list (38): alternate-arm-swings, arm-switches, around-the-world, bear-hold-shoulder-tap, body-kicks, body-waves, cactus-arms, chin-tuck-spinal-extensions, cobra-hip-rotation, crunch-kicks, curtsy-lunge, db-cluster, db-deadlift-to-press, elbow-clams, forward-lunge, frog-hold, high-knees, hip-circles, hip-flexor-hamstring-flow, knee-drive-press, malasana-walk, neck-circles-up-dog, neck-rotations, offset-push-up, plank-hip-dips, plank-jacks, plank-jump-kick-backs, plank-jumps, resistance-band-high-to-low-row, scapular-mobility, seated-frog-rotations, seated-frog-twist-reach, seated-leg-kicks, squat-to-calf-raise, squat-to-side-crunch, standing-leg-extension, teep, uppercut-punches
+
+## Photo completion sweep — 2026-10-16
+
+Coverage: 132/318 entries with photos after the media pass → **280/318** after the sweep. Images were sourced from free-exercise-db, covers of the entries' own YouTube Shorts/videos (the video each entry already links), targeted web searches, and one Wikimedia Commons file; every image in the final QA table below was downloaded and visually verified to show the named movement before use. All images are local APK assets only (binaries are never pushed to GitHub); processing matches the pipeline spec (max width 640px, JPEG quality 80). Placements made during the sweep's bulk pass drew on the same source classes; the individually verified final-QA placements are recorded per entry here:
+
+| Entry | Source |
+|---|---|
+| 180-degree-jump-turns | YouTube Short cover u3NdBboBpOI (web search) |
+| air-punches | YouTube Short cover 42ANiDqnaZA (web search) |
+| baddha-konasana | Cover of the entry's catalog Short qADkL-7MyiQ |
+| back-extension-machine | YouTube cover mD_mKrQSNJs (machine in use) |
+| burpee | Cover of the entry's catalog Short dpFi7WuhGzc (dumbbell burpee variant) |
+| burpee-box-jump-over | YouTube cover zG6yWXld-xs (web search; title-card style) |
+| cossack-squat | Cover of the entry's catalog Short JfauHQjKVrU |
+| db-push-press | YouTube cover vuaYVK8xyqo (web search) |
+| db-reverse-fly | free-exercise-db Reverse_Flyes 0.jpg / 1.jpg (pair; restored) |
+| db-snatch | YouTube cover SiqQ_ePRMQQ |
+| deep-squat-hip-stretch | Cover of the entry's catalog Short RY8UJetMs3Y |
+| deficit-push-up | YouTube cover DCYIpwmesGU |
+| down-dog-calf-walk | Cover of the entry's catalog Short RJv9ZFyXQYY |
+| elephant-walk | Wikimedia Commons "Downward-Facing-Dog.JPG", CC BY 3.0 (the movement's start position) |
+| floor-wipers | Cover of the entry's catalog Short tnHG1R_3L-o |
+| frog-rocks | Cover of the entry's catalog Short UYTbTFsg-1c |
+| half-side-lunge-stretch | YouTube cover zejTuBTEkfY (web search) |
+| jump-step-ups | Cover of the entry's catalog Short Tr5_yGUKuo4 |
+| jumping-jacks | Cover of the entry's catalog Short l7uVPxoBUjs |
+| kettlebell-clean-and-press | YouTube cover y06rQiKo7-Y |
+| kettlebell-halo | Cover of the entry's catalog Short HxrEOOBo_30 (front-pass position) |
+| knee-claps | Cover of the entry's catalog Short ux5q0qFCotg |
+| kneeling-ankle-mobility | YouTube cover Kn-TjcmuzYQ (web search) |
+| lotus-sphinx | Cover of the entry's catalog Short n3oobgBJtEk (sphinx base pose) |
+| low-lunge-hip-stretch | Cover of the entry's catalog Short ZT9BjOEDzFw |
+| lunge-high-knee-kick | YouTube cover YDrAnayx_X8 (web search) |
+| lunge-to-knee-drive | Cover of the entry's catalog Short gyW9LZWdrgA |
+| lunge-with-press | Cover of the entry's catalog Short xVPv-osWTxo |
+| malasana | Cover of the entry's catalog Short DHagOsZkxX8 |
+| manmaker | YouTube cover jLTvwydY2s4 |
+| ninety-ninety | Cover of the entry's catalog Short Z4y8JNYdqrA |
+| oblique-crunch | YouTube cover icnHT_3UmtY (standing variant) |
+| one-legged-squat | Cover of the entry's catalog Short pIdAfW3OoIM |
+| pancake-fold | Cover of the entry's catalog Short K9fIbOSaP-o |
+| plank-ball-pass | YouTube cover BBaqnwqS5vA (web search) |
+| plank-knee-touches | YouTube cover yXre4qLb4cU |
+| plank-pull-through | Cover of the entry's catalog Short 1-pVj5L8nkw |
+| plank-reach-outs | YouTube cover YZ2UjoBWLGc |
+| pogo-jumps | Cover of the entry's catalog Short s_qM8NDHp1k |
+| renegade-row | YouTube cover _0MBf2FSy0E |
+| resistance-band-row | YouTube cover qkirwOJmLSY |
+| runners-lunge-rotations | Cover of the entry's catalog Short 4V4LzWRcuYg |
+| running-in-place | Cover of the entry's catalog Short y5GSK_qZHW8 |
+| side-plank-dip | Cover of the entry's catalog Short d-pNRtspSK0 |
+| spider-man-steps | Cover of the entry's catalog Short -OBN7kZr60c |
+| step-touch | Cover of the entry's catalog Short FYFzE3ZB10Q |
+| sumo-squat-to-calf-raise | YouTube cover 1uVAOiZnWOk (web search) |
+| supine-butterfly | Cover of the entry's catalog Short Nkj21ICOv7Q |
+| torso-rotation-machine | Cover of the entry's catalog Short -gorgRO2pSw (machine in use; dim frame) |
+| tuck-front-lever-hold | Cover of the entry's catalog Short s_a3gqLFlNw |
+
+Rejected on visual inspection during final QA and returned to photo-less (image did not clearly show the named movement): around-the-world (cover shows dumbbell halos), bear-hold-shoulder-tap (cover shows donkey kicks, no shoulder tap), body-kicks (roundhouse into a heavy bag; entry is in-place front kicks), curtsy-lunge (one-legged balance drill), db-cluster (talking intro cover), forward-lunge (squat hold with blocks), frog-hold (crow-pose attempt; entry is the prone frog stretch), high-knees (unrelated nature thumbnail), hip-circles (kneeling stretch, no circles), neck-rotations (stock portrait, Pexels 8760439), plank-hip-dips (workout menu card), plank-jacks (presenter standing), plank-jumps (bent-knee bear stance, no jump), squat-to-calf-raise (presenter standing), squat-to-side-crunch (standing stance only), teep (guard stance, no kick), uppercut-punches (trainer holding mitts).
+
+Still photo-less after the sweep (38): the 17 QA rejections above plus 21 with no verifiable image found — alternate-arm-swings, arm-switches, body-waves, cactus-arms, chin-tuck-spinal-extensions, cobra-hip-rotation, crunch-kicks, db-deadlift-to-press, elbow-clams, hip-flexor-hamstring-flow, knee-drive-press, malasana-walk, neck-circles-up-dog, offset-push-up (only cover is an unreadably dark frame), plank-jump-kick-backs, resistance-band-high-to-low-row, scapular-mobility, seated-frog-rotations, seated-frog-twist-reach, seated-leg-kicks, standing-leg-extension (Short cover shows a knee lift, not the extension). Most of the 21 are Instagram-reel-only movements whose frames cannot be extracted in this environment, or niche mobility/stepper variants with no verifiable still; they keep the body-map fallback per the never-a-wrong-photo rule.
