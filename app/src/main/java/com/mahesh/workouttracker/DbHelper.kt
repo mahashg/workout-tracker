@@ -242,6 +242,41 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         return seId
     }
 
+    /** v3.11: create an EMPTY Circuits session, same shape as a Movie
+     *  session (no exercises, no parts — the circuit runner appends one
+     *  session_exercises row per step as it is performed). The session's
+     *  identity is its focus: CircuitsData.FOCUS_PREFIX + circuitId (see
+     *  CircuitsData.isCircuit), while routineName carries the circuit's
+     *  display name for History/Summary/Health Connect. */
+    fun createCircuitSession(circuitId: String, circuitName: String, weekNumber: Int, weekStart: String): Long {
+        val db = writableDatabase
+        val todayStr = DateUtil.fmt(DateUtil.today())
+        val nowMs = System.currentTimeMillis()
+        val v = ContentValues().apply { put("routineId",-1L); put("routineName",circuitName); put("focus",CircuitsData.FOCUS_PREFIX+circuitId); put("date",todayStr); put("weekNumber",weekNumber); put("weekStart",weekStart); put("completed",0); put("startedAt",nowMs); put("elapsedSec",0); put("endedAt",0L) }
+        return db.insert("sessions", null, v)
+    }
+
+    /** v3.11: perform one circuit step — appends a pending
+     *  session_exercises row for [e] at the end of the session, with
+     *  exactly ONE pre-filled set whose reps are [setReps] (the step's
+     *  resolved repsLabel: a rep count, or the timed dose text for a
+     *  timed step). Like appendMovieExercise the copy's type is forced
+     *  to "Main" so Summary/History group every step under one section.
+     *  Unlike the deck (all bodyweight), a circuit step is bodyweight
+     *  only when the exercise actually is: equipment "Bodyweight" or a
+     *  "BW" default weight; weighted steps store weight "" for the
+     *  logger to fill in. */
+    fun appendCircuitExercise(sessionId: Long, e: Exercise, setReps: String): Long {
+        val db = writableDatabase
+        val order = getSessionExercises(sessionId).size
+        val ev = ContentValues().apply { put("sessionId",sessionId); put("originExerciseId",e.id); put("name",e.name); put("type","Main"); put("equipment",e.equipment); put("variation",e.variation); put("youtubeUrl",e.youtubeUrl); put("sortOrder",order); put("targetMuscles",e.targetMuscles); put("status","pending"); put("cues",e.cues); put("effort",""); put("postureCheck",e.postureCheck) }
+        val seId = db.insert("session_exercises", null, ev)
+        val isBw = e.equipment.equals("Bodyweight", true) || e.defaultWeight == "BW"
+        val sv = ContentValues().apply { put("sessionExerciseId",seId); put("setNumber",1); put("weight",""); put("reps", setReps); put("isBodyweight", if (isBw) 1 else 0); put("isDone",0) }
+        db.insert("session_sets", null, sv)
+        return seId
+    }
+
     // ---------- session_parts (v3) ----------
     fun getSessionParts(sessionId: Long): List<String> {
         val list = mutableListOf<String>()
