@@ -61,6 +61,15 @@ class CardSessionActivity : AppCompatActivity() {
     private var peekNear: View? = null
     private var peekFar: View? = null
     private var draggingCard = false
+    // v3.13: posture/cues disclosure on the card — the exercise whose
+    // full Beginner content is expanded, or -1 when collapsed.
+    private var postureOpenFor: Long = -1
+    // v3.13: the inline logger panel's staged state, keyed by
+    // "<exerciseId>:<setId>" so it survives render() passes for the
+    // same next set but is rebuilt (via SetLogger.panelPrefill) the
+    // moment the next set changes.
+    private var panelState: SetLogger.SetPanelState? = null
+    private var panelKey: String = ""
     private var cardAnimating = false
     private var thresholdHapticDone = false
     private var animateEntryOnNextRender = false
@@ -153,29 +162,48 @@ class CardSessionActivity : AppCompatActivity() {
         val sets=db.getSets(ex.id)
         val doneSets=sets.count{it.isDone}
         val root=fitRoot(); setContentView(root)
-        root.addView(topBar(sectionLabel(sectionType), "Card ${index+1} of ${deck.size}"))
-        // Top bar color-coded + workout timer chip. Explicit 96dp budget (v2.5.1):
-        // progress line + bar + 30dp timer chip; deck (weight 1) absorbs the rest.
-        val top=cardLayout(when(sectionType){"Warmup"->"#D97706";"Stretch"->"#0D9488";else->"#2563EB"})
-        top.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(96)).apply { setMargins(0, 0, 0, 0) }
-        top.setPadding(dp(12), dp(6), dp(12), dp(6))
-        top.addView(makeText("${sectionLabel(sectionType)}  •  Card ${index+1} of ${deck.size}  •  ${deck.count{db.effectiveStatus(it)=="done"}} done • ${deck.count{db.effectiveStatus(it)=="skipped"}} skipped",14f,true).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        // v2.6.1: same position-based fill as Preview — (index+1)/total, never
-        // an empty bar on card 1 (handled count can only raise it further).
-        val handledCount = deck.count { db.effectiveStatus(it) != "pending" }
-        top.addView(hProgress(deck.size, maxOf(handledCount, (index + 1).coerceAtMost(deck.size)), sectionColor(sectionType)).apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(10); setMargins(0, dp(4), 0, 0) } })
-        val sessForTimer = db.getSession(sessionId)
-        if (sessForTimer != null && !sessForTimer.completed) {
+        // v3.13 (r4 Screen 4): the calm card — hairline, top row, ONE
+        // circular-photo card with the logger panel INLINE. No top
+        // 96dp card, no peek cards, no photo band, no button row:
+        // Skip / Do later are quiet text actions under the panel and
+        // the hub lives on the strip's circle (buildStrip).
+        val allSessionExs = db.getSessionExercises(sessionId)
+        val handledCount = allSessionExs.count { db.effectiveStatus(it) != "pending" }
+        root.addView(BendHairlineView(this).apply {
+            fraction = if (allSessionExs.isEmpty()) 0f else handledCount.toFloat() / allSessionExs.size
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        })
+        // Top row: routine name + exercise position on the left, the
+        // existing timer / rest chips on the right.
+        val session = db.getSession(sessionId)
+        val sessionPos = allSessionExs.indexOfFirst { it.id == ex.id }
+        val topRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
+        }
+        val topLeft = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        topLeft.addView(bendScreenName(session?.routineName?.takeIf { it.isNotBlank() } ?: sectionLabel(sectionType)).apply {
+            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        })
+        topLeft.addView(bendMicro("EXERCISE ${sessionPos + 1} OF ${allSessionExs.size}").apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(2), 0, 0)
+        })
+        topRow.addView(topLeft)
+        if (session != null && !session.completed) {
             db.ensureSessionStarted(sessionId)
             // v3.7: the REST chip sits next to the elapsed timer while a
             // rest is active (RestTimer engine state), tap reopens the ring.
             val chipRow = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(30)).apply { setMargins(0, dp(4), 0, 0) }
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             }
             val chip = TimerChipView(this)
             chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
-            chip.bind(this, db, db.getSession(sessionId) ?: sessForTimer) {}
+            chip.bind(this, db, db.getSession(sessionId) ?: session) {}
             // v3.12: swipe right on the timer bar = finish workout.
             chip.onFinishSwipe = { confirmFinishWorkout() }
             chip.startTicking()
@@ -186,238 +214,211 @@ class CardSessionActivity : AppCompatActivity() {
             rc.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) }
             restChip = rc
             chipRow.addView(rc)
-            top.addView(chipRow)
+            topRow.addView(chipRow)
         }
-        root.addView(top)
+        root.addView(topRow)
 
-        // ---- Card deck (v2.2): ONE moving card over two static peek cards ----
+        // ---- Card deck: ONE moving card (no peek cards behind it) ----
         val deckBox = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { setMargins(0, dp(8), 0, dp(6)) }
             clipChildren = false; clipToPadding = false
         }
-        // Peek cards behind (far = smaller/lighter, near = closer), purely decorative.
-        peekFar = View(this).apply {
-            background = deckCardDrawable()
-            alpha = 0.45f; scaleX = 0.92f; scaleY = 0.92f; translationY = dp(22).toFloat()
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        }
-        peekNear = View(this).apply {
-            background = deckCardDrawable()
-            alpha = 0.7f; scaleX = 0.96f; scaleY = 0.96f; translationY = dp(12).toFloat()
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        }
-        deckBox.addView(peekFar); deckBox.addView(peekNear)
-
-        // The moving card: wrapper carries card surface + direction tint + faded labels,
-        // so shadow, border, band and content all travel together.
+        peekFar = null; peekNear = null
+        // The moving card: wrapper carries content + direction tint +
+        // faded labels, so everything travels together.
         val wrap = FrameLayout(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             clipChildren = false; clipToPadding = false
         }
-        val dragCard = LinearLayout(this).apply {
+        val wrapRef = wrap
+        cardSurface = null
+        val col = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            // v2.6.1: top padding >= 14dp so the exercise name never touches the band.
-            setPadding(dp(12), dp(14), dp(12), dp(12))
-            background = deckCardDrawable()
-            elevation = dp(8).toFloat()
+            setPadding(dp(4), 0, dp(4), 0)
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
-        cardSurface = dragCard
-        dragCardBand(dragCard)
-        val muscles=DbHelper.parseMuscles(ex.targetMuscles, ex.name)
-        // v3: last performance PROMINENT at the top of the card (user ask) —
-        // in v3.1 it lives in the header overlay below.
-        val last=db.lastPerformedForExercise(ex.name, sessionId)
-        val lastLine = if (last != null) lastTimeTitle(last) else "First time — no previous record. Start light."
-        // v3.2 (approved mock): the photo band is aspect-matched to the
-        // bundled photos (3:2) — height = content width x 2/3 — so the
-        // ENTIRE frame is visible: CENTER_CROP in an aspect-matched box
-        // crops nothing and stretches nothing. Both PhotoLooper frames
-        // share the identical container, so the crossfade never shifts.
-        // Tags (body part + equipment) sit top-left over the photo; the
-        // name + last-time line ride the bottom gradient scrim. No photo
-        // -> the body map gets the same band on the mist surface.
-        val photoAsset = PhotoLib.assetForSessionExercise(this, db, ex)
-        val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
-        val screenWDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
-        val rootPadH = if (isCompactScreen()) 28 else 40 // fitRoot horizontal padding, both sides
-        val photoH = ((screenWDp - rootPadH - 24) * 2 / 3).coerceAtLeast(120) // minus dragCard padding 12+12
-        val header = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(photoH)).apply { setMargins(0, 0, 0, dp(6)) }
-            roundedClip(16)
-        }
-        if (photoBmp != null) {
-            header.setBackgroundColor(Theme.surfaceVariant)
-            header.addView(android.widget.ImageView(this).apply {
-                setImageBitmap(photoBmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            })
-            val photo2 = photoAsset?.let { PhotoLib.secondBitmap(this, it) }
-            if (photo2 != null) {
-                val iv2 = android.widget.ImageView(this).apply {
-                    setImageBitmap(photo2); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP; alpha = 0f
+        val muscles = DbHelper.parseMuscles(ex.targetMuscles, ex.name)
+        val last = db.lastPerformedForExercise(ex.name, sessionId)
+        // 1. Circle block: circular photo (or centered body map) with
+        // the sets-progress ring over it.
+        run {
+            val size = if (isCompactScreen()) 200 else 236
+            val circleBox = FrameLayout(this).apply {
+                layoutParams = LinearLayout.LayoutParams(dp(size), dp(size)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(10), 0, 0) }
+            }
+            val frame = bendCircleFrame(size)
+            val photoAsset = PhotoLib.assetForSessionExercise(this, db, ex)
+            val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
+            if (photoBmp != null) {
+                frame.addView(android.widget.ImageView(this).apply {
+                    setImageBitmap(photoBmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                     layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-                }
-                header.addView(iv2)
-                val looper = PhotoLooper(iv2); photoLoopers.add(looper); looper.start()
-            }
-            // v3.3: scrim is taller (112dp) and the name block is raised
-            // 32dp so the bottom swipe cue (item 4) never overlaps it.
-            header.addView(View(this).apply {
-                background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xCC000000.toInt(), 0x00000000))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(112), Gravity.BOTTOM)
-            })
-            val overlay = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(12), 0, dp(12), dp(8))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
-            }
-            overlay.addView(sectionPill())
-            overlay.addView(makeText(ex.name, 20f, true, Color.WHITE).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            overlay.addView(makeText(lastLine, 12.5f, true, Color.WHITE).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            header.addView(overlay)
-        } else {
-            header.background = roundedBg("#EDF2F7", 16)
-            val mapH = photoH * 3 / 4
-            header.addView(BodyMapView(this, muscles, true).apply {
-                layoutParams = FrameLayout.LayoutParams(dp(mapH * 76 / 96), dp(mapH), Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(14), 0) }
-            })
-            val overlay = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(12), 0, dp(12), dp(8))
-                // v3.3: raised 32dp so the bottom swipe cue never overlaps it.
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply { setMargins(0, 0, 0, dp(32)) }
-            }
-            overlay.addView(sectionPill())
-            overlay.addView(makeText(ex.name, 20f, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            overlay.addView(makeText(lastLine, 12.5f, true, Theme.primary).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-            header.addView(overlay)
-        }
-        // v3.7 (approved mock screen 3): the header's top row is now the
-        // "☰ All exercises" chip (top-left, back to the hub) and the
-        // form-video as a 38dp icon (top-right) — both dark translucent
-        // pills (rgba(15,23,42,.55)), white ink. They replace the v3.2
-        // part/equipment tags (body part still shows as the hub row tag
-        // and in the section pill below; equipment rides the essentials
-        // "Do it" context and the list view). Both are clickable
-        // children, so they consume their own taps and never start a
-        // card drag — same contract as the old video button.
-        run {
-            val darkPill = 0x8C0F172A.toInt() // rgba(15,23,42,.55)
-            val allChip = TextView(this).apply {
-                text = "☰ All exercises"; textSize = 12.5f; setTextColor(Color.WHITE)
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                background = GradientDrawable().apply { setColor(darkPill); cornerRadius = dp(999).toFloat() }
-                setPadding(dp(11), dp(6), dp(11), dp(6)); maxLines = 1
-                isClickable = true
-                setOnClickListener { navigateToHub() }
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) }
-            }
-            header.addView(allChip)
-            if (ex.youtubeUrl.isNotBlank()) {
-                val vicon = TextView(this).apply {
-                    text = "▶"; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
-                    background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(darkPill) }
-                    isClickable = true
-                    // v3.10 (Mahesh): a tap plays the entry's YouTube
-                    // Short when one was verified for it — the quick
-                    // form glance — and falls back to the long video;
-                    // a long-press always opens the full video (the
-                    // deeper link). shortUrl is runtime-resolved from
-                    // the bundled JSON by sourceId (JsonSeed), never
-                    // stored on the session row.
-                    setOnClickListener {
-                        val short = JsonSeed.shortUrlForSessionExercise(this@CardSessionActivity, db, ex)
-                        openUrl(this@CardSessionActivity, short ?: ex.youtubeUrl)
+                })
+                val photo2 = photoAsset?.let { PhotoLib.secondBitmap(this, it) }
+                if (photo2 != null) {
+                    val iv2 = android.widget.ImageView(this).apply {
+                        setImageBitmap(photo2); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP; alpha = 0f
+                        layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
                     }
-                    setOnLongClickListener {
-                        openUrl(this@CardSessionActivity, ex.youtubeUrl)
-                        true
-                    }
-                    layoutParams = FrameLayout.LayoutParams(dp(38), dp(38), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(10), dp(10), 0) }
+                    frame.addView(iv2)
+                    val looper = PhotoLooper(iv2); photoLoopers.add(looper); looper.start()
                 }
-                header.addView(vicon)
+            } else {
+                val mapH = (size * 0.58f).toInt()
+                frame.addView(BodyMapView(this, muscles, true).apply {
+                    layoutParams = FrameLayout.LayoutParams(dp(mapH * 76 / 96), dp(mapH), Gravity.CENTER)
+                })
             }
+            circleBox.addView(frame)
+            circleBox.addView(BendRingView(this).apply {
+                fraction = if (sets.isEmpty()) 0f else doneSets.toFloat() / sets.size
+                strokeDp = 4f
+                layoutParams = FrameLayout.LayoutParams(dp(size), dp(size))
+            })
+            col.addView(circleBox)
         }
-        // v3.3 (item 4): persistent swipe cues ON the photo band — the same
-        // band body-map exercises use, so every card type gets them. Left =
-        // Skip, right = Done (solid success green), bottom = Later. They are
-        // click-through decoration: the card's drag handling lives on the
-        // wrap, and non-clickable children never consume its touches. Live
-        // session only — PreviewCardsActivity has its own header builder
-        // and deliberately shows no cues (browse-only, gestures don't log).
-        run {
-            fun swipeCue(text: String, bgColor: Int, gravity: Int, mL: Int, mR: Int, mB: Int): TextView {
-                return TextView(this).apply {
-                    this.text = text; textSize = 11f; setTextColor(Color.WHITE)
-                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    background = GradientDrawable().apply { setColor(bgColor); cornerRadius = dp(999).toFloat() }
-                    setPadding(dp(10), dp(5), dp(10), dp(5)); maxLines = 1
-                    alpha = cueRestAlpha; isClickable = false; isFocusable = false
-                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, gravity).apply { setMargins(dp(mL), 0, dp(mR), dp(mB)) }
-                }
-            }
-            val cueBg = 0xCC101826.toInt() // dark translucent slate
-            cueSkip = swipeCue("← ✕ Skip", cueBg, Gravity.START or Gravity.CENTER_VERTICAL, 8, 0, 0)
-            cueDone = swipeCue("Done ✓ →", Theme.success, Gravity.END or Gravity.CENTER_VERTICAL, 0, 8, 0)
-            cueLater = swipeCue("↓ Later", cueBg, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 0, 8)
-            header.addView(cueSkip); header.addView(cueDone); header.addView(cueLater)
-        }
-        dragCard.addView(header)
-        // Essentials under the photo band: variation, then one compact row —
-        // Do-it + Sets lines on the left, set-progress dots on the right.
-        // (The equipment badge moved onto the photo as a tag.)
-        if(ex.variation.isNotBlank()) dragCard.addView(makeText(ex.variation,12f,false,Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-        val essRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) } }
-        val essInfo = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
-        essInfo.addView(makeText("Do it: ${doItLine(sets)}",14f,true,Color.parseColor("#92400E")).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-        essInfo.addView(makeText("Sets: $doneSets of ${sets.size} done",12.5f,false,Theme.textSecondary).apply { (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0) })
-        essRow.addView(essInfo)
-        essRow.addView(makeText(sets.mapIndexed{i,s-> if(s.isDone) "●" else "○"}.joinToString("  "),18f,true,Color.parseColor("#15803D")).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(dp(8), 0, 0, 0) }
+        // 2. Name.
+        col.addView(bendName(ex.name).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.MATCH_PARENT; setMargins(0, dp(14), 0, 0) }
         })
-        dragCard.addView(essRow)
-
-        // v2.6: no Show/Hide toggle — "Check your posture" is always visible.
-        // v3.2 (approved mock): the posture check moves OUT of the photo
-        // area into its own surface card directly below the essentials row:
-        // flat mist fill + stroke inside the deck card. Bullet/cue caps keep
-        // the fixed-height card from clipping at the ~546dp compact floor
-        // (the v2.5 accepted how-to cap; full content lives in the list
-        // view). Posture content itself is untouched.
-        run {
-            val how = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(16).toFloat(); setStroke(dp(1), Theme.stroke) }
-                setPadding(dp(12), dp(10), dp(12), dp(10))
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+        // 3. The ONE cue line: the first posture check (else the first
+        // cue), with a chevron when the disclosure holds more.
+        val postureItems = (ex.postureCheck.ifBlank { DbHelper.postureForName(ex.name, ex.type) })
+            .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+        val cueItems = (ex.cues.ifBlank { DbHelper.cuesForName(ex.name, ex.equipment, ex.type) })
+            .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+        val firstLine = postureItems.firstOrNull() ?: cueItems.firstOrNull()
+        val hasMore = postureItems.size + cueItems.size > 1 || musclesLabel(muscles).isNotBlank() ||
+            ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell"
+        val postureOpen = postureOpenFor == ex.id
+        if (firstLine != null) {
+            val cueView = bendCue("\"$firstLine\"" + when { !hasMore -> ""; postureOpen -> "  \u25b4"; else -> "  \u25be" })
+            cueView.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+            if (hasMore) {
+                cueView.isClickable = true
+                cueView.setOnClickListener {
+                    postureOpenFor = if (postureOpenFor == ex.id) -1 else ex.id
+                    render()
+                }
             }
+            col.addView(cueView)
+        }
+        // 4. Watch line: the old photo \u25b6 icon's handlers, verbatim.
+        if (ex.youtubeUrl.isNotBlank()) {
+            val watch = bendWatchLine()
+            watch.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+            watch.isClickable = true
+            // v3.10 (Mahesh): a tap plays the entry's YouTube Short when
+            // one was verified for it and falls back to the long video;
+            // a long-press always opens the full video.
+            watch.setOnClickListener {
+                val short = JsonSeed.shortUrlForSessionExercise(this@CardSessionActivity, db, ex)
+                openUrl(this@CardSessionActivity, short ?: ex.youtubeUrl)
+            }
+            watch.setOnLongClickListener {
+                openUrl(this@CardSessionActivity, ex.youtubeUrl)
+                true
+            }
+            col.addView(watch)
+        }
+        // 5. Disclosure panel: the FULL Beginner content (the old
+        // `how` card, uncapped) — shown only while this exercise is
+        // the open one (postureOpenFor == ex.id).
+        if (postureOpen) {
+            val panel = bendPanel()
+            panel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
             fun slim(v: TextView, topDp: Int = 1): TextView {
                 (v.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(topDp), 0, dp(1))
                 return v
             }
-            // v3.7: no full-width video button here any more — the form
-            // video is the ▶ icon at the photo's top-right (mock screen 3).
-            how.addView(slim(makeText("What you'll feel: ${musclesLabel(muscles)}",12f,false,Color.parseColor("#0369A1")), 2))
-            val posture = ex.postureCheck.ifBlank{ DbHelper.postureForName(ex.name, ex.type) }
-            if(posture.isNotBlank()){
-                val items = posture.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                how.addView(slim(makeText("Check your posture:",13f,true,Color.parseColor("#15803D")), 4))
-                for(c in items.take(if (isCompactScreen()) 2 else 3)) how.addView(slim(makeText("☐  $c",12f,false).apply { setLineSpacing(0f, 0.95f); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }))
+            panel.addView(slim(makeText("What you'll feel: ${musclesLabel(muscles)}", 12.5f, false, Theme.accentSky), 2))
+            if (postureItems.isNotEmpty()) {
+                panel.addView(slim(makeText("Check your posture:", 13f, true, Theme.success), 4))
+                for (c in postureItems) panel.addView(slim(makeText("\u2610  $c", 12f, false)))
             }
-            val cues=ex.cues.ifBlank{DbHelper.cuesForName(ex.name,ex.equipment,ex.type)}
-            if(cues.isNotBlank()){
-                val items = cues.split(";").map{it.trim()}.filter{it.isNotEmpty()}
-                for(c in items.take(1)) how.addView(slim(makeText("•  $c",11f,false,Theme.textSecondary).apply { setLineSpacing(0f, 0.95f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }))
-            }
-            if(ex.equipment=="Machine"||ex.equipment=="Dumbbell"||ex.equipment=="Kettlebell") how.addView(slim(makeText("Start light: use the lightest weight that feels easy first.",11f,false,Color.parseColor("#92400E"))))
-            dragCard.addView(how)
+            for (c in cueItems) panel.addView(slim(makeText("\u2022  $c", 11.5f, false, Theme.textSecondary)))
+            if (ex.equipment == "Machine" || ex.equipment == "Dumbbell" || ex.equipment == "Kettlebell")
+                panel.addView(slim(makeText("Start light: use the lightest weight that feels easy first.", 11.5f, false, Theme.warn)))
+            col.addView(panel)
         }
-        // v3.3: the old under-card swipe-hint line is gone — the direction
-        // cues now live on the photo band itself (item 4). "Next up:" below
-        // the button row stays — it's informative.
-
-        wrap.addView(dragCard)
+        // 6. Logger zone: the shared panel INLINE for the next set.
+        val nextSet = sets.firstOrNull { !it.isDone }
+        if (nextSet != null) {
+            val key = "${ex.id}:${nextSet.id}"
+            if (panelKey != key) {
+                panelState = SetLogger.panelPrefill(db, sessionId, ex, nextSet, sets.indexOf(nextSet))
+                panelKey = key
+            }
+            val panel = SetLogger.buildSetPanel(
+                this,
+                "SET ${nextSet.setNumber}",
+                headerRight = last?.let { lp -> val ls = lp.sets.getOrNull(sets.indexOf(nextSet)); if (ls != null) "last time ${setText(ls)}" else "last time ${lastTimeLine(lp)}" } ?: "first time",
+                bwExercise = ex.equipment.equals("Bodyweight", true),
+                unitIsKg = WeekManager.unit(this) == "kg",
+                state = panelState!!,
+                onUnitFlip = null,
+                onStateChange = {},
+                onLog = { logCardPanelSet(ex, nextSet) }
+            )
+            panel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(14), 0, 0) }
+            col.addView(panel)
+            if (last != null) {
+                col.addView(bendTextAction("\u21bb Repeat last time") {
+                    snapshot(ex)
+                    val before = db.getSets(ex.id)
+                    var newly = 0
+                    for ((i, s) in before.withIndex()) {
+                        val ls = last.sets.getOrNull(i) ?: continue
+                        if (!s.isDone) newly++
+                        db.updateSet(s.copy(weight = ls.weight, reps = ls.reps, isBodyweight = ls.isBodyweight, isDone = true))
+                    }
+                    db.syncExerciseStatus(ex.id)
+                    panelKey = ""
+                    val remaining = db.getSets(ex.id).count { !it.isDone }
+                    when {
+                        remaining == 0 -> { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
+                        newly > 0 -> setRestThen(ex) { render() }
+                        else -> render()
+                    }
+                }.apply {
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(8), 0, 0) }
+                })
+            }
+        } else {
+            val panel = bendPanel()
+            panel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(14), 0, 0) }
+            panel.addView(makeText("\u2713 All sets logged", 15f, true, Theme.success).apply {
+                gravity = Gravity.CENTER
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            })
+            panel.addView(bendTextAction("Edit sets") {
+                SetLogger.show(this, db, sessionId, ex, onSnapshot = { snapshot(ex) }) { res ->
+                    when {
+                        res.remaining == 0 -> { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
+                        res.newlyLogged > 0 -> setRestThen(ex) { render() }
+                        else -> render()
+                    }
+                }
+            }.apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(4), 0, 0) }
+            })
+            col.addView(panel)
+        }
+        // 7. Quiet text actions: Skip (the left-swipe's exit
+        // animation + apply, as the old code did) and Do later.
+        run {
+            val actions = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, 0) }
+            }
+            actions.addView(bendTextAction("Skip exercise") { animateExitThen(wrapRef, -1) { applySkipped() } })
+            actions.addView(TextView(this).apply {
+                text = "\u00b7"; textSize = 13.5f; gravity = Gravity.CENTER; setTextColor(Theme.textTertiary)
+            })
+            if (laterAvailable()) actions.addView(bendTextAction("Do later") { doLater() })
+            col.addView(actions)
+        }
+        wrap.addView(col)
         // Direction tint overlay (fades in with drag progress, tinted per direction)
         val tint = View(this).apply {
             background = GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(20).toFloat() }
@@ -434,10 +435,10 @@ class CardSessionActivity : AppCompatActivity() {
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, gravity).apply { setMargins(dp(14), dp(14), dp(14), dp(14)) }
             }
         }
-        skipLabel = dirLabel("✕ SKIP", "#DC2626", Gravity.TOP or Gravity.START, 10f)
-        doneLabel = dirLabel("✓ DONE", "#15803D", Gravity.TOP or Gravity.END, -10f)
-        upLabel = dirLabel("↑ LOG SET", "#2563EB", Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0f)
-        downLabel = dirLabel("↓ LATER", "#7C3AED", Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0f)
+        skipLabel = dirLabel("\u2715 SKIP", "#DC2626", Gravity.TOP or Gravity.START, 10f)
+        doneLabel = dirLabel("\u2713 DONE", "#15803D", Gravity.TOP or Gravity.END, -10f)
+        upLabel = dirLabel("\u2191 LOG SET", "#2563EB", Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0f)
+        downLabel = dirLabel("\u2193 LATER", "#7C3AED", Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0f)
         wrap.addView(skipLabel); wrap.addView(doneLabel); wrap.addView(upLabel); wrap.addView(downLabel)
         cardWrap = wrap
         deckBox.addView(wrap)
@@ -494,38 +495,14 @@ class CardSessionActivity : AppCompatActivity() {
             wrap.animate().alpha(1f).scaleX(1f).scaleY(1f).translationY(0f).setDuration(220).setInterpolator(DecelerateInterpolator()).start()
         }
 
-        // v3.7 scroller strip: directly under the card — every session
-        // exercise as a tappable thumbnail. It sits OUTSIDE the swipe
-        // card on purpose: inside it, the strip's own horizontal drags
-        // would fight the card's swipe handling. The freed vertical
-        // space also absorbs the removed "Next up:" line (the strip
-        // itself now shows what is next).
+        // v3.13 scroller strip: directly under the card — every session
+        // exercise as a tappable circular thumbnail, plus the ☰ hub
+        // circle. It sits OUTSIDE the swipe card on purpose: inside it,
+        // the strip's own horizontal drags would fight the card's swipe
+        // handling. (The old btnRow — "+ Log set" button + swipe hint —
+        // is gone: logging is the inline panel now, and the up-swipe
+        // still opens the shared SetLogger sheet via logSetDialog().)
         root.addView(buildStrip(ex))
-
-        // v3.1 final card design (user-approved mock): NO Skip and NO Done
-        // buttons anywhere — those two actions are swipe-only (left/right).
-        // v3.3 (item 3): the Later BUTTON is gone too — Later survives as
-        // the down-swipe only.
-        // v3.7 (approved mock screen 3): the full-width Log set bar is
-        // replaced by ONE simple compact "+ Log set" button, right-aligned
-        // in the action row, with the short swipe hint at the row's left
-        // (the on-photo cue pills remain as well). Up-swipe still opens
-        // the same set-logger dialog.
-        val wrapRef = wrap
-        val btnRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)).apply { setMargins(0, dp(4), 0, 0) }
-        }
-        btnRow.addView(makeText("← swipe Skip · Done → · ↓ Later", 12f, false, Theme.textSecondary).apply {
-            (layoutParams as LinearLayout.LayoutParams).apply { width = 0; weight = 1f; setMargins(0, 0, dp(8), 0) }
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-        })
-        val logBtn = makeButton("+ Log set") { animateLogSetLift(wrapRef) { logSetDialog() } }
-        (logBtn.layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, 0, 0) }
-        tightButton(logBtn, 48, 10, primary = true)
-        logBtn.setPadding(dp(22), 0, dp(22), 0)
-        btnRow.addView(logBtn)
-        root.addView(btnRow)
     }
 
     // ---- v3.7: hub navigation, section transitions, scroller strip ----
@@ -733,16 +710,24 @@ class CardSessionActivity : AppCompatActivity() {
         }
     }
 
-    /** v3.7 scroller strip (approved mock screen 3): every session
-     *  exercise in order as a tappable thumbnail — photo when the
-     *  exercise has one, body map otherwise — with a status dot and
-     *  the current exercise ringed in primary. One of only two
-     *  scrolling surfaces in the app (the hub list is the other). */
-    private fun buildStrip(currentEx: SessionExercise): RecyclerView {
+    /** v3.13 scroller strip (r4 Screen 4): every session exercise in
+     *  order as a tappable 34dp CIRCLE — photo when the exercise has
+     *  one, body map otherwise — plus the \u2630 hub circle at the row's
+     *  end. Non-current tiles sit at half alpha, the current tile gets
+     *  an oval primary ring, and handled exercises keep the existing
+     *  15dp status dot (\u2713/\u2715) for state legibility — a deliberate
+     *  micro-deviation from the mock, which has no dot. The exercise
+     *  NAME no longer rides under the tile. One of only two scrolling
+     *  surfaces in the app (the hub list is the other). */
+    private fun buildStrip(currentEx: SessionExercise): LinearLayout {
         val all = db.getSessionExercises(sessionId)
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+        }
         val rv = RecyclerView(this).apply {
             layoutManager = LinearLayoutManager(this@CardSessionActivity, LinearLayoutManager.HORIZONTAL, false)
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(82)).apply { setMargins(0, dp(2), 0, 0) }
+            layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
             itemAnimator = null
             clipToPadding = false
             setPadding(dp(2), 0, dp(2), 0)
@@ -753,43 +738,38 @@ class CardSessionActivity : AppCompatActivity() {
             (rv.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(pos, dp(12))
         }
         stripRv = rv
-        return rv
+        row.addView(rv)
+        val hubBtn = bendSoftCircle("\u2630", 34, 15f)
+        hubBtn.isClickable = true
+        hubBtn.setOnClickListener { navigateToHub() }
+        (hubBtn.layoutParams as LinearLayout.LayoutParams).setMargins(dp(8), 0, 0, 0)
+        row.addView(hubBtn)
+        return row
     }
 
     private inner class StripHolder(val itemRoot: LinearLayout) : RecyclerView.ViewHolder(itemRoot) {
         lateinit var tile: FrameLayout
         lateinit var dot: TextView
-        lateinit var nameTv: TextView
     }
 
     private inner class StripAdapter(val items: List<SessionExercise>, val currentId: Long) : RecyclerView.Adapter<StripHolder>() {
         override fun getItemCount(): Int = items.size
         override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): StripHolder {
             val item = LinearLayout(this@CardSessionActivity).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.WRAP_CONTENT, RecyclerView.LayoutParams.WRAP_CONTENT)
-                setPadding(dp(3), dp(2), dp(3), 0)
+                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
+                layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.WRAP_CONTENT, RecyclerView.LayoutParams.MATCH_PARENT)
+                setPadding(dp(3), 0, dp(3), 0)
             }
             val holder = StripHolder(item)
-            holder.tile = FrameLayout(this@CardSessionActivity).apply {
-                background = GradientDrawable().apply { setColor(Theme.surfaceVariant); cornerRadius = dp(9).toFloat() }
-                layoutParams = LinearLayout.LayoutParams(dp(66), dp(44))
-                roundedClip(9)
-            }
+            holder.tile = bendCircleFrame(34)
             holder.dot = TextView(this@CardSessionActivity).apply {
                 textSize = 8.5f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
                 layoutParams = FrameLayout.LayoutParams(dp(15), dp(15), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(2), dp(2), 0) }
             }
-            holder.nameTv = TextView(this@CardSessionActivity).apply {
-                textSize = 9.5f; gravity = Gravity.CENTER
-                maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
-                layoutParams = LinearLayout.LayoutParams(dp(66), dp(26)).apply { setMargins(0, dp(3), 0, 0) }
-            }
             item.addView(holder.tile)
-            // Name goes under the tile; the dot is added to the tile at
-            // bind time (only handled exercises get one).
-            item.addView(holder.nameTv)
+            // The dot is added to the tile at bind time (only handled
+            // exercises get one).
             return holder
         }
         override fun onBindViewHolder(holder: StripHolder, position: Int) {
@@ -805,30 +785,29 @@ class CardSessionActivity : AppCompatActivity() {
                 })
             } else {
                 holder.tile.addView(BodyMapView(this@CardSessionActivity, DbHelper.parseMuscles(ex.targetMuscles, ex.name), true).apply {
-                    layoutParams = FrameLayout.LayoutParams(dp(26), dp(34), Gravity.CENTER)
+                    layoutParams = FrameLayout.LayoutParams(dp(20), dp(26), Gravity.CENTER)
                 })
             }
             when (db.effectiveStatus(ex)) {
                 "done" -> {
-                    holder.dot.text = "✓"
+                    holder.dot.text = "\u2713"
                     holder.dot.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
                     holder.tile.addView(holder.dot)
                 }
                 "skipped" -> {
-                    holder.dot.text = "✕"
+                    holder.dot.text = "\u2715"
                     holder.dot.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.parseColor("#94A3B8")) }
                     holder.tile.addView(holder.dot)
                 }
             }
-            // Current exercise ringed in primary (drawn over the tile).
+            // Non-current tiles fade back; the current tile carries an
+            // oval primary ring (drawn over the tile).
+            holder.tile.alpha = if (isCurrent) 1f else 0.5f
             holder.tile.foreground = if (isCurrent) GradientDrawable().apply {
-                setColor(Color.TRANSPARENT); cornerRadius = dp(9).toFloat()
-                setStroke(dp(3), Theme.primary)
+                shape = GradientDrawable.OVAL
+                setColor(Color.TRANSPARENT)
+                setStroke(dp(2), Theme.primary)
             } else null
-            holder.nameTv.text = ex.name
-            holder.nameTv.setTextColor(if (isCurrent) Theme.primary else Theme.textSecondary)
-            holder.nameTv.typeface = if (isCurrent) android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                                       else android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
             holder.itemRoot.setOnClickListener { jumpToExercise(ex) }
         }
     }
@@ -1130,6 +1109,26 @@ class CardSessionActivity : AppCompatActivity() {
         Toast.makeText(this,"Undone",Toast.LENGTH_SHORT).show()
     }
 
+
+    /** v3.13: the inline panel's hero ✓ — write the staged panel
+     *  state for [set] as logged (BW writes the empty weight string,
+     *  as everywhere), sync the exercise status, then run the same
+     *  branch the sheet runs: last set → exercise done +
+     *  advanceWithRest; otherwise the between-sets rest, after which
+     *  the card re-renders on the next set (panelKey reset forces a
+     *  fresh panelPrefill for it). */
+    private fun logCardPanelSet(ex: SessionExercise, set: SessionSet) {
+        val st = panelState ?: return
+        snapshot(ex)
+        db.updateSet(set.copy(weight = if (st.isBw) "" else SetLogger.fmtWeight(st.weight), reps = st.reps.toString(), isBodyweight = st.isBw, isDone = true))
+        db.syncExerciseStatus(ex.id)
+        panelKey = ""
+        val remaining = db.getSets(ex.id).count { !it.isDone }
+        when {
+            remaining == 0 -> { db.setSessionExerciseStatus(ex.id, "done"); advanceWithRest() }
+            else -> setRestThen(ex) { render() }
+        }
+    }
 
     /** v3.9: the set logger is the shared [SetLogger] sheet now (mock
      *  frame 6) — this wrapper keeps the old dialog's contract 1:1.
