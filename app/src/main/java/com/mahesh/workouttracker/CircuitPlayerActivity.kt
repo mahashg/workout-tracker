@@ -2,10 +2,7 @@ package com.mahesh.workouttracker
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
@@ -29,7 +26,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import kotlin.math.ceil
 
 /**
  * v3.11 Circuit PLAYER (approved mock screens 4–5): one motion full-screen
@@ -72,9 +68,10 @@ class CircuitPlayerActivity : AppCompatActivity() {
     private lateinit var content: LinearLayout
     private var confetti: ConfettiView? = null
     private var bandTimerTv: TextView? = null
-    private var ringView: CircuitRingView? = null
+    private var ringView: BendRingView? = null
     private var ringBigTv: TextView? = null
     private var pauseBtnTv: TextView? = null
+    private var pauseLblTv: TextView? = null
     private var restBigTv: TextView? = null
     private var photoLooper: PhotoLooper? = null
 
@@ -478,45 +475,73 @@ class CircuitPlayerActivity : AppCompatActivity() {
         setContentView(rootFrame)
     }
 
-    /** The deck's dark band: round label left, live elapsed right. */
-    private fun bandView(round: Int): LinearLayout {
-        val c = circuit!!
-        val band = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#16324F")); cornerRadius = dp(16).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
+    /** v3.13 Bend top row: hairline progress over a quiet name /
+     *  micro / elapsed / close row. [bandTimerTv] is (re)created
+     *  here so refreshElapsed() keeps writing "⏱ " + clock into it. */
+    private fun topRow(round: Int, stepIdx: Int): LinearLayout {
+        val c = circuit
+        val col = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         }
-        band.addView(TextView(this).apply {
-            text = if (c.rounds == -1) "AMRAP · ROUND $round" else "ROUND $round OF ${c.rounds}"
-            textSize = 13.5f; setTextColor(Color.WHITE)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            letterSpacing = 0.06f
+        val frac = if (rows.isEmpty()) 0f else
+            rows.count { db.effectiveStatus(it) != "pending" }.toFloat() / rows.size
+        col.addView(BendHairlineView(this).apply {
+            fraction = frac
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(3))
         })
-        band.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+        val rowL = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(0, dp(14), 0, 0) }
+        }
+        val left = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        left.addView(bendScreenName(c?.name ?: "").apply {
+            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
+        })
+        val microText = when {
+            c == null -> ""
+            c.rounds == -1 -> "AMRAP · ROUND $round · MOTION ${stepIdx + 1} OF $stepsPerRound" +
+                (if ((c.timeBoxMin ?: 0) > 0) " · ${c.timeBoxMin} MIN" else "")
+            c.rounds > 0 -> "ROUND $round OF ${c.rounds} · MOTION ${stepIdx + 1} OF $stepsPerRound"
+            else -> ""
+        }
+        if (microText.isNotEmpty()) {
+            left.addView(bendMicro(microText).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { setMargins(0, dp(2), 0, 0) }
+            })
+        }
+        rowL.addView(left)
         bandTimerTv = TextView(this).apply {
-            textSize = 14f; setTextColor(Color.parseColor("#FACC15"))
+            textSize = 14f; setTextColor(Theme.textSecondary)
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             setFontFeatureSettings("tnum")
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         }
-        band.addView(bandTimerTv)
-        return band
-    }
-
-    private fun controlButton(text: String, bg: Int, fg: Int, onClick: () -> Unit): TextView {
-        return TextView(this).apply {
-            this.text = text; textSize = 15f; setTextColor(fg)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+        rowL.addView(bandTimerTv)
+        rowL.addView(TextView(this).apply {
+            text = "✕"; textSize = 17f; setTextColor(Theme.textTertiary)
             gravity = Gravity.CENTER
-            setAllCaps(false)
-            background = GradientDrawable().apply { setColor(bg); cornerRadius = dp(14).toFloat() }
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(dp(4), 0, 0, 0) }
             isClickable = true
-            setOnClickListener { onClick() }
-        }
+            setOnClickListener { onEndTap() }
+        })
+        col.addView(rowL)
+        return col
     }
 
     // ---------- countdown (deck precedent) ----------
@@ -695,27 +720,30 @@ class CircuitPlayerActivity : AppCompatActivity() {
         val row = rows.getOrNull(currentRowIndex) ?: return
         photoLooper?.stop(); photoLooper = null
         content.removeAllViews()
-        ringView = null; ringBigTv = null; pauseBtnTv = null; restBigTv = null
+        ringView = null; ringBigTv = null; pauseBtnTv = null; pauseLblTv = null; restBigTv = null
 
         val stepIdx = if (stepsPerRound > 0) currentRowIndex % stepsPerRound else 0
         val round = if (stepsPerRound > 0) currentRowIndex / stepsPerRound + 1 else 1
 
-        content.addView(bandView(round))
+        content.addView(topRow(round, stepIdx))
         refreshElapsed()
         if (phase != Phase.WORK) return // AMRAP deadline hit mid-render
 
-        // Photo frame (250dp): catalog photo with the deck's two-frame
-        // crossfade, or the body-map fallback.
+        // v3.13: Bend circle (S×S) — catalog photo with the deck's
+        // two-frame crossfade inside a circular frame, or the
+        // body-map fallback centred; a thin Bend ring drains on top.
         val entry = JsonSeed.entryById(this, step.entryId)
-        val frame = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(250)).apply { setMargins(0, dp(14), 0, 0) }
-            roundedClip(20)
+        val intervalSec = stepIntervalSec(step)
+        val timedVisual = step.timedSec > 0
+        val s = if (isCompactScreen()) 240 else 288
+        val frame = bendCircleFrame(s).apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.apply {
+                gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(16), 0, 0)
+            }
         }
         val photoAsset = entry?.photo?.takeIf { it.isNotBlank() }
         val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
         if (photoBmp != null && photoAsset != null) {
-            frame.setBackgroundColor(Theme.surfaceVariant)
             frame.addView(ImageView(this).apply {
                 setImageBitmap(photoBmp); scaleType = ImageView.ScaleType.CENTER_CROP
                 layoutParams = FrameLayout.LayoutParams(
@@ -732,27 +760,31 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 val looper = PhotoLooper(iv2); photoLooper = looper; looper.start()
             }
         } else {
-            frame.background = roundedBg(Theme.surfaceVariant, 20)
             val muscles = if (entry != null) DbHelper.parseMuscles(entry.targetMuscles, entry.name)
                 else DbHelper.parseMuscles(row.targetMuscles, row.name)
             frame.addView(BodyMapView(this, muscles, true).apply {
-                layoutParams = FrameLayout.LayoutParams(dp(110), dp(140),
-                    Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(16), 0) }
+                layoutParams = FrameLayout.LayoutParams(dp(110), dp(140), Gravity.CENTER)
             })
         }
-        // v3.12: form video on the photo frame — the gym card's
-        // badge (38dp dark oval, white ▶) added last so it draws on
-        // top, plus the whole frame is tappable (the photo
-        // ImageViews and BodyMapView are non-clickable, so taps
-        // land on the frame). Tap opens the Short when one exists,
-        // long-press always opens the full video. Freeze
-        // semantics: opening the video leaves this activity, so
-        // onPause() captures intervalRemainingMs and onResume()
-        // re-arms it from that remainder (a running interval stays
-        // running, a user-paused one stays paused) — no extra
-        // freeze code is needed here, and the v3.12 cp_* save in
-        // onPause() preserves the same remainder across a
-        // destroy/recreate while away.
+        val ring = BendRingView(this).apply {
+            strokeDp = 4f
+            fraction = 1f
+            amberUnderSec = if (timedVisual) 10 else -1
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        }
+        ringView = ring
+        frame.addView(ring)
+        // v3.12: form video on the photo frame — no badge in v3.13;
+        // the whole circle (and the watch line below) is tappable.
+        // Tap opens the Short when one exists, long-press always
+        // opens the full video. Freeze semantics: opening the video
+        // leaves this activity, so onPause() captures
+        // intervalRemainingMs and onResume() re-arms it from that
+        // remainder (a running interval stays running, a user-paused
+        // one stays paused) — no extra freeze code is needed here,
+        // and the v3.12 cp_* save in onPause() preserves the same
+        // remainder across a destroy/recreate while away.
         val short = entry?.shortUrl?.takeIf { it.isNotBlank() }
         val full = entry?.url?.takeIf { it.isNotBlank() } ?: row.youtubeUrl.takeIf { it.isNotBlank() }
         if (full != null) {
@@ -762,115 +794,57 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 openUrl(this@CircuitPlayerActivity, full)
                 true
             }
-            frame.addView(TextView(this).apply {
-                text = "▶"; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL; setColor(0x8C0F172A.toInt())
-                }
+        }
+        content.addView(frame)
+
+        content.addView(bendName(entry?.name?.takeIf { it.isNotBlank() } ?: row.name).apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(16), 0, 0)
+        })
+
+        // Meta: timed steps carry their dose here (EMOM doses land
+        // here too); rep steps get the quiet "REPS" micro instead.
+        if (timedVisual) {
+            content.addView(bendMeta(step.doseLabel.ifBlank { "${stepIntervalSec(step)} seconds" }).apply {
+                (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(4), 0, 0)
+            })
+        } else {
+            content.addView(bendMicro("REPS").apply {
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { setMargins(0, dp(4), 0, 0) }
+            })
+        }
+
+        if (full != null) {
+            content.addView(bendWatchLine().apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { setMargins(0, dp(2), 0, 0) }
                 isClickable = true
                 setOnClickListener { openUrl(this@CircuitPlayerActivity, short ?: full) }
                 setOnLongClickListener {
                     openUrl(this@CircuitPlayerActivity, full)
                     true
                 }
-                layoutParams = FrameLayout.LayoutParams(dp(38), dp(38), Gravity.TOP or Gravity.END)
-                    .apply { setMargins(0, dp(10), dp(10), 0) }
-            })
-        }
-        content.addView(frame)
-
-        content.addView(makeText(entry?.name?.takeIf { it.isNotBlank() } ?: row.name, 23f, true).apply {
-            gravity = Gravity.CENTER
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(14), 0, 0) }
-        })
-
-        // Dose sub-line: EMOM timed steps carry their dose here (the ring
-        // centre is busy with the clock); rep steps carry it in the ring.
-        if (isEmom() && step.timedSec > 0 && step.doseLabel.isNotBlank()) {
-            content.addView(makeText(step.doseLabel, 13f, false, Theme.textSecondary).apply {
-                gravity = Gravity.CENTER
-                (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
             })
         }
 
-        // Ring: custom view + centred text column (deck-style children,
-        // not canvas text).
-        val intervalSec = stepIntervalSec(step)
-        val timedVisual = step.timedSec > 0
-        val ringWrap = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(dp(168), dp(168)).apply {
-                gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(10), 0, 0)
-            }
-        }
-        val ring = CircuitRingView(this).apply {
-            totalMs = if (timedVisual) intervalSec * 1000L else 0L
-            remainingMs = if (timedVisual) intervalSec * 1000L else 0L
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        }
-        ringView = ring
-        ringWrap.addView(ring)
-        val centerCol = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        }
         val doseText = step.doseLabel.ifBlank { step.repsLabel }
-        ringBigTv = TextView(this).apply {
-            text = if (timedVisual) WorkoutTimer.formatClock(intervalSec) else doseText
-            textSize = if (!timedVisual && doseText.length > 4) 30f else 44f
-            setTextColor(Theme.textPrimary)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            setFontFeatureSettings("tnum")
-            gravity = Gravity.CENTER
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-        }
-        centerCol.addView(ringBigTv)
-        centerCol.addView(TextView(this).apply {
-            text = if (timedVisual) "WORK" else "REPS"
-            textSize = 11f; setTextColor(Theme.textSecondary)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            letterSpacing = 0.14f; gravity = Gravity.CENTER
+        ringBigTv = bendHuge(if (timedVisual) WorkoutTimer.formatClock(intervalSec) else doseText).apply {
+            if (!timedVisual) textSize = if (doseText.length > 4) 30f else 44f
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(4), 0, 0) }
-        })
-        ringWrap.addView(centerCol)
-        content.addView(ringWrap)
-
-        // Segments: this round's motions.
-        val segs = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(6)).apply { setMargins(0, dp(14), 0, 0) }
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(0, dp(6), 0, 0) }
         }
-        val roundStart = currentRowIndex - stepIdx
-        for (i in 0 until stepsPerRound) {
-            val rIdx = roundStart + i
-            val color = when {
-                rIdx == currentRowIndex -> Theme.primary
-                rIdx in rows.indices -> when (db.effectiveStatus(rows[rIdx])) {
-                    "done" -> Theme.success
-                    "skipped" -> Theme.textTertiary
-                    else -> Theme.surfaceVariant
-                }
-                else -> Theme.surfaceVariant
-            }
-            segs.addView(View(this).apply {
-                background = roundedBg(color, 3)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-                    .apply { setMargins(if (i > 0) dp(5) else 0, 0, 0, 0) }
-            })
-        }
-        content.addView(segs)
+        content.addView(ringBigTv)
 
         // Next line (name bolded; round-aware at the round's last step).
         val nextTv = TextView(this).apply {
-            textSize = 13.5f; setTextColor(Theme.textSecondary); gravity = Gravity.CENTER
+            textSize = 13f; setTextColor(Theme.textSecondary); gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(10), 0, 0) }
+                .apply { setMargins(0, dp(6), 0, 0) }
         }
         when {
             stepIdx < stepsPerRound - 1 -> {
@@ -881,7 +855,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 }
             }
             c.rounds == -1 || round < c.rounds -> {
-                val name = stepDisplayName(playSteps[0], roundStart)
+                val name = stepDisplayName(playSteps[0], currentRowIndex - stepIdx)
                 val full = "Next: $name (round ${round + 1})"
                 nextTv.text = SpannableString(full).apply {
                     setSpan(StyleSpan(Typeface.BOLD), 6, 6 + name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -891,27 +865,65 @@ class CircuitPlayerActivity : AppCompatActivity() {
         }
         content.addView(nextTv)
 
-        // Controls: Pause/Done · Skip · End.
+        // Controls sit at the bottom when the column is short.
+        content.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(52)).apply { setMargins(0, dp(14), 0, 0) }
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(0, dp(18), 0, 0) }
+        }
+        controls.addView(bendControl(bendSoftCircle("✕"), "End") { onEndTap() })
+        // Hero: manual column so pauseBtnTv / pauseLblTv can be
+        // updated in place by toggleIntervalPause() and the restore.
+        val heroCircle: TextView
+        val heroLabel: TextView
+        val heroCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
+            isClickable = true
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(dp(30), 0, 0, 0) }
         }
         if (timedVisual) {
-            pauseBtnTv = controlButton("⏸ Pause", Theme.surface, Theme.primaryDark) { toggleIntervalPause() }
-            pauseBtnTv!!.layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
-            controls.addView(pauseBtnTv)
+            heroCircle = bendHeroCircle(if (intervalPausedByUser) "▶" else "⏸", Theme.primary)
+            heroLabel = TextView(this).apply {
+                text = if (intervalPausedByUser) "Resume" else "Pause"
+                textSize = 10.5f; setTextColor(Theme.textTertiary)
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { setMargins(0, dp(6), 0, 0) }
+            }
+            heroCol.setOnClickListener { toggleIntervalPause() }
         } else {
-            val doneBtn = controlButton("✓ Done", Theme.success, Color.WHITE) { resolveCurrent("done") }
-            doneBtn.layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
-            controls.addView(doneBtn)
+            heroCircle = bendHeroCircle("✓", Theme.success)
+            heroLabel = TextView(this).apply {
+                text = "Done"
+                textSize = 10.5f; setTextColor(Theme.textTertiary)
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { setMargins(0, dp(6), 0, 0) }
+            }
+            heroCol.setOnClickListener { resolveCurrent("done") }
         }
-        val skipBtn = controlButton("⏭ Skip", IconTints.BLUE, Theme.primaryDark) { resolveCurrent("skipped") }
-        skipBtn.layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f).apply { setMargins(dp(10), 0, 0, 0) }
-        controls.addView(skipBtn)
-        val endBtn = controlButton("✕ End", Color.parseColor("#FFE0E0"), Color.parseColor("#9B2226")) { onEndTap() }
-        endBtn.layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f).apply { setMargins(dp(10), 0, 0, 0) }
-        controls.addView(endBtn)
+        heroCircle.isClickable = false
+        heroCol.addView(heroCircle)
+        heroCol.addView(heroLabel)
+        if (timedVisual) {
+            pauseBtnTv = heroCircle
+            pauseLblTv = heroLabel
+        }
+        controls.addView(heroCol)
+        controls.addView(bendControl(bendSoftCircle("⏭"), "Skip") { resolveCurrent("skipped") }.apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { setMargins(dp(30), 0, 0, 0) }
+        })
         content.addView(controls)
 
         // v3.12: a restored WORK row resumes its saved interval
@@ -934,12 +946,13 @@ class CircuitPlayerActivity : AppCompatActivity() {
             pendingRestoreRow = -1
             if (intervalActive) {
                 if (step.timedSec > 0) {
-                    ring.totalMs = rt
-                    ring.setRemaining(intervalRemainingMs)
+                    ring.remainingSec = ((intervalRemainingMs + 999) / 1000).toInt()
+                    ring.setFraction(if (rt > 0) intervalRemainingMs.toFloat() / rt else 1f)
                     ringBigTv?.text = WorkoutTimer.formatClock(((intervalRemainingMs + 999) / 1000).toInt())
                 }
                 if (intervalPausedByUser) {
-                    pauseBtnTv?.text = "▶ Resume"
+                    pauseBtnTv?.text = "▶"
+                    pauseLblTv?.text = "Resume"
                     updateIntervalUi()
                 } else {
                     intervalEndsAtMs = SystemClock.uptimeMillis() + intervalRemainingMs
@@ -949,6 +962,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
             }
         } else if (intervalSec > 0) startInterval(intervalSec) else intervalActive = false
     }
+
 
     // ---------- rest screens ----------
 
@@ -967,7 +981,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
     private fun renderRest(isRound: Boolean) {
         photoLooper?.stop(); photoLooper = null
         content.removeAllViews()
-        ringView = null; ringBigTv = null; pauseBtnTv = null
+        ringView = null; ringBigTv = null; pauseBtnTv = null; pauseLblTv = null
 
         val bandRound = when {
             isRound && pendingNextIndex in rows.indices && stepsPerRound > 0 ->
@@ -975,90 +989,94 @@ class CircuitPlayerActivity : AppCompatActivity() {
             stepsPerRound > 0 -> currentRowIndex / stepsPerRound + 1
             else -> 1
         }
-        content.addView(bandView(bandRound))
-        refreshElapsed()
-
-        val strokeColor = if (isRound) Theme.success else Color.parseColor("#D97706")
-        val fillColor = if (isRound) Theme.successBg else Color.parseColor("#FFFBEB")
-        val labelColor = if (isRound) Theme.success else Color.parseColor("#B45309")
+        val nextStepIdx = if (pendingNextIndex in rows.indices && stepsPerRound > 0)
+            pendingNextIndex % stepsPerRound else 0
         val nextStep = if (pendingNextIndex in rows.indices && stepsPerRound > 0)
             playSteps.getOrNull(pendingNextIndex % stepsPerRound) else null
         val nextName = nextStep?.let { stepDisplayName(it, pendingNextIndex) } ?: ""
 
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                setColor(fillColor); cornerRadius = dp(16).toFloat()
-                setStroke(dp(2), strokeColor, dp(8).toFloat(), dp(6).toFloat())
+        content.addView(topRow(bandRound, nextStepIdx))
+        refreshElapsed()
+        if (phase != Phase.REST && phase != Phase.ROUNDREST) return // AMRAP deadline hit mid-render
+
+        // v3.13: calm rest — the NEXT step's photo in the Bend
+        // circle, ring in primary (round rest: success), quiet
+        // name / meta, and the huge countdown.
+        val nextEntry = nextStep?.entryId?.let { JsonSeed.entryById(this, it) }
+        val s = if (isCompactScreen()) 240 else 288
+        val frame = bendCircleFrame(s).apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.apply {
+                gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(16), 0, 0)
             }
-            setPadding(dp(16), dp(16), dp(16), dp(16))
+        }
+        if (nextEntry != null) {
+            val photoAsset = nextEntry.photo?.takeIf { it.isNotBlank() }
+            val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
+            if (photoBmp != null && photoAsset != null) {
+                frame.addView(ImageView(this).apply {
+                    setImageBitmap(photoBmp); scaleType = ImageView.ScaleType.CENTER_CROP
+                    layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                })
+                val photo2 = PhotoLib.secondBitmap(this, photoAsset)
+                if (photo2 != null) {
+                    val iv2 = ImageView(this).apply {
+                        setImageBitmap(photo2); scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0f
+                        layoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                    }
+                    frame.addView(iv2)
+                    val looper = PhotoLooper(iv2); photoLooper = looper; looper.start()
+                }
+            } else {
+                val muscles = DbHelper.parseMuscles(nextEntry.targetMuscles, nextEntry.name)
+                frame.addView(BodyMapView(this, muscles, true).apply {
+                    layoutParams = FrameLayout.LayoutParams(dp(110), dp(140), Gravity.CENTER)
+                })
+            }
+        }
+        val ring = BendRingView(this).apply {
+            strokeDp = 4f
+            fraction = 1f
+            arcColor = if (isRound) Theme.success else Theme.primary
+            amberUnderSec = 10
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        }
+        ringView = ring
+        frame.addView(ring)
+        content.addView(frame)
+
+        content.addView(bendName(nextName.ifBlank { "Rest" }).apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(16), 0, 0)
+        })
+        content.addView(bendMeta(
+            if (isRound) "Round $bandRound coming up · catch your breath"
+            else "Catch your breath · next up").apply {
+            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, dp(4), 0, 0)
+        })
+        restBigTv = bendHuge("").apply {
+            if (intervalTotalMs > 0) {
+                text = WorkoutTimer.formatClock(((intervalRemainingMs + 999) / 1000).toInt())
+            }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(16), 0, 0) }
+                .apply { setMargins(0, dp(6), 0, 0) }
         }
-        box.addView(TextView(this).apply {
-            text = if (isRound) "ROUND $bandRound COMING UP" else "REST"
-            textSize = 11f; setTextColor(labelColor)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            letterSpacing = 0.14f
-        })
-        restBigTv = TextView(this).apply {
-            textSize = 40f; setTextColor(labelColor)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            setFontFeatureSettings("tnum")
+        content.addView(restBigTv)
+
+        content.addView(bendControl(bendSoftPill("Skip rest"), "Go now") { onRestDone() }.apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(4), 0, 0) }
-        }
-        box.addView(restBigTv)
-        val lineText = "Catch your breath. Next: $nextName"
-        box.addView(TextView(this).apply {
-            text = SpannableString(lineText).apply {
-                val start = lineText.indexOf(nextName)
-                if (nextName.isNotEmpty() && start >= 0) {
-                    setSpan(StyleSpan(Typeface.BOLD), start, start + nextName.length,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-            }
-            textSize = 13.5f; setTextColor(Theme.textPrimary)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(4), 0, 0) }
+                .apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, dp(20), 0, 0) }
         })
-        val pillRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+        content.addView(bendTextAction("✕ End circuit") { onEndTap() }.apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { setMargins(0, dp(10), 0, 0) }
-        }
-        pillRow.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        pillRow.addView(TextView(this).apply {
-            text = "Skip rest ›"; textSize = 13f; setTextColor(Theme.primary)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            gravity = Gravity.CENTER
-            background = GradientDrawable().apply {
-                setColor(Color.WHITE); cornerRadius = dp(999).toFloat()
-                setStroke(dp(1), Theme.stroke)
-            }
-            setPadding(dp(12), dp(7), dp(12), dp(7))
-            isClickable = true
-            setOnClickListener { onRestDone() }
-        })
-        box.addView(pillRow)
-        content.addView(box)
-
-        content.addView(TextView(this).apply {
-            text = "✕ End circuit"; textSize = 14f; setTextColor(Theme.textSecondary)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            gravity = Gravity.CENTER
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { setMargins(0, dp(12), 0, 0) }
-            isClickable = true
-            setOnClickListener { onEndTap() }
         })
     }
+
 
     // ---------- interval engine (deck pattern) ----------
 
@@ -1109,12 +1127,19 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 val step = currentStep() ?: return
                 if (step.timedSec > 0) {
                     ringBigTv?.text = WorkoutTimer.formatClock(remainSec)
-                    ringView?.setRemaining(intervalRemainingMs)
+                    ringView?.remainingSec = remainSec
+                    ringView?.setFraction(if (intervalTotalMs > 0)
+                        intervalRemainingMs.toFloat() / intervalTotalMs else 1f)
                 }
                 // EMOM rep steps: the ring keeps the dose; the minute is
                 // tracked silently for the early-done remainder rest.
             }
-            Phase.REST, Phase.ROUNDREST -> restBigTv?.text = WorkoutTimer.formatClock(remainSec)
+            Phase.REST, Phase.ROUNDREST -> {
+                restBigTv?.text = WorkoutTimer.formatClock(remainSec)
+                ringView?.remainingSec = remainSec
+                ringView?.setFraction(if (intervalTotalMs > 0)
+                    intervalRemainingMs.toFloat() / intervalTotalMs else 1f)
+            }
             else -> {}
         }
     }
@@ -1123,13 +1148,15 @@ class CircuitPlayerActivity : AppCompatActivity() {
         if (phase != Phase.WORK || !intervalActive) return
         if (intervalPausedByUser) {
             intervalPausedByUser = false
-            pauseBtnTv?.text = "⏸ Pause"
+            pauseBtnTv?.text = "⏸"
+            pauseLblTv?.text = "Pause"
             intervalEndsAtMs = SystemClock.uptimeMillis() + intervalRemainingMs
             startIntervalLoop()
         } else {
             intervalRemainingMs = (intervalEndsAtMs - SystemClock.uptimeMillis()).coerceAtLeast(0)
             intervalPausedByUser = true
-            pauseBtnTv?.text = "▶ Resume"
+            pauseBtnTv?.text = "▶"
+            pauseLblTv?.text = "Resume"
             stopIntervalLoop()
             updateIntervalUi()
         }
@@ -1292,7 +1319,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
         val c = circuit ?: return
         photoLooper?.stop(); photoLooper = null
         content.removeAllViews()
-        bandTimerTv = null; ringView = null; ringBigTv = null; pauseBtnTv = null; restBigTv = null
+        bandTimerTv = null; ringView = null; ringBigTv = null; pauseBtnTv = null; pauseLblTv = null; restBigTv = null
 
         content.addView(makeText("🎉", 54f, true).apply {
             gravity = Gravity.CENTER
@@ -1324,8 +1351,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
-                    setColor(Color.WHITE); cornerRadius = dp(16).toFloat()
-                    setStroke(dp(1), Theme.stroke)
+                    setColor(Palettes.current.sheetRow); cornerRadius = dp(16).toFloat()
                 }
                 setPadding(dp(6), dp(14), dp(6), dp(14))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -1355,8 +1381,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = GradientDrawable().apply {
-                setColor(Color.WHITE); cornerRadius = dp(16).toFloat()
-                setStroke(dp(1), Theme.stroke)
+                setColor(Palettes.current.sheetRow); cornerRadius = dp(16).toFloat()
             }
             setPadding(dp(14), dp(12), dp(14), dp(12))
             layoutParams = LinearLayout.LayoutParams(
@@ -1379,22 +1404,30 @@ class CircuitPlayerActivity : AppCompatActivity() {
         info.addView(infoCol)
         content.addView(info)
 
-        val doneBtn = makeButton("Done") {
-            startActivity(Intent(this, MainActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            })
-            finish()
-        }
-        (doneBtn.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(16), 0, 0) }
-        content.addView(doneBtn)
+        content.addView(TextView(this).apply {
+            text = "Done"; textSize = 15.5f; setTextColor(Color.WHITE)
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply {
+                setColor(Theme.primary); cornerRadius = dp(999).toFloat()
+            }
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(52)).apply { setMargins(0, dp(16), 0, 0) }
+            isClickable = true
+            setOnClickListener {
+                startActivity(Intent(this@CircuitPlayerActivity, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                })
+                finish()
+            }
+        })
 
         content.addView(TextView(this).apply {
             text = "↻ Do it again"; textSize = 15.5f; setTextColor(Theme.primaryDark)
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             gravity = Gravity.CENTER
             background = GradientDrawable().apply {
-                setColor(Color.WHITE); cornerRadius = dp(16).toFloat()
-                setStroke((1.5f * resources.displayMetrics.density).toInt(), Theme.stroke)
+                setColor(Palettes.current.sheetRow); cornerRadius = dp(999).toFloat()
             }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(52)).apply { setMargins(0, dp(10), 0, 0) }
@@ -1460,40 +1493,3 @@ class CircuitPlayerActivity : AppCompatActivity() {
     }
 }
 
-/** The circuit player's work ring (modeled on RestRingView): a 10dp
- *  stroke circle that drains with the interval, turning amber (#D97706)
- *  in the final 10 seconds. A totalMs of 0 draws the ring FULL — the rep
- *  step state, where the centre carries the dose instead of a clock.
- *  Centre text is drawn by child TextViews in the activity, not canvas. */
-private class CircuitRingView(context: Context) : View(context) {
-    var totalMs: Long = 0
-    var remainingMs: Long = 0
-    private val strokePx = context.dp(10).toFloat()
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE; strokeWidth = strokePx
-        color = Theme.surfaceVariant; strokeCap = Paint.Cap.ROUND
-    }
-    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE; strokeWidth = strokePx; strokeCap = Paint.Cap.ROUND
-    }
-    private val arc = RectF()
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val pad = 20f
-        arc.set(pad, pad, width - pad, height - pad)
-        canvas.drawArc(arc, 0f, 360f, false, trackPaint)
-        val frac = if (totalMs > 0) (remainingMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f) else 1f
-        val remainSec = ceil(remainingMs / 1000.0).toInt()
-        ringPaint.color = when {
-            totalMs > 0 && remainSec <= 10 && frac < 1f -> Color.parseColor("#D97706")
-            else -> Theme.primary
-        }
-        if (frac > 0f) canvas.drawArc(arc, -90f, 360f * frac, false, ringPaint)
-    }
-
-    fun setRemaining(ms: Long) {
-        remainingMs = ms
-        invalidate()
-    }
-}
