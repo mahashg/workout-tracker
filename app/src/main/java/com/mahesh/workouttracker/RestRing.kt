@@ -3,17 +3,17 @@ package com.mahesh.workouttracker
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.CountDownTimer
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -29,10 +29,14 @@ class RestRingView(context: Context) : View(context) {
     var totalMs: Long = 60_000
     var remainingMs: Long = 60_000
     var goPop: Boolean = false
+    // v3.13: when false, onDraw draws track + arc only (no number / GO
+    // text) — the Bend rest dialog carries its countdown as huge text
+    // below the circle instead.
+    var showCenterText: Boolean = true
     // v3.2 polish: stroke width is density-correct (10dp) — it was a raw
     // 26px, which rendered thinner on high-density screens than designed.
     private val strokePx = context.dp(10).toFloat()
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = strokePx; color = 0xFFE2E8F0.toInt(); strokeCap = Paint.Cap.ROUND }
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = strokePx; color = Theme.surfaceVariant; strokeCap = Paint.Cap.ROUND }
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = strokePx; strokeCap = Paint.Cap.ROUND }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER; isFakeBoldText = true }
     private val arc = RectF()
@@ -47,15 +51,17 @@ class RestRingView(context: Context) : View(context) {
         ringPaint.color = when {
             goPop -> 0xFF16A34A.toInt()
             remainSec <= 10 -> 0xFFD97706.toInt() // warm amber, final 10s
-            else -> 0xFF2563EB.toInt() // primary blue
+            else -> Theme.primary
         }
         if (!goPop && frac > 0f) canvas.drawArc(arc, -90f, 360f * frac, false, ringPaint)
         if (goPop) canvas.drawArc(arc, 0f, 360f, false, ringPaint)
-        textPaint.color = ringPaint.color
-        val label = if (goPop) "GO" else remainSec.toString()
-        textPaint.textSize = if (goPop) height * 0.26f else height * 0.32f
-        val baseline = height / 2f - (textPaint.descent() + textPaint.ascent()) / 2f
-        canvas.drawText(label, width / 2f, baseline, textPaint)
+        if (showCenterText) {
+            textPaint.color = ringPaint.color
+            val label = if (goPop) "GO" else remainSec.toString()
+            textPaint.textSize = if (goPop) height * 0.26f else height * 0.32f
+            val baseline = height / 2f - (textPaint.descent() + textPaint.ascent()) / 2f
+            canvas.drawText(label, width / 2f, baseline, textPaint)
+        }
     }
 
     fun setRemaining(ms: Long) { remainingMs = ms; invalidate() }
@@ -141,6 +147,13 @@ object RestTimer {
     private var dialog: AlertDialog? = null
     private var ring: RestRingView? = null
     private var cueTv: TextView? = null
+    // v3.13 Bend rest dialog: huge countdown, top-row elapsed, the circle
+    // container (photo frame + ring) and the dialog's DbHelper. dlgDb is
+    // dropped (never closed) on dismiss / endInternal.
+    private var bigCountTv: TextView? = null
+    private var elapsedTv: TextView? = null
+    private var circleBox: View? = null
+    private var dlgDb: DbHelper? = null
 
     private val listeners = mutableListOf<() -> Unit>()
     fun addListener(l: () -> Unit) { synchronized(listeners) { if (l !in listeners) listeners.add(l) } }
@@ -313,6 +326,24 @@ object RestTimer {
             override fun onTick(left: Long) {
                 if (myId != restId) return
                 ring?.setRemaining(left)
+                // v3.13: the Bend dialog's huge countdown + top-row elapsed.
+                val leftSec = ceil(left / 1000.0).toInt()
+                bigCountTv?.let {
+                    it.text = WorkoutTimer.formatClock(leftSec)
+                    it.setTextColor(if (leftSec <= 10) 0xFFD97706.toInt() else Theme.textPrimary)
+                }
+                elapsedTv?.let { tv ->
+                    val db = dlgDb
+                    if (db != null && pSessionId > 0) {
+                        val sess = db.getSession(pSessionId)
+                        if (sess != null && !sess.completed) {
+                            tv.text = WorkoutTimer.formatClock(WorkoutTimer.liveElapsedSec(tv.context, sess))
+                            if (tv.visibility != View.VISIBLE) tv.visibility = View.VISIBLE
+                        } else {
+                            tv.text = ""
+                        }
+                    }
+                }
                 if (cleanCues.size > 1) {
                     val idx = (((ringTotalMs - left) / 5000).toInt()) % cleanCues.size
                     val t = "While you rest — ${cleanCues[idx]}"
@@ -326,13 +357,25 @@ object RestTimer {
                 val r = ring
                 val h = host
                 if (r != null && dialog?.isShowing == true) {
-                    // Ring on screen: the classic GO pop, then end.
-                    r.goPop = true; r.setRemaining(0)
-                    if (h != null) buzz(h)
-                    r.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).withEndAction {
-                        r.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
-                    }.start()
-                    r.postDelayed({ if (myId == restId) endInternal(fire = true) }, 950)
+                    if (!r.showCenterText) {
+                        // v3.13 Bend dialog: GO lands on the huge text and
+                        // the whole circle container pops, then end.
+                        bigCountTv?.let { it.text = "GO"; it.setTextColor(Theme.success) }
+                        if (h != null) buzz(h)
+                        val box = circleBox ?: r
+                        box.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).withEndAction {
+                            box.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+                        }.start()
+                        box.postDelayed({ if (myId == restId) endInternal(fire = true) }, 950)
+                    } else {
+                        // Ring on screen: the classic GO pop, then end.
+                        r.goPop = true; r.setRemaining(0)
+                        if (h != null) buzz(h)
+                        r.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).withEndAction {
+                            r.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+                        }.start()
+                        r.postDelayed({ if (myId == restId) endInternal(fire = true) }, 950)
+                    }
                 } else {
                     if (h != null) buzz(h)
                     endInternal(fire = true)
@@ -347,62 +390,217 @@ object RestTimer {
         // v3.12: a paused rest has no live deadline — the ring opens on
         // the frozen remainder instead.
         val leftMs = if (pausedRemainingMs >= 0) pausedRemainingMs else (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0)
+        // v3.13 Bend dialog (mock r4 Screen 3): calm layout — top row,
+        // circular photo + text-less ring, name / meta, paused micro,
+        // huge countdown, cue, and in-layout pill controls. No dialog
+        // buttons; dismissal semantics are unchanged (see below).
+        val db = DbHelper(activity)
+        dlgDb = db
+        val target: SessionExercise? = if (pSessionId > 0)
+            db.getSessionExercises(pSessionId).firstOrNull { it.id == pTargetId } else null
+
+        // 1. Top row: micro kind label (left) + plain elapsed (right).
+        val kindTv = TextView(activity).apply {
+            text = when (pKind) {
+                "set" -> "REST · BETWEEN SETS"
+                "exercise" -> "REST · BETWEEN EXERCISES"
+                else -> "REST"
+            }
+            textSize = 12f; setTextColor(Theme.textTertiary)
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            letterSpacing = 0.14f
+        }
+        val elapsedText = if (pSessionId > 0) {
+            val sess = db.getSession(pSessionId)
+            if (sess != null && !sess.completed)
+                WorkoutTimer.formatClock(WorkoutTimer.liveElapsedSec(activity, sess))
+            else ""
+        } else ""
+        val elapsed = TextView(activity).apply {
+            text = elapsedText; textSize = 14f; setTextColor(Theme.textSecondary)
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            gravity = Gravity.END
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            visibility = if (elapsedText.isBlank()) View.GONE else View.VISIBLE
+        }
+        elapsedTv = elapsed
+        val topRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            addView(kindTv); addView(elapsed)
+        }
+
+        // 2. Circle block: circular photo frame + text-less ring over it.
+        val sizeDp = if (activity.isCompactScreen()) 232 else 272
+        val sizePx = activity.dp(sizeDp)
+        val frame = activity.bendCircleFrame(sizeDp)
+        frame.layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
+        if (target != null) {
+            val asset = PhotoLib.assetForSessionExercise(activity, db, target)
+            val bmp = asset?.let { PhotoLib.bitmap(activity, it) }
+            if (bmp != null) {
+                frame.addView(ImageView(activity).apply {
+                    setImageBitmap(bmp); scaleType = ImageView.ScaleType.CENTER_CROP
+                    layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                })
+            } else {
+                frame.addView(BodyMapView(activity, DbHelper.parseMuscles(target.targetMuscles, target.name)).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        activity.dp((sizeDp * 0.40).toInt()), activity.dp((sizeDp * 0.52).toInt()), Gravity.CENTER)
+                })
+            }
+        }
         val r = RestRingView(activity).apply {
+            showCenterText = false
             totalMs = ringTotalMs; remainingMs = leftMs
-            layoutParams = LinearLayout.LayoutParams(activity.dp(190), activity.dp(190)).apply { gravity = Gravity.CENTER_HORIZONTAL }
+            layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
         }
-        val nextTv = TextView(activity).apply {
-            text = nextLabel; textSize = 15f; setTextColor(Theme.textPrimary); gravity = Gravity.CENTER
-            setPadding(0, activity.dp(10), 0, 0); visibility = if (nextLabel.isBlank()) View.GONE else View.VISIBLE
+        val circle = FrameLayout(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
+                gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, activity.dp(20), 0, 0)
+            }
+            addView(frame); addView(r)
         }
+        circleBox = circle
+
+        // 3. Name: the target's name, else nextLabel stripped of its
+        // "Next · " prefix and any " — last time …" suffix.
+        var fallback = nextLabel
+        if (fallback.startsWith("Next · ")) fallback = fallback.substring("Next · ".length)
+        val cutIdx = fallback.indexOf(" — last time")
+        if (cutIdx >= 0) fallback = fallback.substring(0, cutIdx)
+        fallback = fallback.trim()
+        val rawName = target?.name ?: fallback
+        val nameTv = activity.bendName(if (rawName.isBlank()) "Rest" else rawName).apply {
+            maxLines = 1
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(18), 0, 0) }
+        }
+
+        // 4. Meta: next-set position (+ last time) derived from the target.
+        var metaText = ""
+        if (target != null) {
+            try {
+                val sets = db.getSets(target.id)
+                val last = db.lastPerformedForExercise(target.name, pSessionId)
+                when (pKind) {
+                    "set" -> {
+                        val nextSet = sets.firstOrNull { !it.isDone }
+                        val pos = if (nextSet != null) sets.indexOf(nextSet) else -1
+                        var base = if (nextSet != null) "Set ${nextSet.setNumber} of ${sets.size}" else "All sets done"
+                        val ls = last?.sets?.getOrNull(pos)
+                        if (ls != null) base += " · last time ${setText(ls)}"
+                        metaText = base
+                    }
+                    "exercise" -> {
+                        var base = if (sets.isNotEmpty()) "Set 1 of ${sets.size}" else ""
+                        val fls = last?.sets?.firstOrNull()
+                        if (fls != null) base = if (base.isEmpty()) "last time ${setText(fls)}"
+                            else base + " · last time ${setText(fls)}"
+                        metaText = base
+                    }
+                }
+            } catch (e: Exception) { metaText = "" }
+        }
+        val metaTv = activity.bendMeta(metaText).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(4), 0, 0) }
+            visibility = if (metaText.isBlank()) View.GONE else View.VISIBLE
+        }
+
+        // 5. Paused micro (set at show time; resume rebuilds via attach).
+        val pausedTv = activity.bendMicro("⏸ PAUSED", Theme.primary).apply {
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(6), 0, 0) }
+            visibility = if (pausedRemainingMs >= 0) View.VISIBLE else View.GONE
+        }
+
+        // 6. Huge countdown (the ticker keeps its text / color current).
+        val initialSec = ceil(leftMs / 1000.0).toInt()
+        val bigTv = activity.bendHuge(WorkoutTimer.formatClock(initialSec)).apply {
+            setTextColor(if (initialSec <= 10) 0xFFD97706.toInt() else Theme.textPrimary)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(8), 0, 0) }
+        }
+        bigCountTv = bigTv
+
+        // 7. Cue line: the existing rotating cue, restyled quiet + italic.
         val ct = TextView(activity).apply {
-            textSize = 13f; setTextColor(Theme.textSecondary); gravity = Gravity.CENTER
-            setPadding(activity.dp(8), activity.dp(4), activity.dp(8), 0)
+            textSize = 12.5f; setTextColor(Theme.textTertiary); gravity = Gravity.CENTER
+            typeface = Typeface.create("sans-serif", Typeface.ITALIC)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(10), 0, 0) }
             visibility = if (cleanCues.isEmpty()) View.GONE else View.VISIBLE
             if (cleanCues.isNotEmpty()) text = "While you rest — ${cleanCues[0]}"
         }
-        val col = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL; setPadding(activity.dp(20), activity.dp(18), activity.dp(20), activity.dp(16))
-            addView(r); addView(nextTv); addView(ct)
-        }
-        val d = AlertDialog.Builder(activity).setView(col)
-            .setPositiveButton("+15s", null)
-            .setNegativeButton("Skip rest", null)
-            .create()
-        d.setOnShowListener {
-            // v3.2 polish: the system dialog buttons take the app palette
-            // (primary for +15s, secondary for Skip rest) at a readable size.
-            d.getButton(AlertDialog.BUTTON_POSITIVE)?.apply { setTextColor(Theme.primary); textSize = 15f }
-            d.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply { setTextColor(Theme.textSecondary); textSize = 15f }
-            d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if (pausedRemainingMs >= 0) {
-                    // v3.12: +15s while paused grows the FROZEN remainder
-                    // (which becomes the ring's new total, mirroring the
-                    // running arithmetic below); the ticker stays stopped.
-                    pausedRemainingMs += 15_000
-                    ringTotalMs = pausedRemainingMs
-                    r.totalMs = pausedRemainingMs; r.setRemaining(pausedRemainingMs)
-                    persist()
-                    notifyListeners()
-                } else {
-                    // Same arithmetic as the pre-v3.7 dialog: remaining + 15s
-                    // becomes the ring's new total and it restarts full.
-                    val left = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0) + 15_000
-                    ringTotalMs = left
-                    endsAtMs = System.currentTimeMillis() + left
-                    r.totalMs = left; r.setRemaining(left)
-                    startTicker(left)
-                    notifyListeners()
-                    persist()
-                }
+
+        // 8. Controls: in-layout soft pills (+15s reproduces the old
+        // positive-button body exactly, then refreshes the huge text).
+        val plusControl = activity.bendControl(activity.bendSoftPill("+15s"), "More rest") {
+            if (pausedRemainingMs >= 0) {
+                // v3.12: +15s while paused grows the FROZEN remainder
+                // (which becomes the ring's new total, mirroring the
+                // running arithmetic below); the ticker stays stopped.
+                pausedRemainingMs += 15_000
+                ringTotalMs = pausedRemainingMs
+                r.totalMs = pausedRemainingMs; r.setRemaining(pausedRemainingMs)
+                persist()
+                notifyListeners()
+            } else {
+                // Same arithmetic as the pre-v3.7 dialog: remaining + 15s
+                // becomes the ring's new total and it restarts full.
+                val left = (endsAtMs - System.currentTimeMillis()).coerceAtLeast(0) + 15_000
+                ringTotalMs = left
+                endsAtMs = System.currentTimeMillis() + left
+                r.totalMs = left; r.setRemaining(left)
+                startTicker(left)
+                notifyListeners()
+                persist()
             }
-            d.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { endInternal(fire = true) }
+            bigCountTv?.let {
+                val s = remainingSec()
+                it.text = WorkoutTimer.formatClock(s)
+                it.setTextColor(if (s <= 10) 0xFFD97706.toInt() else Theme.textPrimary)
+            }
         }
+        val skipControl = activity.bendControl(activity.bendSoftPill("Skip rest"), "Go now") {
+            endInternal(fire = true)
+        }
+        val controls = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, activity.dp(16), 0, 0) }
+            addView(plusControl)
+            addView(View(activity).apply {
+                layoutParams = LinearLayout.LayoutParams(activity.dp(26), 1)
+            })
+            addView(skipControl)
+        }
+
+        val col = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(activity.dp(24), activity.dp(20), activity.dp(24), activity.dp(20))
+            addView(topRow); addView(circle); addView(nameTv); addView(metaTv)
+            addView(pausedTv); addView(bigTv); addView(ct); addView(controls)
+        }
+        val d = AlertDialog.Builder(activity).setView(col).create()
         // Back / outside-touch: hide the ring ONLY. The engine keeps the
         // rest counting (REST chip); onDone is not fired. Any dismiss —
         // hide, skip, finish — just drops the dialog view references.
         d.setOnDismissListener {
-            if (dialog === d) { dialog = null; ring = null; cueTv = null }
+            if (dialog === d) {
+                dialog = null; ring = null; cueTv = null
+                bigCountTv = null; elapsedTv = null; circleBox = null; dlgDb = null
+            }
             // v3.12: the ring is no longer showing — persist that, so a
             // later attach() doesn't resurrect a ring the user hid.
             // Teardown dismissals (rotation destroying the host) are
@@ -432,6 +630,7 @@ object RestTimer {
         clearPersisted()
         val d = dialog
         dialog = null; ring = null; cueTv = null
+        bigCountTv = null; elapsedTv = null; circleBox = null; dlgDb = null
         try { if (d?.isShowing == true) d.dismiss() } catch (e: Exception) {}
         notifyListeners()
         if (fire && cb != null && !fired) { fired = true; cb() }
@@ -450,12 +649,12 @@ object RestTimer {
 }
 
 /**
- * v3.7 top-bar REST chip (approved mock): an amber pill — #FEF3C7 fill,
- * #F59E0B 1dp border, #92400E ink — labeled "REST m:ss", shown next to
- * the elapsed-time chip on the card screen and the hub while a rest is
+ * v3.7 top-bar REST chip, labeled "REST m:ss", shown next to the
+ * elapsed-time chip on the card screen and the hub while a rest is
  * active. It ticks with the RestTimer engine and disappears the moment
  * the rest ends or is skipped; tapping it reopens the full Rest Ring
- * for the same rest.
+ * for the same rest. v3.13 Bend reskin: calm soft pill — Theme.warnBg
+ * fill with no stroke, Theme.warn ink.
  */
 class RestChipView(context: Context) : TextView(context) {
     private val listener: () -> Unit = { refresh() }
@@ -463,14 +662,11 @@ class RestChipView(context: Context) : TextView(context) {
 
     init {
         textSize = 12.5f
-        setTextColor(Color.parseColor("#92400E"))
+        // v3.13 Bend reskin: calm soft pill — warnBg fill, no stroke, warn ink.
+        setTextColor(Theme.warn)
         typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
         gravity = Gravity.CENTER
-        background = GradientDrawable().apply {
-            setColor(Color.parseColor("#FEF3C7"))
-            cornerRadius = context.dp(999).toFloat()
-            setStroke(context.dp(1), Color.parseColor("#F59E0B"))
-        }
+        background = context.roundedBg(Theme.warnBg, 999)
         setPadding(context.dp(11), context.dp(3), context.dp(11), context.dp(3))
         visibility = View.GONE
         isClickable = true

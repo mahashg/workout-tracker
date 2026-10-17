@@ -51,8 +51,159 @@ object SetLogger {
         var done: Boolean
     )
 
-    private fun fmtWeight(w: Double): String =
+    fun fmtWeight(w: Double): String =
         if (w % 1.0 == 0.0) String.format(Locale.US, "%.0f", w) else String.format(Locale.US, "%.1f", w)
+
+    /** v3.13: the mutable state behind one [buildSetPanel] — shared by
+     *  the card's inline logger and the sheet's active row. */
+    class SetPanelState(var weight: Double, var reps: Int, var isBw: Boolean)
+
+    /** v3.13: prefill for the panel, replicating show()'s makeRow value
+     *  rules EXACTLY: an unlogged set takes the last performance's set
+     *  at the same index when present (weight / digit-reps / BW flag,
+     *  with a bodyweight-equipment exercise forcing BW), else the
+     *  stored set's own values under the same BW rule. */
+    fun panelPrefill(db: DbHelper, sessionId: Long, ex: SessionExercise, set: SessionSet, idx: Int): SetPanelState {
+        val bwExercise = ex.equipment.equals("Bodyweight", ignoreCase = true)
+        val last = db.lastPerformedForExercise(ex.name, sessionId)
+        val ls = if (!set.isDone) last?.sets?.getOrNull(idx) else null
+        return if (ls != null) SetPanelState(
+            ls.weight.toDoubleOrNull() ?: 0.0,
+            ls.reps.filter { it.isDigit() }.toIntOrNull() ?: 10,
+            ls.isBodyweight || bwExercise
+        ) else SetPanelState(
+            set.weight.toDoubleOrNull() ?: 0.0,
+            set.reps.filter { it.isDigit() }.toIntOrNull() ?: 10,
+            set.isBodyweight || bwExercise
+        )
+    }
+
+    /** v3.13 (r4 Screen 6 panel): the shared calm logger panel — a
+     *  header row (micro title + BW pill + unit/last-time text), the
+     *  reps / weight stepper columns and the hero ✓ that logs. Every
+     *  mutation writes into [state], refreshes the affected value
+     *  view and fires [onStateChange]; the caller owns the actual DB
+     *  write, which happens only in [onLog]. [onUnitFlip] is non-null
+     *  only in the sheet, where the header-right text is the unit
+     *  toggle; on the card it is a plain last-time label. */
+    fun buildSetPanel(
+        act: Activity,
+        title: String,
+        headerRight: String,
+        bwExercise: Boolean,
+        unitIsKg: Boolean,
+        state: SetPanelState,
+        onUnitFlip: (() -> Unit)?,
+        onStateChange: () -> Unit,
+        onLog: () -> Unit
+    ): LinearLayout {
+        val panel = act.bendPanel()
+        var weightValue: TextView? = null
+        var bwPill: TextView? = null
+        fun refreshBwPill() {
+            bwPill?.apply {
+                if (state.isBw) { setTextColor(Color.WHITE); background = act.roundedBg("#5B21B6", 999) }
+                else { setTextColor(Theme.textTertiary); background = act.roundedBg(Theme.surfaceVariant, 999) }
+            }
+        }
+        fun refreshWeight() {
+            weightValue?.text = if (state.isBw) "BW" else fmtWeight(state.weight)
+            refreshBwPill()
+        }
+        // Header row: micro title + spacer + BW pill + header-right text.
+        val header = LinearLayout(act).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        header.addView(act.bendMicro(title, Theme.primary))
+        header.addView(android.view.View(act), LinearLayout.LayoutParams(0, 1, 1f))
+        if (!bwExercise) {
+            val pill = TextView(act).apply {
+                text = "BW"; textSize = 10f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                setPadding(act.dp(8), act.dp(2), act.dp(8), act.dp(2))
+                isClickable = true
+                setOnClickListener { state.isBw = !state.isBw; refreshWeight(); onStateChange() }
+            }
+            bwPill = pill
+            refreshBwPill()
+            header.addView(pill)
+        }
+        header.addView(TextView(act).apply {
+            text = headerRight; textSize = 12f; setTextColor(Theme.textSecondary)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(8), 0, 0, 0) }
+            if (onUnitFlip != null) {
+                isClickable = true
+                setOnClickListener { onUnitFlip() }
+            }
+        })
+        panel.addView(header)
+        // Stepper columns: reps first, weight second (as the sheet's
+        // rows were ordered); a bodyweight exercise keeps reps only.
+        val wStep = if (unitIsKg) 2.5 else 5.0
+        val cols = LinearLayout(act).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(14), 0, 0) }
+        }
+        fun stepperColumn(label: String, isWeight: Boolean, first: Boolean): LinearLayout {
+            val col = LinearLayout(act).apply {
+                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { if (!first) setMargins(act.dp(14), 0, 0, 0) }
+            }
+            col.addView(act.bendMicro(label, Theme.textTertiary).apply { gravity = Gravity.CENTER })
+            val row = LinearLayout(act).apply {
+                orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(8), 0, 0) }
+            }
+            val minus = act.bendSoftCircle("−", 36, 17f)
+            minus.isClickable = true
+            val value = TextView(act).apply {
+                textSize = 22f; gravity = Gravity.CENTER; setTextColor(Theme.textPrimary)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                setFontFeatureSettings("tnum")
+                minWidth = act.dp(54)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                isClickable = true
+            }
+            val plus = act.bendSoftCircle("+", 36, 17f)
+            plus.isClickable = true
+            if (isWeight) {
+                weightValue = value
+                value.text = if (state.isBw) "BW" else fmtWeight(state.weight)
+                minus.setOnClickListener {
+                    if (state.isBw) { state.isBw = false; state.weight = 0.0 } else state.weight = (state.weight - wStep).coerceAtLeast(0.0)
+                    refreshWeight(); onStateChange()
+                }
+                value.setOnClickListener {
+                    customValueDialog(act, true, state.weight, "Custom weight (${if (unitIsKg) "kg" else "lb"})") { v -> state.isBw = false; state.weight = v; refreshWeight(); onStateChange() }
+                }
+                plus.setOnClickListener {
+                    if (state.isBw) { state.isBw = false; state.weight = wStep } else state.weight += wStep
+                    refreshWeight(); onStateChange()
+                }
+            } else {
+                value.text = state.reps.toString()
+                minus.setOnClickListener { state.reps = (state.reps - 1).coerceAtLeast(1); value.text = state.reps.toString(); onStateChange() }
+                value.setOnClickListener {
+                    customValueDialog(act, false, state.reps.toDouble(), "Custom reps") { v -> state.reps = v.toInt().coerceAtLeast(1); value.text = state.reps.toString(); onStateChange() }
+                }
+                plus.setOnClickListener { state.reps++; value.text = state.reps.toString(); onStateChange() }
+            }
+            row.addView(minus); row.addView(value); row.addView(plus)
+            col.addView(row)
+            return col
+        }
+        cols.addView(stepperColumn("REPS", isWeight = false, first = true))
+        if (!bwExercise) cols.addView(stepperColumn("WEIGHT · ${if (unitIsKg) "KG" else "LB"}", isWeight = true, first = false))
+        panel.addView(cols)
+        // The hero ✓ that logs this set.
+        val logBtn = act.bendHeroCircle("✓", Theme.success, 58, 22f)
+        logBtn.layoutParams = LinearLayout.LayoutParams(act.dp(58), act.dp(58)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, act.dp(16), 0, 0) }
+        logBtn.isClickable = true
+        logBtn.setOnClickListener { onLog() }
+        panel.addView(logBtn)
+        return panel
+    }
 
     /** Numeric editor (the old logger's Custom entry, preserved):
      *  decimal for weight, integer for reps; OK applies the value. */
@@ -118,23 +269,16 @@ object SetLogger {
         }
         rebuildRows()
 
+        // v3.13 (r4 Screen 6): ONE row is expanded as the logger panel;
+        // the rest are quiet tint bands. activeIdx survives renderSheet()
+        // re-renders — it lives here, not in the render pass.
+        var activeIdx = rows.indexOfFirst { !it.done }.let { if (it >= 0) it else 0 }
+
         val sheet = Dialog(act)
 
-        fun roundBtn(text: String, onClick: () -> Unit): TextView {
-            return TextView(act).apply {
-                this.text = text; textSize = 18f; gravity = Gravity.CENTER
-                setTextColor(Theme.primary)
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                background = act.roundedBg(Palettes.current.stepperBg, 999)
-                layoutParams = LinearLayout.LayoutParams(act.dp(34), act.dp(34))
-                isClickable = true
-                setOnClickListener { onClick() }
-            }
-        }
-
         fun renderSheet() {
+            if (activeIdx !in rows.indices) activeIdx = 0
             val unit = WeekManager.unit(act)
-            val wStep = if (unit == "kg") 2.5 else 5.0
             val root = LinearLayout(act).apply {
                 orientation = LinearLayout.VERTICAL
                 background = GradientDrawable().apply {
@@ -185,37 +329,15 @@ object SetLogger {
             (lastTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, act.dp(2), 0, 0)
             lastTv.maxLines = 2
             root.addView(lastTv)
-            // Repeat last time banner (old S1 semantics, mock styling).
+            // Repeat last time (old S1 semantics): r4 Screen 6 makes it
+            // ONE quiet centered line — the tap handler is the EXACT
+            // current banner Fill handler body.
             if (last != null) {
-                val fillCount = minOf(rows.size, last.sets.size)
-                val banner = LinearLayout(act).apply {
-                    orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    background = GradientDrawable().apply {
-                        setColor(Palettes.current.doorGymBg); cornerRadius = act.dp(12).toFloat()
-                        setStroke(act.dp(1), Palettes.current.doorGymBorder)
-                    }
-                    setPadding(act.dp(12), act.dp(9), act.dp(12), act.dp(9))
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(10), 0, 0) }
-                }
-                banner.addView(TextView(act).apply {
-                    text = "↺"; textSize = 19f; setTextColor(Theme.primary); gravity = Gravity.CENTER
-                    layoutParams = LinearLayout.LayoutParams(act.dp(26), LinearLayout.LayoutParams.WRAP_CONTENT)
-                })
-                val bcol = LinearLayout(act).apply {
-                    orientation = LinearLayout.VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(act.dp(6), 0, act.dp(8), 0) }
-                }
-                val bt = act.makeText("Repeat last time", 13.5f, true)
-                (bt.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-                bcol.addView(bt)
-                val bs = act.makeText("Fills all $fillCount sets and logs them — one tap", 11.5f, false, Theme.textSecondary)
-                (bs.layoutParams as LinearLayout.LayoutParams).setMargins(0, act.dp(1), 0, 0)
-                bcol.addView(bs)
-                banner.addView(bcol)
-                banner.addView(TextView(act).apply {
-                    text = "Fill"; textSize = 13.5f; setTextColor(Theme.primary)
+                root.addView(TextView(act).apply {
+                    text = "↻ Repeat last time"; textSize = 13.5f; gravity = Gravity.CENTER; setTextColor(Theme.primary)
                     typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    setPadding(act.dp(10), act.dp(6), act.dp(4), act.dp(6))
+                    setPadding(act.dp(10), act.dp(10), act.dp(10), act.dp(10))
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(10), 0, 0) }
                     isClickable = true
                     setOnClickListener {
                         // The old Repeat button, 1:1: snapshot, fill +
@@ -235,141 +357,104 @@ object SetLogger {
                         onCommit(Result(newly, remaining, true))
                     }
                 })
-                root.addView(banner)
             }
-            // Set rows.
+            // Set rows (r4 Screen 6): the ACTIVE row is the shared
+            // logger panel; every other row is a quiet tint band that
+            // expands on tap. Staging is unchanged — panel edits copy
+            // back into the RowState and Done below commits them.
             for ((idx, st) in rows.withIndex()) {
-                val rowCard = LinearLayout(act).apply {
-                    orientation = LinearLayout.VERTICAL
-                    background = GradientDrawable().apply {
-                        setColor(Palettes.current.sheetRow); cornerRadius = act.dp(14).toFloat()
-                        setStroke(act.dp(1), Theme.stroke)
-                    }
-                    setPadding(act.dp(12), act.dp(8), act.dp(10), act.dp(10))
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(8), 0, 0) }
-                }
-                // Line 1: SET n micro-label + BW toggle pill.
-                val line1 = LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-                val setLab = TextView(act).apply {
-                    text = "SET ${st.orig.setNumber}"; textSize = 10.5f; setTextColor(Theme.textTertiary)
-                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    letterSpacing = 0.08f
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                }
-                line1.addView(setLab)
-                // v3.10: no BW toggle pill on a bodyweight exercise —
-                // every row is BW by construction (see bwExercise).
-                if (!bwExercise) line1.addView(TextView(act).apply {
-                    text = "BW"; textSize = 10f
-                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    if (st.isBw) { setTextColor(Color.WHITE); background = act.roundedBg("#5B21B6", 999) }
-                    else { setTextColor(Theme.textTertiary); background = act.roundedBg(Theme.surfaceVariant, 999) }
-                    setPadding(act.dp(8), act.dp(2), act.dp(8), act.dp(2))
-                    isClickable = true
-                    setOnClickListener { st.isBw = !st.isBw; renderSheet() }
-                })
-                rowCard.addView(line1)
-                // Line 2: reps stepper · weight stepper · ✓ circle.
-                // v3.9.2 (Mahesh): reps FIRST, weight second — so the
-                // weight value + its KG/LB micro-label forms one
-                // aligned column across all rows, under the BW pill.
-                val line2 = LinearLayout(act).apply {
-                    orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(6), 0, 0) }
-                }
-                fun valueStack(value: String, micro: String, onTap: () -> Unit): LinearLayout {
-                    val stack = LinearLayout(act).apply {
-                        orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
-                        layoutParams = LinearLayout.LayoutParams(act.dp(54), LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(5), 0, act.dp(5), 0) }
-                        isClickable = true
-                        setOnClickListener { onTap() }
-                    }
-                    stack.addView(TextView(act).apply {
-                        text = value; textSize = 16.5f; gravity = Gravity.CENTER; setTextColor(Theme.textPrimary)
-                        typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    })
-                    stack.addView(TextView(act).apply {
-                        text = micro; textSize = 9f; gravity = Gravity.CENTER; setTextColor(Theme.textTertiary)
-                        typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                        letterSpacing = 0.06f
-                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    })
-                    return stack
-                }
-                // Reps stepper first (step 1) — v3.9.2 swap.
-                val repsGroup = LinearLayout(act).apply {
-                    orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                }
-                repsGroup.addView(roundBtn("−") { st.reps = (st.reps - 1).coerceAtLeast(1); renderSheet() })
-                repsGroup.addView(valueStack(st.reps.toString(), "REPS") {
-                    customValueDialog(act, false, st.reps.toDouble(), "Custom reps") { v -> st.reps = v.toInt().coerceAtLeast(1); renderSheet() }
-                })
-                repsGroup.addView(roundBtn("+") { st.reps++; renderSheet() })
-                line2.addView(repsGroup)
-                // Weight stepper second (step 2.5 kg / 5 lb, as the
-                // old logger) — its own group so the swap is a pure
-                // reorder; every handler is byte-identical.
-                // v3.10: skipped entirely for a bodyweight exercise —
-                // the row is reps + ✓ and nothing else.
-                if (!bwExercise) {
-                    val weightGroup = LinearLayout(act).apply {
-                        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(act.dp(14), 0, 0, 0) }
-                    }
-                    weightGroup.addView(roundBtn("−") {
-                        if (st.isBw) { st.isBw = false; st.weight = 0.0 } else st.weight = (st.weight - wStep).coerceAtLeast(0.0)
-                        renderSheet()
-                    })
-                    weightGroup.addView(valueStack(if (st.isBw) "BW" else fmtWeight(st.weight), unit.uppercase(Locale.US)) {
-                        customValueDialog(act, true, st.weight, "Custom weight ($unit)") { v -> st.isBw = false; st.weight = v; renderSheet() }
-                    })
-                    weightGroup.addView(roundBtn("+") {
-                        if (st.isBw) { st.isBw = false; st.weight = wStep } else st.weight += wStep
-                        renderSheet()
-                    })
-                    line2.addView(weightGroup)
-                }
-                line2.addView(android.view.View(act), LinearLayout.LayoutParams(0, 1, 1f))
-                // The big ✓: filled green when logged, hollow when not.
-                line2.addView(TextView(act).apply {
-                    text = "✓"; textSize = 18f; gravity = Gravity.CENTER
-                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    if (st.done) {
-                        setTextColor(Color.WHITE)
-                        background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
-                        elevation = act.dp(2).toFloat()
-                    } else {
-                        setTextColor(Palettes.current.checkOffStroke)
-                        background = GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setStroke((2.5f * act.resources.displayMetrics.density).toInt(), Palettes.current.checkOffStroke)
+                if (idx == activeIdx) {
+                    val panelState = SetPanelState(st.weight, st.reps, st.isBw)
+                    val panel = buildSetPanel(
+                        act,
+                        "SET ${st.orig.setNumber}",
+                        "⚖ ${unit.uppercase(Locale.US)} · tap for ${if (unit == "kg") "lb" else "kg"}",
+                        bwExercise,
+                        unitIsKg = unit == "kg",
+                        state = panelState,
+                        onUnitFlip = {
+                            WeekManager.setUnit(act, if (unit == "kg") "lb" else "kg")
+                            renderSheet()
+                        },
+                        onStateChange = {
+                            st.weight = panelState.weight
+                            st.reps = panelState.reps
+                            st.isBw = panelState.isBw
+                        },
+                        onLog = {
+                            st.done = !st.done
+                            if (st.done) {
+                                val next = rows.indices.firstOrNull { it > idx && !rows[it].done }
+                                if (next != null) activeIdx = next
+                            }
+                            renderSheet()
+                        }
+                    )
+                    panel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(8), 0, 0) }
+                    // Minimal set removal, preserved from the list view's
+                    // − button (db.removeLastSet): long-press the LAST row.
+                    if (idx == rows.lastIndex && rows.size > 1) {
+                        panel.setOnLongClickListener {
+                            AlertDialog.Builder(act)
+                                .setTitle("Remove set ${st.orig.setNumber}?")
+                                .setMessage("Removes the last set of this exercise. Sets you already logged stay in history.")
+                                .setPositiveButton("Remove") { _, _ ->
+                                    db.removeLastSet(ex.id)
+                                    db.syncExerciseStatus(ex.id)
+                                    rebuildRows()
+                                    renderSheet()
+                                }
+                                .setNegativeButton("Cancel", null).show()
+                            true
                         }
                     }
-                    layoutParams = LinearLayout.LayoutParams(act.dp(40), act.dp(40))
-                    isClickable = true
-                    setOnClickListener { st.done = !st.done; renderSheet() }
-                })
-                rowCard.addView(line2)
-                // Minimal set removal, preserved from the list view's
-                // − button (db.removeLastSet): long-press the LAST row.
-                if (idx == rows.lastIndex && rows.size > 1) {
-                    rowCard.setOnLongClickListener {
-                        AlertDialog.Builder(act)
-                            .setTitle("Remove set ${st.orig.setNumber}?")
-                            .setMessage("Removes the last set of this exercise. Sets you already logged stay in history.")
-                            .setPositiveButton("Remove") { _, _ ->
-                                db.removeLastSet(ex.id)
-                                db.syncExerciseStatus(ex.id)
-                                rebuildRows()
-                                renderSheet()
-                            }
-                            .setNegativeButton("Cancel", null).show()
-                        true
+                    root.addView(panel)
+                } else {
+                    val band = LinearLayout(act).apply {
+                        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                        background = GradientDrawable().apply {
+                            setColor(Palettes.current.surface); cornerRadius = act.dp(16).toFloat()
+                        }
+                        setPadding(act.dp(14), act.dp(12), act.dp(14), act.dp(12))
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(8), 0, 0) }
+                        isClickable = true
+                        setOnClickListener { activeIdx = idx; renderSheet() }
                     }
+                    band.addView(TextView(act).apply {
+                        text = "Set ${st.orig.setNumber} · ${if (st.isBw) "BW" else fmtWeight(st.weight) + " " + unit} × ${st.reps}"
+                        textSize = 15.5f; setTextColor(Theme.textPrimary)
+                        typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                        maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    })
+                    band.addView(TextView(act).apply {
+                        if (st.done) {
+                            text = "✓"; setTextColor(Theme.success)
+                        } else {
+                            text = "›"; setTextColor(Theme.textTertiary)
+                        }
+                        textSize = 15f; gravity = Gravity.CENTER
+                        typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                    })
+                    // Long-press removal also lives on the band when the
+                    // last row is not the active one.
+                    if (idx == rows.lastIndex && rows.size > 1) {
+                        band.setOnLongClickListener {
+                            AlertDialog.Builder(act)
+                                .setTitle("Remove set ${st.orig.setNumber}?")
+                                .setMessage("Removes the last set of this exercise. Sets you already logged stay in history.")
+                                .setPositiveButton("Remove") { _, _ ->
+                                    db.removeLastSet(ex.id)
+                                    db.syncExerciseStatus(ex.id)
+                                    rebuildRows()
+                                    renderSheet()
+                                }
+                                .setNegativeButton("Cancel", null).show()
+                            true
+                        }
+                    }
+                    root.addView(band)
                 }
-                root.addView(rowCard)
             }
             // Hint line (the mock's footer copy, unit-aware).
             // v3.10: a bodyweight sheet has no weight steps to describe.
@@ -385,25 +470,28 @@ object SetLogger {
             root.addView(TextView(act).apply {
                 text = "+ Add set"; textSize = 13.5f; gravity = Gravity.CENTER; setTextColor(Theme.primary)
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                background = GradientDrawable().apply {
-                    setColor(Palettes.current.sheetRow); cornerRadius = act.dp(12).toFloat()
-                    setStroke(act.dp(1), Color.parseColor("#B9C9D8"), act.dp(6).toFloat(), act.dp(4).toFloat())
-                }
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, act.dp(44)).apply { setMargins(0, act.dp(8), 0, 0) }
+                setPadding(act.dp(10), act.dp(10), act.dp(10), act.dp(10))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, act.dp(8), 0, 0) }
                 isClickable = true
                 setOnClickListener {
                     val newId = db.addSet(ex.id)
                     val fresh = db.getSets(ex.id)
                     val i = fresh.indexOfFirst { it.id == newId }
-                    if (i >= 0) rows.add(makeRow(fresh[i], i))
+                    if (i >= 0) {
+                        rows.add(makeRow(fresh[i], i))
+                        // v3.13: the new row becomes the active panel row.
+                        activeIdx = rows.lastIndex
+                    }
                     renderSheet()
                 }
             })
-            // Done bar: commits the staged edits (the old Save Set).
+            // Done bar: commits the staged edits (the old Save Set) —
+            // r4 Screen 6 restyles it as a wide PRIMARY pill; the commit
+            // body below is byte-identical.
             root.addView(TextView(act).apply {
-                text = "Done"; textSize = 15.5f; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
+                text = "Done with this exercise"; textSize = 15.5f; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                background = act.roundedBg(Theme.success, 14)
+                background = act.roundedBg(Theme.primary, 999)
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, act.dp(52)).apply { setMargins(0, act.dp(10), 0, 0) }
                 isClickable = true
                 setOnClickListener {
