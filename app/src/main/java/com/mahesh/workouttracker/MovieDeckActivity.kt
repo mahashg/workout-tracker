@@ -21,9 +21,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 /** Identity of a Movie Movements session: its routineName in the DB.
  *  Home (resume detection), DbHelper (creation) and HealthSync (the
@@ -77,16 +74,14 @@ class MovieDeckActivity : AppCompatActivity() {
     private lateinit var root: LinearLayout
     private lateinit var topRow: LinearLayout
     private lateinit var content: LinearLayout
-    private var elapsedTv: TextView? = null
+    private var topMicroTv: TextView? = null
     private var counterSecTv: TextView? = null
-    private var counterLabelTv: TextView? = null
     private var counterPauseTv: TextView? = null
-    private var counterFill: View? = null
-    private var counterSpacer: View? = null
+    private var counterRing: BendRingView? = null
     private var photoFrame: FrameLayout? = null
     private var sessionLineTv: TextView? = null
-    private var chipsWrap: LinearLayout? = null
     private var photoLooper: PhotoLooper? = null
+    private var elapsedText: String = "0:00"
 
     // Timing.
     private val handler = Handler(Looper.getMainLooper())
@@ -251,27 +246,29 @@ class MovieDeckActivity : AppCompatActivity() {
         setContentView(root)
         topRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(40))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            setPadding(0, dp(4), 0, 0)
             visibility = View.GONE
         }
-        topRow.addView(makeText("🎬 Movie Movements", 15f, true).apply {
+        val titleCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        titleCol.addView(bendScreenName("Movie Movements").apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         })
+        topMicroTv = bendMicro("MOVEMENT ${resolved.size + 1} · ENDLESS")
+        titleCol.addView(topMicroTv)
+        topRow.addView(titleCol)
         topRow.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        elapsedTv = makeText("", 13f, true, Theme.textSecondary).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-        }
-        topRow.addView(elapsedTv)
-        val endChip = TextView(this).apply {
-            text = "✕ End"; textSize = 12f; setTextColor(Color.parseColor("#991B1B"))
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            background = GradientDrawable().apply { setColor(Color.parseColor("#FEE2E2")); cornerRadius = dp(999).toFloat() }
-            setPadding(dp(12), dp(6), dp(12), dp(6))
+        val endTv = TextView(this).apply {
+            text = "✕"; textSize = 17f; setTextColor(Theme.textTertiary)
+            setPadding(dp(8), dp(8), dp(8), dp(8))
             isClickable = true
             setOnClickListener { onEndTap() }
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(10), 0, 0, 0) }
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         }
-        topRow.addView(endChip)
+        topRow.addView(endTv)
         root.addView(topRow)
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -279,12 +276,6 @@ class MovieDeckActivity : AppCompatActivity() {
         }
         root.addView(content)
     }
-
-    private fun rectBg(color: Int, radiusDp: Int, strokeColor: Int? = null, strokeDp: Int = 1): GradientDrawable =
-        GradientDrawable().apply {
-            setColor(color); cornerRadius = dp(radiusDp).toFloat()
-            if (strokeColor != null) setStroke(dp(strokeDp), strokeColor)
-        }
 
     // ---------- countdown (mock screen 2) ----------
 
@@ -419,63 +410,20 @@ class MovieDeckActivity : AppCompatActivity() {
         photoLooper?.stop(); photoLooper = null
         content.removeAllViews()
 
-        // Counter band — pinned at the top, always visible.
-        val band = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = rectBg(Color.parseColor("#16324F"), 14)
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
-        }
-        val bandRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        counterSecTv = TextView(this).apply {
-            textSize = 30f; setTextColor(Color.WHITE)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            setFontFeatureSettings("tnum")
-            (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
-        }
-        bandRow.addView(counterSecTv)
-        counterLabelTv = TextView(this).apply {
-            text = "${entry.name.uppercase(Locale.US)} · COUNTER"
-            textSize = 11f; setTextColor(0xD9FFFFFF.toInt())
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            letterSpacing = 0.08f; gravity = Gravity.CENTER
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(10), 0, dp(6), 0) }
-        }
-        bandRow.addView(counterLabelTv)
-        counterPauseTv = TextView(this).apply {
-            text = "⏸"; textSize = 19f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
-            isClickable = true
-            setOnClickListener { toggleCounterPause() }
-        }
-        bandRow.addView(counterPauseTv)
-        band.addView(bandRow)
-        val track = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            background = GradientDrawable().apply { setColor(0x40FFFFFF); cornerRadius = dp(99).toFloat() }
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(7)).apply { setMargins(0, dp(8), 0, 0) }
-        }
-        counterFill = View(this).apply {
-            background = GradientDrawable().apply { setColor(Color.parseColor("#A3E635")); cornerRadius = dp(99).toFloat() }
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-        }
-        counterSpacer = View(this).apply { layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 0f) }
-        track.addView(counterFill); track.addView(counterSpacer)
-        band.addView(track)
-        content.addView(band)
+        topMicroTv?.text = "MOVEMENT ${resolved.size + 1} · ENDLESS"
 
-        // Photo band (flexes; CENTER_CROP; body map when no photo).
-        val frame = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { setMargins(0, dp(10), 0, 0) }
-            roundedClip(18)
+        // Circular photo (Bend circle) with the counter ring over it.
+        val sizeDp = if (isCompactScreen()) 232 else 288
+        val frame = bendCircleFrame(sizeDp)
+        (frame.layoutParams as LinearLayout.LayoutParams).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            setMargins(0, dp(10), 0, 0)
         }
         photoFrame = frame
         val photoAsset = PhotoLib.assetForExercise(this, item.exercise)
         val photoBmp = photoAsset?.let { PhotoLib.bitmap(this, it) }
         val muscles = DbHelper.parseMuscles(item.exercise.targetMuscles, item.exercise.name)
         if (photoBmp != null) {
-            frame.setBackgroundColor(Theme.surfaceVariant)
             frame.addView(ImageView(this).apply {
                 setImageBitmap(photoBmp); scaleType = ImageView.ScaleType.CENTER_CROP
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
@@ -489,139 +437,81 @@ class MovieDeckActivity : AppCompatActivity() {
                 frame.addView(iv2)
                 val looper = PhotoLooper(iv2); photoLooper = looper; looper.start()
             }
-            frame.addView(View(this).apply {
-                background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xCC000000.toInt(), 0x00000000))
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(96), Gravity.BOTTOM)
-            })
         } else {
-            frame.background = roundedBg("#EDF2F7", 18)
             frame.addView(BodyMapView(this, muscles, true).apply {
-                layoutParams = FrameLayout.LayoutParams(dp(110), dp(140), Gravity.CENTER_VERTICAL or Gravity.END).apply { setMargins(0, 0, dp(16), 0) }
+                layoutParams = FrameLayout.LayoutParams(dp(110), dp(140), Gravity.CENTER)
             })
         }
-        // Tag pill top-left over the band (both photo and body-map forms).
-        frame.addView(TextView(this).apply {
-            text = "🏠 HOME · ${BodyParts.name(item.partId).uppercase(Locale.US)}"
-            textSize = 11f; setTextColor(Color.parseColor("#92600A"))
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            background = GradientDrawable().apply { setColor(0xF2FFF1CF.toInt()); cornerRadius = dp(999).toFloat() }
-            setPadding(dp(10), dp(5), dp(10), dp(5))
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) }
-        })
-        // Name + last-time on the bottom of the band.
-        val overlay = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), 0, dp(14), dp(12))
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)
+        counterRing = BendRingView(this).apply {
+            strokeDp = 4f
+            amberUnderSec = 10
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
-        val onPhoto = photoBmp != null
-        overlay.addView(makeText(entry.name, 24f, true, if (onPhoto) Color.WHITE else Theme.textPrimary).apply {
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-        })
-        overlay.addView(makeText(lastTimeLine(item), 13f, true, if (onPhoto) 0xE6FFFFFF.toInt() else Theme.primary).apply {
-            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0)
-        })
-        frame.addView(overlay)
+        frame.addView(counterRing)
         content.addView(frame)
 
-        // Target card: the rep guide big, the first cues as guidance.
-        val target = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            background = rectBg(Theme.surface, 14, Theme.stroke, 1)
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, 0) }
+        // Name, guide, first cue, watch line.
+        content.addView(bendName(entry.name).apply {
+            (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(16), 0, 0) }
+        })
+        val guide = guideLabel(entry.targetReps)
+        if (guide.isNotBlank()) {
+            content.addView(bendMeta(guide).apply {
+                (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(4), 0, 0) }
+            })
         }
-        target.addView(makeText(guideLabel(entry.targetReps), 24f, true, Theme.primary).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-        })
-        val cues = entry.cues.split(";").map { it.trim() }.filter { it.isNotBlank() }.take(2)
-        target.addView(makeText(
-            if (cues.isEmpty()) "" else cues.joinToString(". ") + ".",
-            12.5f, false, Theme.textSecondary).apply {
-            maxLines = 3
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, 0, 0) }
-        })
-        content.addView(target)
+        val cues = entry.cues.split(";").map { it.trim() }.filter { it.isNotBlank() }
+        if (cues.isNotEmpty()) {
+            content.addView(bendCue("\"${cues.first()}\"").apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, 0) }
+            })
+        }
+        if (entry.url.isNotBlank()) {
+            val watch = bendWatchLine()
+            watch.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+            watch.isClickable = true
+            watch.setOnClickListener { openUrl(this, entry.shortUrl.takeIf { it.isNotBlank() } ?: entry.url) }
+            watch.setOnLongClickListener { openUrl(this, entry.url); true }
+            content.addView(watch)
+        }
 
-        // Actions: ✓ Done early (green, larger) + Skip →.
-        val actions = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)).apply { setMargins(0, dp(10), 0, 0) }
+        // Huge counter.
+        counterSecTv = bendHuge()
+        counterSecTv?.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+        content.addView(counterSecTv)
+
+        content.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+
+        // Controls: Skip / Done / Pause round controls.
+        val controls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(18), 0, 0) }
         }
-        val doneBtn = makeButton("✓ Done early") { completeCurrent() }
-        doneBtn.background = GradientDrawable().apply { setColor(Theme.success); cornerRadius = dp(14).toFloat() }
-        doneBtn.layoutParams = LinearLayout.LayoutParams(0, dp(56), 1.4f).apply { setMargins(0, 0, dp(5), 0) }
-        actions.addView(doneBtn)
-        val skipBtn = makeSecondaryButton("Skip →") { skipCurrent() }
-        tightButton(skipBtn, 56, 14, primary = false)
-        skipBtn.layoutParams = LinearLayout.LayoutParams(0, dp(56), 1f).apply { setMargins(dp(5), 0, 0, 0) }
-        actions.addView(skipBtn)
-        content.addView(actions)
+        controls.addView(bendControl(bendSoftCircle("⏭"), "Skip") { skipCurrent() }.apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
+        })
+        controls.addView(bendControl(bendHeroCircle("✓", Theme.success), "Done") { completeCurrent() }.apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
+        })
+        val pauseCircle = bendSoftCircle("⏸")
+        counterPauseTv = pauseCircle
+        controls.addView(bendControl(pauseCircle, "Pause") { toggleCounterPause() }.apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
+        })
+        content.addView(controls)
 
         sessionLineTv = makeText("", 12.5f, false, Theme.textSecondary).apply {
             gravity = Gravity.CENTER
-            (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(10), 0, 0) }
+            (layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, dp(14), 0, 0) }
         }
         content.addView(sessionLineTv)
-        chipsWrap = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
-        }
-        content.addView(chipsWrap)
         renderProgress()
     }
 
-    /** Session line + backwards-looking deck chips (the only "list" —
-     *  it never shows what is coming). */
+    /** Session footline only (r4: no deck chips on this screen). */
     private fun renderProgress() {
-        sessionLineTv?.text = "$doneCount done this session · the deck keeps dealing 🎲"
-        val wrap = chipsWrap ?: return
-        wrap.removeAllViews()
-        data class Chip(val label: String, val kind: String) // done | skipped | now | note
-        val chips = mutableListOf<Chip>()
-        // During the success beat the current movement is already in
-        // `resolved` as done — the "now" chip only exists mid-movement.
-        val all = resolved.map { Chip(it.first, it.second) } +
-            if (phase == Phase.MOVEMENT) listOf(Chip(shortName(currentItem?.entry?.name ?: ""), "now")) else emptyList()
-        val shown = if (all.size > 12) listOf(Chip("+${all.size - 11} earlier", "note")) + all.takeLast(11) else all
-        chips.addAll(shown)
-        val availDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt() -
-            if (isCompactScreen()) 28 else 40
-        var row = newChipRow()
-        var used = 0
-        for (chip in chips) {
-            val w = 22 + (chip.label.length * 6.4).toInt()
-            if (used > 0 && used + w > availDp) {
-                wrap.addView(row)
-                row = newChipRow(); used = 0
-            }
-            row.addView(chipView(chip.label, chip.kind))
-            used += w + 6
-        }
-        wrap.addView(row)
-    }
-
-    private fun newChipRow(): LinearLayout = LinearLayout(this).apply {
-        orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
-        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(3), 0, dp(3)) }
-    }
-
-    private fun chipView(label: String, kind: String): TextView {
-        val (bg, ink, suffix) = when (kind) {
-            "done" -> Triple(Color.parseColor("#DCFCE7"), Color.parseColor("#166534"), " ✓")
-            "skipped" -> Triple(Color.parseColor("#E8EEF4"), Color.parseColor("#64748B"), " ✕")
-            "now" -> Triple(Theme.primary, Color.WHITE, " · now")
-            else -> Triple(Color.parseColor("#E8EEF4"), Color.parseColor("#64748B"), "")
-        }
-        return TextView(this).apply {
-            text = label + suffix; textSize = 10.5f; setTextColor(ink)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            background = GradientDrawable().apply { setColor(bg); cornerRadius = dp(999).toFloat() }
-            setPadding(dp(9), dp(4), dp(9), dp(4)); maxLines = 1
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(3), 0, dp(3), 0) }
-        }
+        val skipped = resolved.count { it.second == "skipped" }
+        sessionLineTv?.text = "$doneCount done · $skipped skipped · $elapsedText so far"
     }
 
     private fun shortName(name: String): String {
@@ -630,17 +520,6 @@ class MovieDeckActivity : AppCompatActivity() {
         val words = base.split(" ")
         val two = words.take(2).joinToString(" ")
         return if (two.length in 1..16) two else base.substring(0, 16).trim()
-    }
-
-    private fun lastTimeLine(item: DeckItem): String {
-        val last = db.lastPerformedForExercise(item.exercise.name, sessionId) ?: return "New movement"
-        val reps = last.sets.firstOrNull()?.reps?.filter { it.isDigit() }?.toIntOrNull()
-        val day = try {
-            val cal = Calendar.getInstance()
-            cal.time = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(last.date)!!
-            SimpleDateFormat("EEE", Locale.US).format(cal.time)
-        } catch (e: Exception) { "" }
-        return "Last: ${item.entry.counterSec} sec · ~${reps ?: guideInt(item.entry.targetReps)} reps · $day"
     }
 
     /** "~15 reps" for a plain count, "~60 steps" / "~10 ea" verbatim guides. */
@@ -691,12 +570,10 @@ class MovieDeckActivity : AppCompatActivity() {
         val remainSec = ((counterRemainingMs + 999) / 1000).toInt()
         counterSecTv?.text = WorkoutTimer.formatClock(remainSec)
         val frac = if (counterTotalMs > 0) counterRemainingMs.toFloat() / counterTotalMs else 0f
-        counterFill?.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, frac.coerceIn(0f, 1f))
-        counterSpacer?.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, (1f - frac).coerceIn(0f, 1f))
+        counterRing?.remainingSec = remainSec
+        counterRing?.setFraction(frac)
         val late = counterRemainingMs in 1..10_000
-        (counterFill?.background as? GradientDrawable)?.setColor(
-            Color.parseColor(if (late) "#F59E0B" else "#A3E635"))
-        counterSecTv?.setTextColor(if (late) Color.parseColor("#FBBF24") else Color.WHITE)
+        counterSecTv?.setTextColor(if (late) 0xFFD97706.toInt() else Theme.textPrimary)
     }
 
     private fun toggleCounterPause() {
@@ -762,7 +639,6 @@ class MovieDeckActivity : AppCompatActivity() {
         badge.scaleX = 0.5f; badge.scaleY = 0.5f
         badge.animate().scaleX(1f).scaleY(1f).setDuration(300).setInterpolator(OvershootInterpolator(1.6f)).start()
         counterSecTv?.text = "✓"
-        counterLabelTv?.text = "DONE — NEXT IN A MOMENT"
     }
 
     private fun skipCurrent() {
@@ -819,7 +695,8 @@ class MovieDeckActivity : AppCompatActivity() {
 
     private fun refreshElapsed() {
         val s = db.getSession(sessionId) ?: return
-        elapsedTv?.text = "⏱ " + WorkoutTimer.formatClock(WorkoutTimer.liveElapsedSec(this, s))
+        elapsedText = WorkoutTimer.formatClock(WorkoutTimer.liveElapsedSec(this, s))
+        renderProgress()
     }
 
     private fun buzz() {

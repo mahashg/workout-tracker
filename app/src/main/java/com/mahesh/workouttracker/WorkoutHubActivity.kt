@@ -11,6 +11,8 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -47,7 +49,7 @@ class WorkoutHubActivity : AppCompatActivity() {
     private var timerChip: TimerChipView? = null
     private var restChip: RestChipView? = null
     private var countTv: TextView? = null
-    private var segBar: LinearLayout? = null
+    private var hairline: BendHairlineView? = null
     private var recycler: RecyclerView? = null
     private var finishBtn: android.widget.Button? = null
     private var adapter: HubAdapter? = null
@@ -101,14 +103,40 @@ class WorkoutHubActivity : AppCompatActivity() {
         val session = db.getSession(sessionId) ?: run { finish(); return }
         val root = fitRoot()
         setContentView(root)
-        root.addView(topBar("Today's Workout", session.routineName))
 
-        // Header card: elapsed timer chip + rest chip + "X of Y done",
-        // then the 3-segment progress bar (mock screen 1).
-        val header = cardLayout()
-        (header.layoutParams as LinearLayout.LayoutParams).apply { setMargins(0, 0, 0, 0) }
-        header.setPadding(dp(12), dp(8), dp(12), dp(10))
-        val hRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        // v3.13 Bend header (r4 mock Screen 5): no topBar, no header
+        // card — a calm plain column: hairline progress, a top row
+        // (screen name / routine / count on the left, the elapsed
+        // timer chip on the right), then the rest chip on its own
+        // left-aligned row (it self-hides when no rest is active).
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        val hl = BendHairlineView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        hairline = hl
+        header.addView(hl)
+        val topRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
+        }
+        val leftCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        leftCol.addView(bendScreenName("Today's workout").apply {
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        })
+        leftCol.addView(bendMicro(session.routineName.uppercase()).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+        })
+        val count = makeText("", 12f, false, Theme.textSecondary)
+        count.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+        countTv = count
+        leftCol.addView(count)
+        topRow.addView(leftCol)
         if (!session.completed) {
             db.ensureSessionStarted(sessionId)
             val chip = TimerChipView(this)
@@ -121,28 +149,23 @@ class WorkoutHubActivity : AppCompatActivity() {
             chip.onFinishSwipe = { onFinishTap() }
             chip.startTicking()
             timerChip = chip
-            hRow.addView(chip)
+            topRow.addView(chip)
         } else if (session.startedAt > 0) {
-            hRow.addView(makeText("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}", 13f, true, Theme.textSecondary).apply {
-                (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            topRow.addView(makeText("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}", 13f, true, Theme.textSecondary).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
             })
         }
-        val count = makeText("", 13f, true, Theme.textPrimary)
-        count.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(10), 0, 0, 0) }
-        countTv = count
-        hRow.addView(count)
+        header.addView(topRow)
+        val rcRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
         val rc = RestChipView(this)
         rc.bind(this)
-        rc.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) }
+        rc.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
         restChip = rc
-        hRow.addView(rc)
-        header.addView(hRow)
-        val bar = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(6)).apply { setMargins(0, dp(8), 0, 0) }
-        }
-        segBar = bar
-        header.addView(bar)
+        rcRow.addView(rc)
+        header.addView(rcRow)
         root.addView(header)
 
         val rv = RecyclerView(this).apply {
@@ -156,9 +179,15 @@ class WorkoutHubActivity : AppCompatActivity() {
         ith.attachToRecyclerView(rv)
         hubTouchHelper = ith
 
+        val foot = makeText("Swipe a row left to Pass · right to bring it back", 12f, false, Theme.textTertiary).apply {
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, dp(2)) }
+        }
+        root.addView(foot)
+
         val fb = makeButton("Finish Workout") { onFinishTap() }
-        tightButton(fb, 48, 12, primary = true)
-        (fb.layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(6), 0, 0) }
+        tightButton(fb, 52, 999, primary = true)
+        (fb.layoutParams as LinearLayout.LayoutParams).apply { height = dp(52); setMargins(0, dp(6), 0, 0) }
         finishBtn = fb
         root.addView(fb)
     }
@@ -189,32 +218,9 @@ class WorkoutHubActivity : AppCompatActivity() {
         val handled = exs.count { db.effectiveStatus(it) != "pending" }
         countTv?.text = "$handled of ${exs.size} done"
 
-        // 3-segment bar: segment widths ∝ section sizes, each filled by
-        // its section's handled fraction (mock screen 1).
-        segBar?.removeAllViews()
-        var firstSeg = true
-        for (type in sectionOrder) {
-            val list = exs.filter { it.type.equals(type, true) }
-            if (list.isEmpty()) continue
-            val (_, _, fill) = bandColors(type)
-            val seg = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                background = rectBg(Color.parseColor("#E4EBF2"), 3)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, list.size.toFloat()).apply {
-                    setMargins(if (firstSeg) 0 else dp(3), 0, 0, 0)
-                }
-            }
-            firstSeg = false
-            val h = list.count { db.effectiveStatus(it) != "pending" }
-            if (h > 0) seg.addView(View(this).apply {
-                background = rectBg(fill, 3)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, h.toFloat())
-            })
-            if (h < list.size) seg.addView(View(this).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, (list.size - h).toFloat())
-            })
-            segBar?.addView(seg)
-        }
+        // v3.13: the one Bend hairline — filled by the handled
+        // fraction of the whole session (replaces the 3-segment bar).
+        hairline?.setFraction(if (exs.isEmpty()) 0f else handled.toFloat() / exs.size)
 
         val items = mutableListOf<HubItem>()
         for (type in sectionOrder) {
@@ -230,8 +236,8 @@ class WorkoutHubActivity : AppCompatActivity() {
 
         val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
         finishBtn?.let { fb ->
-            if (allHandled) fb.background = GradientDrawable().apply { setColor(Theme.success); cornerRadius = dp(12).toFloat() }
-            else tightButton(fb, 48, 12, primary = true) // re-applies the primary ripple background
+            if (allHandled) fb.background = GradientDrawable().apply { setColor(Theme.success); cornerRadius = dp(999).toFloat() }
+            else tightButton(fb, 52, 999, primary = true) // re-applies the primary ripple background
         }
         if (session.completed) finishBtn?.visibility = View.GONE
     }
@@ -339,7 +345,7 @@ class WorkoutHubActivity : AppCompatActivity() {
         override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
             if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && viewHolder is RowHolder && dX != 0f) {
                 val v = viewHolder.itemView
-                val bg = rectBg(Theme.pendingBg, 12)
+                val bg = rectBg(Theme.pendingBg, 18)
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = Theme.pendingFg; textSize = dp(12).toFloat()
                     typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
@@ -380,77 +386,65 @@ class WorkoutHubActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             if (viewType == 0) {
+                // v3.13: bare label row — no band background, no est.
                 val band = LinearLayout(this@WorkoutHubActivity).apply {
                     orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                    setPadding(dp(12), dp(7), dp(12), dp(7))
-                    layoutParams = recyclerLp(top = 10, bottom = 2)
+                    setPadding(dp(2), dp(16), dp(2), dp(2))
+                    layoutParams = recyclerLp(top = 16, bottom = 2)
                 }
                 val label = TextView(this@WorkoutHubActivity).apply {
-                    textSize = 13f; typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                    textSize = 10.5f; typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                    letterSpacing = 0.18f
+                    setTextColor(Theme.textTertiary)
                     maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 }
-                val est = TextView(this@WorkoutHubActivity).apply {
-                    textSize = 11.5f
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                }
-                band.addView(label); band.addView(est)
-                return BandHolder(band, label, est)
+                band.addView(label)
+                return BandHolder(band, label)
             }
+            // v3.13 Bend row: sheetRow fill, 18dp corners, no stroke;
+            // a 44dp circular photo/body-map thumb instead of the
+            // status circle; name + meta column; a quiet right state
+            // word; the drag handle. No "UP NEXT" micro, no part pill.
             val row = LinearLayout(this@WorkoutHubActivity).apply {
                 orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                setPadding(dp(10), dp(8), dp(8), dp(8))
-                layoutParams = recyclerLp(top = 3, bottom = 3)
+                background = rectBg(Palettes.current.sheetRow, 18)
+                setPadding(dp(14), dp(12), dp(14), dp(12))
+                layoutParams = recyclerLp(top = 4, bottom = 4)
             }
             val holder = RowHolder(row)
-            holder.circle = TextView(this@WorkoutHubActivity).apply {
-                textSize = 12f; gravity = Gravity.CENTER
-                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(dp(26), dp(26))
-            }
-            row.addView(holder.circle)
+            holder.thumb = bendCircleFrame(44)
+            row.addView(holder.thumb)
             val col = LinearLayout(this@WorkoutHubActivity).apply {
                 orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(10), 0, dp(6), 0) }
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, dp(6), 0) }
             }
-            holder.micro = TextView(this@WorkoutHubActivity).apply {
-                text = "UP NEXT — TAP TO START"; textSize = 10f
-                setTextColor(Theme.primary)
-                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                letterSpacing = 0.06f
-                (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
-            }
-            col.addView(holder.micro)
-            val nameRow = LinearLayout(this@WorkoutHubActivity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
             holder.nameTv = TextView(this@WorkoutHubActivity).apply {
-                textSize = 14.5f; setTextColor(Theme.textPrimary)
+                textSize = 15f; setTextColor(Theme.textPrimary)
                 typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
                 maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             }
-            nameRow.addView(holder.nameTv)
-            holder.tagPill = TextView(this@WorkoutHubActivity).apply {
-                textSize = 10f; setTextColor(Color.parseColor("#3730A3"))
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                background = rectBg(Color.parseColor("#E0E7FF"), 999)
-                setPadding(dp(7), dp(2), dp(7), dp(2)); maxLines = 1
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(6), 0, 0, 0) }
-            }
-            nameRow.addView(holder.tagPill)
-            col.addView(nameRow)
+            col.addView(holder.nameTv)
             holder.lastTv = TextView(this@WorkoutHubActivity).apply {
-                textSize = 11.5f; setTextColor(Theme.textSecondary)
+                textSize = 12f; setTextColor(Theme.textSecondary)
                 maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
                 setPadding(0, dp(2), 0, 0)
             }
             col.addView(holder.lastTv)
             row.addView(col)
+            holder.st = TextView(this@WorkoutHubActivity).apply {
+                gravity = Gravity.CENTER
+                maxLines = 1
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            }
+            row.addView(holder.st)
             // v3.9.1: no Pass button — LEFT swipe on a pending row is
             // the Pass now (HubDragCallback); v3.9.2: RIGHT swipe on a
             // passed row adds it back. The reclaimed width goes to the
             // name/last-time column.
             holder.handle = TextView(this@WorkoutHubActivity).apply {
-                text = "⋮⋮"; textSize = 16f; setTextColor(Color.parseColor("#94A3B8"))
+                text = "⋮⋮"; textSize = 16f; setTextColor(Theme.textTertiary)
                 gravity = Gravity.CENTER
                 setPadding(dp(6), dp(4), dp(2), dp(4))
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
@@ -468,12 +462,7 @@ class WorkoutHubActivity : AppCompatActivity() {
             when (val item = items[position]) {
                 is HubItem.Band -> {
                     val h = holder as BandHolder
-                    val (bg, ink, _) = bandColors(item.type)
-                    h.band.background = rectBg(bg, 10)
-                    h.label.setTextColor(ink)
-                    h.label.text = "${bandLabel(item.type)} · ${item.handled} of ${item.total} done"
-                    h.est.setTextColor(ink)
-                    h.est.text = "≈${item.estMin} min"
+                    h.label.text = bandLabel(item.type).uppercase()
                 }
                 is HubItem.Row -> bindRow(holder as RowHolder, item)
             }
@@ -481,44 +470,56 @@ class WorkoutHubActivity : AppCompatActivity() {
 
         private fun bindRow(holder: RowHolder, item: HubItem.Row) {
             val ex = item.ex
+            val ctx = this@WorkoutHubActivity
             val status = db.effectiveStatus(ex)
             val isNext = ex.id == nextUpId
-            holder.row.background = if (isNext) rectBg(Theme.surface, 12, Theme.primary, 2)
-                                    else rectBg(Theme.surface, 12, Theme.stroke, 1)
-            holder.micro.visibility = if (isNext) View.VISIBLE else View.GONE
-            // Status circle: done = green ✓; passed = grey ✕; to-do =
-            // neutral ring with the position number inside its section.
-            when (status) {
-                "done" -> {
-                    holder.circle.text = "✓"; holder.circle.setTextColor(Color.WHITE); holder.circle.textSize = 12f
-                    holder.circle.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Theme.success) }
-                }
-                "skipped" -> {
-                    holder.circle.text = "✕"; holder.circle.setTextColor(Color.parseColor("#64748B")); holder.circle.textSize = 11f
-                    holder.circle.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.parseColor("#E2E8F0")) }
-                }
-                else -> {
-                    holder.circle.text = item.posInSection.toString(); holder.circle.setTextColor(Color.parseColor("#94A3B8")); holder.circle.textSize = 11f
-                    holder.circle.background = GradientDrawable().apply {
-                        shape = GradientDrawable.OVAL; setColor(Color.WHITE)
-                        setStroke(dp(2), Color.parseColor("#C4CFDB"))
-                    }
-                }
+            holder.row.background = rectBg(Palettes.current.sheetRow, 18)
+            // Passed rows recede via alpha (no strike-through anymore).
+            holder.row.alpha = if (status == "skipped") 0.45f else 1f
+            // Thumb: the exercise photo cropped into the 44dp circle,
+            // else a centered body map of its target muscles.
+            holder.thumb.removeAllViews()
+            val bmp = PhotoLib.assetForSessionExercise(ctx, db, ex)?.let { PhotoLib.bitmap(ctx, it) }
+            if (bmp != null) {
+                holder.thumb.addView(ImageView(ctx).apply {
+                    setImageBitmap(bmp); scaleType = ImageView.ScaleType.CENTER_CROP
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                })
+            } else {
+                holder.thumb.addView(BodyMapView(ctx, DbHelper.parseMuscles(ex.targetMuscles, ex.name), true).apply {
+                    layoutParams = FrameLayout.LayoutParams(dp(26), dp(34)).apply { gravity = Gravity.CENTER }
+                })
             }
             holder.nameTv.text = ex.name
-            holder.nameTv.setTextColor(if (status == "skipped") Theme.textSecondary else Theme.textPrimary)
-            strike(holder.nameTv, status == "skipped")
-            // Body-part tag pill: Main rows only (mock screen 1).
-            if (ex.type.equals("Main", true)) {
-                val partId = db.sessionExercisePart(ex)
-                holder.tagPill.text = BodyParts.name(partId)
-                holder.tagPill.visibility = if (partId.isNotBlank()) View.VISIBLE else View.GONE
-            } else holder.tagPill.visibility = View.GONE
+            holder.nameTv.setTextColor(when {
+                isNext -> Theme.primary
+                status == "skipped" -> Theme.textSecondary
+                else -> Theme.textPrimary
+            })
+            holder.nameTv.typeface = Typeface.create("sans-serif-medium", if (isNext) Typeface.BOLD else Typeface.NORMAL)
+            val sets = db.getSets(ex.id)
+            val doneSets = sets.count { it.isDone }
             val last = db.lastPerformedForExercise(ex.name, sessionId)
-            holder.lastTv.text = if (last != null) "Last: ${lastTimeLine(last)}" else {
-                val sets = db.getSets(ex.id)
-                val reps = sets.firstOrNull()?.reps?.takeIf { it.isNotBlank() }
-                if (reps != null) "New exercise · ${sets.size} × $reps" else "New exercise"
+            holder.lastTv.text = when {
+                isNext -> "${sets.size} sets · set ${doneSets + 1} of ${sets.size}"
+                last != null -> "${sets.size} sets · last ${last.sets.firstOrNull()?.let { setText(it) } ?: lastTimeLine(last)}"
+                else -> "${sets.size} sets · new exercise"
+            }
+            // Right state word: done ✓ / Passed / NOW, else nothing.
+            when {
+                status == "done" -> holder.st.apply {
+                    text = "✓"; textSize = 15f; setTextColor(Theme.success)
+                    typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                }
+                status == "skipped" -> holder.st.apply {
+                    text = "Passed"; textSize = 12f; setTextColor(Theme.textTertiary)
+                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                }
+                isNext -> holder.st.apply {
+                    text = "NOW"; textSize = 12f; setTextColor(Theme.primary)
+                    typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                }
+                else -> holder.st.text = ""
             }
             holder.row.setOnClickListener { openCard(ex) }
             holder.handle.setOnTouchListener { _, ev ->
@@ -530,13 +531,14 @@ class WorkoutHubActivity : AppCompatActivity() {
 }
 
 // File-level holders (no activity reference needed — views only).
-private class BandHolder(val band: LinearLayout, val label: TextView, val est: TextView) : RecyclerView.ViewHolder(band)
+// v3.13: BandHolder's est view was dropped with the bare-label band
+// (the holder is now just band + label).
+private class BandHolder(val band: LinearLayout, val label: TextView) : RecyclerView.ViewHolder(band)
 
 private class RowHolder(val row: LinearLayout) : RecyclerView.ViewHolder(row) {
-    lateinit var circle: TextView
-    lateinit var micro: TextView
+    lateinit var thumb: FrameLayout
     lateinit var nameTv: TextView
-    lateinit var tagPill: TextView
     lateinit var lastTv: TextView
+    lateinit var st: TextView
     lateinit var handle: TextView
 }
