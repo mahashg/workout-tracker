@@ -23,6 +23,8 @@
         <activity android:name=".RoutinesActivity" android:exported="false" />
         <activity android:name=".RoutineEditActivity" android:exported="false" />
         <activity android:name=".ExerciseEditActivity" android:exported="false" />
+        <!-- v3.15: the view-only Library entry detail page. -->
+        <activity android:name=".ExerciseDetailActivity" android:exported="false" />
         <activity android:name=".HistoryActivity" android:exported="false" />
         <activity android:name=".HistoryDetailActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
