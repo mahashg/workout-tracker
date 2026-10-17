@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.util.Locale
@@ -112,7 +111,6 @@ object WorkoutTimer {
  *  hosts that have a finish flow; hosts without one just keep taps). */
 class TimerChipView(context: Context) : LinearLayout(context) {
     private val label = TextView(context)
-    private val icon = ImageView(context)
     private val handler = Handler(Looper.getMainLooper())
     private var session: SessionInfo? = null
     private var db: DbHelper? = null
@@ -131,29 +129,15 @@ class TimerChipView(context: Context) : LinearLayout(context) {
     }
 
     init {
+        // v3.13 Bend reskin (mock r4): plain text, no pill / no icon.
+        // Hosts pin this view to 30dp tall, so no internal padding.
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(context.dp(10), context.dp(6), context.dp(12), context.dp(6))
-        icon.setImageResource(R.drawable.ic_timer)
-        icon.setColorFilter(Theme.primary)
-        icon.layoutParams = LayoutParams(context.dp(18), context.dp(18))
-        addView(icon)
         label.textSize = 14f
-        label.setTextColor(Theme.primary)
+        label.setTextColor(Theme.textSecondary)
         label.typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-        label.setPadding(context.dp(6), 0, 0, 0)
         addView(label)
-        background = chipBg(context)
         isClickable = true
-    }
-
-    private fun chipBg(c: Context): android.graphics.drawable.Drawable {
-        val gd = android.graphics.drawable.GradientDrawable().apply {
-            setColor(Theme.surfaceVariant); cornerRadius = c.dp(20).toFloat(); setStroke(c.dp(1), Theme.stroke)
-        }
-        return android.graphics.drawable.RippleDrawable(
-            android.content.res.ColorStateList.valueOf(0x222563EB), gd,
-            android.graphics.drawable.GradientDrawable().apply { setColor(android.graphics.Color.WHITE); cornerRadius = c.dp(20).toFloat() })
     }
 
     fun bind(context: Context, db: DbHelper, session: SessionInfo, onToggle: () -> Unit) {
@@ -214,7 +198,10 @@ class TimerChipView(context: Context) : LinearLayout(context) {
         session = fresh
         val sec = WorkoutTimer.liveElapsedSec(ctx, fresh)
         val paused = WorkoutTimer.isPaused(ctx, fresh.id) && !fresh.completed
-        label.text = (if (paused) "⏸ Paused " else "") + WorkoutTimer.formatClock(sec)
+        // v3.13: the glyph is composed into the plain-text label; the
+        // paused state keeps Theme.primary so it still reads at a glance.
+        label.setTextColor(if (paused) Theme.primary else Theme.textSecondary)
+        label.text = (if (paused) "⏸ Paused " else "⏱ ") + WorkoutTimer.formatClock(sec)
     }
 
     fun startTicking() { if (!ticking) { ticking = true; handler.post(ticker) } }
