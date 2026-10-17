@@ -108,7 +108,9 @@ class BodyPartDetailActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(rowH)).apply { setMargins(0, dp(2), 0, dp(2)) }
             roundedClip(20)
             isClickable = true
-            setOnClickListener { startActivity(Intent(this@BodyPartDetailActivity, ExerciseEditActivity::class.java).putExtra("exerciseId", e.id).putExtra("bodyPart", partId)) }
+            // v3.15: rows open the same VIEW-ONLY detail page the Library
+            // list opens (ExerciseDetailActivity), not the edit form.
+            setOnClickListener { startActivity(Intent(this@BodyPartDetailActivity, ExerciseDetailActivity::class.java).putExtra("exerciseId", e.id).putExtra("bodyPart", partId)) }
         }
         if (bmp != null) {
             frame.addView(ImageView(this).apply {

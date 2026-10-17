@@ -23,12 +23,13 @@ import androidx.recyclerview.widget.RecyclerView
  *  then gear + a 🏠 Home chip). Filters combine (part AND gear).
  *  The list is a RecyclerView — the third approved scrolling surface
  *  (with the hub list and the card strip); no scroll-view widget, as ever.
- *  Add/edit is preserved exactly: the header "＋" opens the existing
+ *  Add is preserved exactly: the header "＋" opens the existing
  *  add flow (part picker -> ExerciseEditActivity, the same part-scoped
- *  add BodyPartDetailActivity uses), and a row tap opens the existing
- *  exercise detail/edit screen (ExerciseEditActivity — posture checks
- *  included), the same screen part-detail rows open today. The part
- *  pages themselves remain reachable from the Workout page grid. */
+ *  add BodyPartDetailActivity uses). v3.15: a row tap opens the
+ *  VIEW-ONLY exercise detail page (ExerciseDetailActivity — photo,
+ *  posture checks, cues, and the video links SHOWN with Watch/Copy),
+ *  the same page part-detail rows open. The part pages themselves
+ *  remain reachable from the Workout page grid. */
 class RoutinesActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private var filterPart: String? = null
@@ -291,7 +292,9 @@ class RoutinesActivity : AppCompatActivity() {
             holder.lastTv.text = if (lp != null) "Last: ${lastTimeLine(lp)}" else "New"
             holder.card.isClickable = true
             holder.card.setOnClickListener {
-                startActivity(Intent(ctx, ExerciseEditActivity::class.java)
+                // v3.15: a row tap opens the VIEW-ONLY detail page
+                // (ExerciseDetailActivity), not the edit form.
+                startActivity(Intent(ctx, ExerciseDetailActivity::class.java)
                     .putExtra("exerciseId", e.id).putExtra("bodyPart", e.bodyPart))
             }
         }
