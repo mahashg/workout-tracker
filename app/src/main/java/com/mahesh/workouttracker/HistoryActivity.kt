@@ -109,7 +109,14 @@ class HistoryActivity : AppCompatActivity() {
             })
         }
         for (s in visible) {
-            val open = { val i = Intent(this, SessionActivity::class.java); i.putExtra("sessionId", s.id); startActivity(i) }
+            // v3.14: completed workouts open the READ-ONLY history
+            // detail (done exercises only, scrollable, discardable,
+            // no editing). In-progress sessions still open the live
+            // SessionActivity, where the workout is worked on.
+            val open = {
+                val target = if (s.completed) HistoryDetailActivity::class.java else SessionActivity::class.java
+                val i = Intent(this, target); i.putExtra("sessionId", s.id); startActivity(i)
+            }
             val card = cardLayout(tappable = true) { open() }
             // v3.8.3 ROOT-CAUSE FIX: the cards were given height 0 +
             // weight 1 inside this page-filling box, so a page with ONE

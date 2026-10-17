@@ -33,8 +33,8 @@ android {
         // era hardware anyway. Android 8.0+ is unaffected.
         minSdk = 26
         targetSdk = 34
-        versionCode = 34
-        versionName = "3.13"
+        versionCode = 35
+        versionName = "3.14"
     }
     buildTypes { getByName("release") { } }
     // v2.9: kotlinx-coroutines (via play-services-auth) and kotlin-stdlib
