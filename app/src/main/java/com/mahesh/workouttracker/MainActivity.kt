@@ -13,6 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /** v3.9 Home = the CHOOSER (approved mock r4, frame 1): "What are we
  *  doing today?" over two doors; v3.11 adds a third, Circuits (⚡,
@@ -253,9 +255,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun render() {
         stopBarTicker()
+        val simple = SimpleMode.isOn(this)
         val wm = WeekManager.reconcile(this, db)
         val compact = isCompactScreen()
-        val root = tabScaffold("Home")
+        // v3.18 Simple Mode: no tab scaffold (no bottom nav, no
+        // Library tab) — a plain fit root; Settings is reached from
+        // the ⚙️ in the header row, History from the quiet foot link.
+        val root = if (simple) {
+            val r = fitRoot()
+            setContentView(r)
+            r
+        } else tabScaffold("Home")
         val counts = db.partCountsInWeek(wm.weekStart)
         val nonRepeatable = BodyParts.all.filter { !it.repeatable }
         val doneCount = nonRepeatable.count { counts.containsKey(it.id) }
@@ -274,10 +284,93 @@ class MainActivity : AppCompatActivity() {
         val title = makeText("What are we doing today?", 21f, true)
         (title.layoutParams as LinearLayout.LayoutParams).apply { height = dp(if (compact) 32 else 38); setMargins(0, dp(2), 0, 0) }
         title.gravity = Gravity.CENTER_VERTICAL
-        root.addView(title)
         val sub = caption("Week ${wm.weekNumber} · $doneCount of ${nonRepeatable.size} parts done")
         (sub.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
-        root.addView(sub)
+        if (simple) {
+            // v3.18: the two header texts stack in a weighted column
+            // (their MATCH_PARENT widths stripped to WRAP_CONTENT so
+            // they can never push the gear off the row) and the ⚙️
+            // sits at the right — the only Settings entry in simple
+            // mode, since there is no bottom nav.
+            (title.layoutParams as LinearLayout.LayoutParams).width = LinearLayout.LayoutParams.WRAP_CONTENT
+            (sub.layoutParams as LinearLayout.LayoutParams).width = LinearLayout.LayoutParams.WRAP_CONTENT
+            val headerCol = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+            headerCol.addView(title)
+            headerCol.addView(sub)
+            val headerRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            }
+            headerRow.addView(headerCol)
+            headerRow.addView(TextView(this).apply {
+                text = "⚙️"; textSize = 22f; gravity = Gravity.CENTER
+                setPadding(dp(8), dp(8), dp(8), dp(8))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                isClickable = true
+                setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+            })
+            root.addView(headerRow)
+        } else {
+            root.addView(title)
+            root.addView(sub)
+        }
+
+        // ---- v3.18 Simple Mode hero: "▶ Start again" (idle only) ----
+        // Most days need exactly one tap: repeat the last completed
+        // gym workout. lastGym uses the SAME predicate as the idle
+        // Workout door below; the parts come from session_parts.
+        // Tapping the pill re-enters through PickPartsActivity's CSV
+        // extra, so session creation still flows through the existing
+        // startSessionWithAll (continuity + exclusivity untouched).
+        // Omitted entirely when there is no completed gym workout or
+        // that workout recorded no parts, and whenever any session
+        // (gym / movie / circuit) is in progress.
+        if (simple && gym == null && movie == null && circuit == null) {
+            val lastGym = db.getSessions().firstOrNull { it.completed && it.routineName != MovieDeck.ROUTINE_NAME && !CircuitsData.isCircuit(it) }
+            val heroParts = lastGym?.let { db.getSessionParts(it.id) } ?: emptyList()
+            if (lastGym != null && heroParts.isNotEmpty()) {
+                val hero = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    background = GradientDrawable().apply {
+                        setColor(Theme.primary); cornerRadius = dp(22).toFloat()
+                    }
+                    elevation = dp(3).toFloat()
+                    setPadding(dp(18), dp(16), dp(18), dp(16))
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
+                }
+                val weekday = try {
+                    SimpleDateFormat("EEEE", Locale.US).format(DateUtil.parse(lastGym.date).time).uppercase(Locale.US)
+                } catch (e: Exception) { "" }
+                hero.addView(makeText("LAST WORKOUT · $weekday", 11.5f, true, 0xB3FFFFFF.toInt()).apply {
+                    letterSpacing = 0.08f
+                    (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+                })
+                hero.addView(makeText(lastGym.routineName, 20f, true, Color.WHITE).apply {
+                    (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(6), 0, 0)
+                })
+                val exCount = db.getSessionExercises(lastGym.id).size
+                val mins = (lastGym.elapsedSec + 30) / 60
+                val metaText = "$exCount exercises" + if (mins > 0) " · about $mins min" else ""
+                hero.addView(makeText(metaText, 13f, false, 0xD9FFFFFF.toInt()).apply {
+                    (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(3), 0, 0)
+                })
+                hero.addView(TextView(this).apply {
+                    text = "▶ Start again"; textSize = 16f; setTextColor(Theme.primary); gravity = Gravity.CENTER
+                    typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                    background = GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(999).toFloat() }
+                    setPadding(dp(16), dp(13), dp(16), dp(13))
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(14), 0, 0) }
+                    isClickable = true
+                    setOnClickListener {
+                        startActivity(Intent(this@MainActivity, PickPartsActivity::class.java).putExtra(PickPartsActivity.EXTRA_START_PARTS_CSV, heroParts.joinToString(",")))
+                    }
+                })
+                root.addView(hero)
+            }
+        }
 
         // ---- Workout door ----
         // Active: body + ▶ resume directly (the bar's tap). Movie
@@ -421,6 +514,16 @@ class MainActivity : AppCompatActivity() {
 
         // Nothing else on the chooser — the rest of the screen is air.
         root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+
+        // v3.18 Simple Mode: one quiet History link at the foot (the
+        // bottom-nav History tab is gone in simple mode).
+        if (simple) {
+            val historyLink = makeText("🕘 History", 14.5f, false, Theme.textSecondary)
+            historyLink.gravity = Gravity.CENTER
+            historyLink.isClickable = true
+            historyLink.setOnClickListener { startActivity(Intent(this, HistoryActivity::class.java)) }
+            root.addView(historyLink)
+        }
 
         if (barSession != null) startBarTicker()
     }

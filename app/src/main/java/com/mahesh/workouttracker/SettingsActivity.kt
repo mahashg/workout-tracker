@@ -3,6 +3,7 @@ package com.mahesh.workouttracker
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -28,6 +29,10 @@ import androidx.health.connect.client.PermissionController
 class SettingsActivity : AppCompatActivity() {
     private lateinit var db: DbHelper
     private val EXPORT_REQ = 2001
+
+    // v3.18 Simple Mode: whether the "Advanced" fold on the simple
+    // Settings list is open. Reset to false on any full-mode render.
+    private var advancedOpen = false
 
     // Health Connect state: hcGranted is refreshed async after every
     // render (the permission check is a suspend call); null = unchecked.
@@ -86,13 +91,49 @@ class SettingsActivity : AppCompatActivity() {
         return card
     }
 
+    /** The − value + stepper row shared by the full-mode Rest Timer
+     *  stepGroups and the Simple Mode rest rows: identical round
+     *  buttons, value styling and click behaviour; only the value
+     *  text/width differ ("30s" inside the compact full-mode group,
+     *  "30 sec" on a Simple Mode row). */
+    private fun stepperControl(value: Int, step: Int, valueText: String, valueWidthDp: Int, onChange: (Int) -> Unit): LinearLayout {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+        }
+        fun roundBtn(t: String, delta: Int): TextView = TextView(this).apply {
+            text = t; textSize = 15f; gravity = Gravity.CENTER; setTextColor(Theme.primary)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            background = roundedBg(Palettes.current.stepperBg, 999)
+            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30))
+            isClickable = true
+            setOnClickListener { onChange(value + delta) }
+        }
+        row.addView(roundBtn("−", -step))
+        val vTv = makeText(valueText, 14f, true)
+        vTv.gravity = Gravity.CENTER
+        (vTv.layoutParams as LinearLayout.LayoutParams).apply { width = dp(valueWidthDp); setMargins(0, 0, 0, 0) }
+        row.addView(vTv)
+        row.addView(roundBtn("+", step))
+        return row
+    }
+
     private fun render() {
+        val simple = SimpleMode.isOn(this)
+        if (!simple) advancedOpen = false
         val root = tabScaffold("Settings")
         val compactSet = isCompactScreen()
         root.addView(screenTitle("Settings").apply {
             (layoutParams as LinearLayout.LayoutParams).apply { height = dp(if (compactSet) 32 else 40); setMargins(0, 0, 0, 0) }
             gravity = Gravity.CENTER_VERTICAL
         })
+
+        // v3.18: Simple Mode renders its own short list (renderSimple).
+        if (simple) { renderSimple(root); return }
+
+        // Simple Mode (v3.18, full mode): right after the title, the
+        // one row that flips into the calmer Settings (and the app).
+        root.addView(iconCard("✨", IconTints.YOLK, "Simple Mode", "Calmer screens, fewer buttons. New installs start in Simple Mode.",
+            toggleSwitch(false) { SimpleMode.set(this, true); render() }))
 
         // Theme (v3.9 addition): the M3 palette is the default; Mist
         // is the opt-in. v3.9.1: changing it re-themes IN PLACE —
@@ -142,20 +183,7 @@ class SettingsActivity : AppCompatActivity() {
             lab.letterSpacing = 0.06f
             (lab.layoutParams as LinearLayout.LayoutParams).apply { width = LinearLayout.LayoutParams.WRAP_CONTENT; setMargins(0, 0, dp(6), 0) }
             g.addView(lab)
-            fun roundBtn(t: String, delta: Int): TextView = TextView(this).apply {
-                text = t; textSize = 15f; gravity = Gravity.CENTER; setTextColor(Theme.primary)
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                background = roundedBg(Palettes.current.stepperBg, 999)
-                layoutParams = LinearLayout.LayoutParams(dp(30), dp(30))
-                isClickable = true
-                setOnClickListener { onChange(value + delta) }
-            }
-            g.addView(roundBtn("−", -step))
-            val vTv = makeText("${value}s", 14f, true)
-            vTv.gravity = Gravity.CENTER
-            (vTv.layoutParams as LinearLayout.LayoutParams).apply { width = dp(40); setMargins(0, 0, 0, 0) }
-            g.addView(vTv)
-            g.addView(roundBtn("+", step))
+            g.addView(stepperControl(value, step, "${value}s", 40, onChange))
             stepRow.addView(g)
         }
         stepGroup("SETS", restSet, 5) { v -> WeekManager.setRestSecs(this, v.coerceIn(0, 300), restEx); render() }
@@ -253,7 +281,177 @@ class SettingsActivity : AppCompatActivity() {
         root.addView(tiles)
 
         // About: version + the week rule, allowed to wrap fully.
-        val about = caption("Workout Tracker · Version 3.17\nWeek counter advances only after a week with 1+ completed workout.")
+        val about = caption("Workout Tracker · Version 3.18\nWeek counter advances only after a week with 1+ completed workout.")
+        (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
+        root.addView(about)
+        // v3.12: attribution for the anatomy body-part logos.
+        val credit = caption("Body-part illustrations: OpenStax — Anatomy and Physiology (CC BY 4.0)")
+        (credit.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(2), dp(2), 0)
+        root.addView(credit)
+    }
+
+    /** v3.18 Simple Mode Settings (mock r3, Screen 11): the short
+     *  list — Simple Mode (highlighted), the two rest rows split
+     *  apart, Health Connect, Weight unit — with everything else
+     *  folded behind one "Advanced" row. Expanding Advanced appends
+     *  the remaining full-mode sections (Theme, data tiles, About,
+     *  credit) without duplicating the rows already shown. The HC
+     *  and unit blocks below are the full-mode constructions,
+     *  copied unchanged. */
+    private fun renderSimple(root: LinearLayout) {
+        // Simple Mode: the same row as full mode, toggle ON, with a
+        // primary outline so the state reads at a glance.
+        val simpleCard = iconCard("✨", IconTints.YOLK, "Simple Mode", "Calmer screens, fewer buttons. New installs start in Simple Mode.",
+            toggleSwitch(true) { SimpleMode.set(this, false); render() })
+        simpleCard.foreground = GradientDrawable().apply {
+            cornerRadius = dp(20).toFloat()
+            setStroke(dp(2), Theme.primary)
+            setColor(Color.TRANSPARENT)
+        }
+        root.addView(simpleCard)
+
+        // Rest, split into two rows (mock Screen 11): same prefs,
+        // ranges and steps as the full-mode Rest Timer card.
+        val restSet = WeekManager.restSetSec(this)
+        val restEx = WeekManager.restExerciseSec(this)
+        root.addView(iconCard("⏱", IconTints.BLUE, "Rest between sets", "Auto-rest after each set",
+            stepperControl(restSet, 5, "${restSet} sec", 64) { v -> WeekManager.setRestSecs(this, v.coerceIn(0, 300), WeekManager.restExerciseSec(this)); render() }))
+        root.addView(iconCard("⏱", IconTints.BLUE, "Rest between exercises", "Auto-rest after each exercise",
+            stepperControl(restEx, 15, "${restEx} sec", 64) { v -> WeekManager.setRestSecs(this, WeekManager.restSetSec(this), v.coerceIn(0, 600)); render() }))
+
+        // Health Connect: desc = the status line (same semantics as
+        // the old card, verbatim); the toggle and the row tap share
+        // one handler — permission missing -> request it (the mock:
+        // "granting permission happens by tapping the row when it's
+        // off"); granted -> flip the opt-in. "↻ Sync past" is the
+        // compact backfill action under the row.
+        val hcStatus = HealthSync.sdkStatus(this)
+        val hcOn = HealthSync.isEnabled(this)
+        val hcStatusText = when {
+            hcStatus == HealthConnectClient.SDK_UNAVAILABLE -> "Not available on this device"
+            hcStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> "Health Connect needs an update on this device"
+            hcGranted == null -> "Checking permission…"
+            hcGranted == false -> "Tap to grant permission"
+            hcOn -> "On — workouts sync after you finish them"
+            else -> "Off"
+        }
+        fun hcTap() {
+            when {
+                hcStatus == HealthConnectClient.SDK_UNAVAILABLE ->
+                    Toast.makeText(this, "Health Connect isn't available on this device", Toast.LENGTH_SHORT).show()
+                hcGranted != true -> hcPermLauncher.launch(setOf(HealthSync.WRITE_PERMISSION))
+                else -> { HealthSync.setEnabled(this, !hcOn); render() }
+            }
+        }
+        val hcCard = iconCard("💚", IconTints.GREEN, "Health Connect", hcStatusText,
+            toggleSwitch(hcOn && hcGranted == true) { hcTap() },
+            onCardClick = { hcTap() })
+        val syncRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.END
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+        }
+        val syncBtn = TextView(this).apply {
+            text = if (hcSyncRunning) "Syncing…" else "↻ Sync past"
+            textSize = 12.5f; setTextColor(Theme.primary)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            background = roundedBg(Theme.surfaceVariant, 999)
+            setPadding(dp(14), dp(8), dp(14), dp(8))
+            isEnabled = hcGranted == true && !hcSyncRunning
+            alpha = if (isEnabled) 1f else 0.45f
+            isClickable = true
+            setOnClickListener {
+                if (hcSyncRunning) return@setOnClickListener
+                hcSyncRunning = true; render()
+                HealthSync.syncAllCompleted(this@SettingsActivity, db) { written, total ->
+                    runOnUiThread {
+                        hcSyncRunning = false
+                        Toast.makeText(this@SettingsActivity, when {
+                            total == 0 -> "No completed workouts to sync yet"
+                            written == 0 -> "Couldn't sync — check Health Connect permission"
+                            else -> "Synced $written workouts to Health Connect"
+                        }, Toast.LENGTH_LONG).show()
+                        render()
+                    }
+                }
+            }
+        }
+        syncRow.addView(syncBtn)
+        hcCard.addView(syncRow)
+        root.addView(hcCard)
+
+        // Weight unit: the existing pref, as a segment now.
+        val unit = WeekManager.unit(this)
+        root.addView(iconCard("⚖️", IconTints.LILAC, "Weight unit", "Labels + CSV",
+            segControl(listOf("kg", "lb"), if (unit == "kg") 0 else 1) { idx ->
+                WeekManager.setUnit(this, if (idx == 0) "kg" else "lb"); render()
+            }))
+
+        if (!advancedOpen) {
+            // Advanced fold: one quiet row for everything else.
+            val chev = TextView(this).apply {
+                text = "›"; textSize = 22f; setTextColor(Theme.textTertiary); gravity = Gravity.CENTER
+            }
+            root.addView(iconCard("⚙️", IconTints.LILAC, "Advanced", "Theme, backup and data tools", chev) { advancedOpen = true; render() })
+            val footer = caption("Workout Tracker · 3.18")
+            footer.gravity = Gravity.CENTER
+            (footer.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
+            root.addView(footer)
+            return
+        }
+
+        // Advanced, expanded: the remaining full-mode sections, in
+        // full-mode order — Theme, data tiles, About, credit. The
+        // unit / rest / HC rows above are NOT repeated.
+
+        // Theme (v3.9 addition): the M3 palette is the default; Mist
+        // is the opt-in. v3.9.1: changing it re-themes IN PLACE —
+        // swap Palettes.current and recreate THIS activity, staying
+        // on Settings (the v3.9 CLEAR_TASK relaunch to Home was
+        // jarring). Palette tokens are read at view-build time, so
+        // the rebuilt page is fully re-paletted, and activities
+        // opened afterwards read the new palette at their creation.
+        val themeName = AppTheme.name(this)
+        root.addView(iconCard("🎨", IconTints.PINK, "Theme", "App colors",
+            segControl(listOf("Material", "Mist"), if (themeName == "mist") 1 else 0) { idx ->
+                val chosen = if (idx == 1) "mist" else "material"
+                if (chosen != AppTheme.name(this)) {
+                    AppTheme.set(this, chosen)
+                    Palettes.apply(this)
+                    recreate()
+                }
+            }))
+
+        // Data tiles: Export CSV + Restore, side by side.
+        val tiles = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, 0) }
+        }
+        fun tile(emoji: String, tint: Int, label: String, marginLeft: Int, marginRight: Int, onClick: () -> Unit): LinearLayout {
+            val t = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
+                background = GradientDrawable().apply { setColor(Theme.surface); cornerRadius = dp(14).toFloat(); setStroke(dp(1), Theme.stroke) }
+                elevation = dp(2).toFloat()
+                setPadding(dp(8), dp(9), dp(8), dp(9))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(marginLeft), 0, dp(marginRight), 0) }
+                isClickable = true
+                setOnClickListener { onClick() }
+            }
+            // v3.9.1: smaller tiles (40dp bubble, tighter padding) and
+            // tray glyphs — 📤 out-tray = export/send out, 📥 in-tray
+            // = restore/bring in.
+            t.addView(doorIcon(emoji, tint, 40, 20f))
+            val lb = makeText(label, 13f, true)
+            lb.gravity = Gravity.CENTER
+            (lb.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(5), 0, 0)
+            t.addView(lb)
+            return t
+        }
+        tiles.addView(tile("📤", IconTints.BLUE, "Export CSV", 0, 4) { launchExport() })
+        tiles.addView(tile("📥", IconTints.WARM, "Restore", 4, 0) { confirmRestore() })
+        root.addView(tiles)
+
+        // About: version + the week rule, allowed to wrap fully.
+        val about = caption("Workout Tracker · Version 3.18\nWeek counter advances only after a week with 1+ completed workout.")
         (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
         root.addView(about)
         // v3.12: attribution for the anatomy body-part logos.

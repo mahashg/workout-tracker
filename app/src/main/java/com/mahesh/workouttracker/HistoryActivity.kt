@@ -89,8 +89,10 @@ class HistoryActivity : AppCompatActivity() {
         }
         root.addView(scroll)
 
-        box.addView(calendarBar(sessions))
-        if (calOpen) box.addView(calendarCard(sessions))
+        if (!SimpleMode.isOn(this)) {
+            box.addView(calendarBar(sessions))
+            if (calOpen) box.addView(calendarCard(sessions))
+        }
 
         val sel = filterDate
         val visible = if (sel != null) sessions.filter { it.date == sel } else sessions

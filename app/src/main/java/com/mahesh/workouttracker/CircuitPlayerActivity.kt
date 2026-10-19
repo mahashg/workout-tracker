@@ -874,7 +874,13 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { setMargins(0, dp(18), 0, 0) }
         }
-        controls.addView(bendControl(bendSoftCircle("✕"), "End") { onEndTap() })
+        val simple = SimpleMode.isOn(this)
+        val sideDp = if (simple) 64 else 52
+        val sideSp = if (simple) 22f else 18f
+        val heroDp = if (simple) 80 else 70
+        val heroSp = if (simple) 30f else 25f
+        val ctlLabelSp = if (simple) 11.5f else 10.5f
+        controls.addView(bendControl(bendSoftCircle("✕", sideDp, sideSp), "End", labelSp = ctlLabelSp) { onEndTap() })
         // Hero: manual column so pauseBtnTv / pauseLblTv can be
         // updated in place by toggleIntervalPause() and the restore.
         val heroCircle: TextView
@@ -887,10 +893,10 @@ class CircuitPlayerActivity : AppCompatActivity() {
                 .apply { setMargins(dp(30), 0, 0, 0) }
         }
         if (timedVisual) {
-            heroCircle = bendHeroCircle(if (intervalPausedByUser) "▶" else "⏸", Theme.primary)
+            heroCircle = bendHeroCircle(if (intervalPausedByUser) "▶" else "⏸", Theme.primary, heroDp, heroSp)
             heroLabel = TextView(this).apply {
                 text = if (intervalPausedByUser) "Resume" else "Pause"
-                textSize = 10.5f; setTextColor(Theme.textTertiary)
+                textSize = ctlLabelSp; setTextColor(Theme.textTertiary)
                 typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(
@@ -899,10 +905,10 @@ class CircuitPlayerActivity : AppCompatActivity() {
             }
             heroCol.setOnClickListener { toggleIntervalPause() }
         } else {
-            heroCircle = bendHeroCircle("✓", Theme.success)
+            heroCircle = bendHeroCircle("✓", Theme.success, heroDp, heroSp)
             heroLabel = TextView(this).apply {
                 text = "Done"
-                textSize = 10.5f; setTextColor(Theme.textTertiary)
+                textSize = ctlLabelSp; setTextColor(Theme.textTertiary)
                 typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(
@@ -919,7 +925,7 @@ class CircuitPlayerActivity : AppCompatActivity() {
             pauseLblTv = heroLabel
         }
         controls.addView(heroCol)
-        controls.addView(bendControl(bendSoftCircle("⏭"), "Skip") { resolveCurrent("skipped") }.apply {
+        controls.addView(bendControl(bendSoftCircle("⏭", sideDp, sideSp), "Skip", labelSp = ctlLabelSp) { resolveCurrent("skipped") }.apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { setMargins(dp(30), 0, 0, 0) }

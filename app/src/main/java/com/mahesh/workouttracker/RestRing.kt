@@ -3,6 +3,7 @@ package com.mahesh.workouttracker
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.drawable.GradientDrawable
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -356,12 +357,18 @@ object RestTimer {
                 if (myId != restId) return
                 val r = ring
                 val h = host
+                // v3.18: a set/exercise rest that runs out NATURALLY
+                // buzzes for a full 2 seconds; legacy "" rests keep
+                // the 120ms tick. This onFinish is the only place a
+                // long buzz can be requested — Skip, +15s, cancel and
+                // the expired-while-away path never reach it.
+                val buzzMs = if (pKind == "set" || pKind == "exercise") 2000L else 120L
                 if (r != null && dialog?.isShowing == true) {
                     if (!r.showCenterText) {
                         // v3.13 Bend dialog: GO lands on the huge text and
                         // the whole circle container pops, then end.
                         bigCountTv?.let { it.text = "GO"; it.setTextColor(Theme.success) }
-                        if (h != null) buzz(h)
+                        if (h != null) buzz(h, buzzMs)
                         val box = circleBox ?: r
                         box.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).withEndAction {
                             box.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
@@ -370,14 +377,14 @@ object RestTimer {
                     } else {
                         // Ring on screen: the classic GO pop, then end.
                         r.goPop = true; r.setRemaining(0)
-                        if (h != null) buzz(h)
+                        if (h != null) buzz(h, buzzMs)
                         r.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).withEndAction {
                             r.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
                         }.start()
                         r.postDelayed({ if (myId == restId) endInternal(fire = true) }, 950)
                     }
                 } else {
-                    if (h != null) buzz(h)
+                    if (h != null) buzz(h, buzzMs)
                     endInternal(fire = true)
                 }
             }
@@ -544,7 +551,12 @@ object RestTimer {
 
         // 8. Controls: in-layout soft pills (+15s reproduces the old
         // positive-button body exactly, then refreshes the huge text).
-        val plusControl = activity.bendControl(activity.bendSoftPill("+15s"), "More rest") {
+        // v3.18 Simple Mode: the +15s control is not built at all (rest
+        // length is a Settings choice), and Skip rest becomes one fat
+        // pill under the same "Go now" bendControl with the same
+        // handler. Full mode builds both controls exactly as before.
+        val simple = SimpleMode.isOn(activity)
+        val plusControl = if (simple) null else activity.bendControl(activity.bendSoftPill("+15s"), "More rest") {
             if (pausedRemainingMs >= 0) {
                 // v3.12: +15s while paused grows the FROZEN remainder
                 // (which becomes the ring's new total, mirroring the
@@ -571,18 +583,36 @@ object RestTimer {
                 it.setTextColor(if (s <= 10) 0xFFD97706.toInt() else Theme.textPrimary)
             }
         }
-        val skipControl = activity.bendControl(activity.bendSoftPill("Skip rest"), "Go now") {
-            endInternal(fire = true)
+        val skipControl = if (simple) {
+            val fatPill = TextView(activity).apply {
+                text = "Skip rest"; textSize = 17f; setTextColor(Theme.textPrimary)
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                gravity = Gravity.CENTER
+                background = GradientDrawable().apply {
+                    setColor(Theme.surface); cornerRadius = activity.dp(999).toFloat()
+                    setStroke(activity.dp(1), Theme.stroke)
+                }
+                setPadding(activity.dp(30), activity.dp(15), activity.dp(30), activity.dp(15))
+            }
+            activity.bendControl(fatPill, "Go now") {
+                endInternal(fire = true)
+            }
+        } else {
+            activity.bendControl(activity.bendSoftPill("Skip rest"), "Go now") {
+                endInternal(fire = true)
+            }
         }
         val controls = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, activity.dp(16), 0, 0) }
-            addView(plusControl)
-            addView(View(activity).apply {
-                layoutParams = LinearLayout.LayoutParams(activity.dp(26), 1)
-            })
+            if (plusControl != null) {
+                addView(plusControl)
+                addView(View(activity).apply {
+                    layoutParams = LinearLayout.LayoutParams(activity.dp(26), 1)
+                })
+            }
             addView(skipControl)
         }
 
@@ -636,14 +666,24 @@ object RestTimer {
         if (fire && cb != null && !fired) { fired = true; cb() }
     }
 
-    private fun buzz(context: Context) {
+    /** One-shot buzz, [ms] long (120ms default — the pre-v3.18 tick).
+     *  v3.18: natural completion of a set/exercise rest passes 2000ms
+     *  (see startTicker's onFinish — the ONLY caller that may pass a
+     *  long duration). A long buzz on a device with no vibrator is a
+     *  silent no-op. */
+    private fun buzz(context: Context, ms: Long = 120) {
         try {
             val vib = if (android.os.Build.VERSION.SDK_INT >= 31) {
                 (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
             } else {
                 @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             }
-            vib.vibrate(VibrationEffect.createOneShot(120, VibrationEffect.DEFAULT_AMPLITUDE))
+            if (ms > 120 && !vib.hasVibrator()) return
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                vib.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION") vib.vibrate(ms)
+            }
         } catch (e: Exception) { /* haptics are a nicety, never a crash */ }
     }
 }

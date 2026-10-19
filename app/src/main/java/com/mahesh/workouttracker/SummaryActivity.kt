@@ -31,6 +31,8 @@ class SummaryActivity : AppCompatActivity() {
         val session = db.getSession(sessionId) ?: run { finish(); return }
         val exs = db.getSessionExercises(sessionId)
 
+        if (SimpleMode.isOn(this)) { renderSimpleSummary(session, exs); return }
+
         // Root: FrameLayout { existing fixed column, ConfettiView overlay }.
         // The column keeps every existing height budget (no-scroll invariant).
         val frame = FrameLayout(this).apply { setBackgroundColor(Theme.bg) }
@@ -198,6 +200,106 @@ class SummaryActivity : AppCompatActivity() {
             scheduleAutoHome()
         }
         setContentView(frame)
+    }
+
+    /** v3.18 Simple Mode summary (mock r3, Screen 8): how long, how
+     *  much, and one line about last time. One button home. No
+     *  confetti, no auto-home timer, no HC line — the finish flow
+     *  already syncs via the card/hub finish paths. */
+    private fun renderSimpleSummary(session: SessionInfo, exs: List<SessionExercise>) {
+        val root = fitRoot()
+        setContentView(root)
+
+        // Weight-1 spacers above and below the content keep the stats
+        // mid-screen while the button stays pinned at the bottom.
+        root.addView(LinearLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        })
+
+        root.addView(makeText("🎉", 54f, true).apply {
+            gravity = Gravity.CENTER
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        })
+        root.addView(makeText("Workout done", 24f, true).apply {
+            gravity = Gravity.CENTER
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(10), 0, 0)
+        })
+        root.addView(makeText(session.routineName, 14.5f, false, Theme.textSecondary).apply {
+            gravity = Gravity.CENTER
+            (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(4), 0, 0)
+        })
+
+        val doneCount = exs.count { db.effectiveStatus(it) == "done" }
+        val setsDone = exs.sumOf { db.getSets(it.id).count { s -> s.isDone } }
+
+        fun statCell(value: String, label: String): LinearLayout {
+            val cell = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+                setPadding(dp(6), dp(14), dp(6), dp(14))
+                background = roundedBg(Theme.surface, 18, Theme.stroke)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+            cell.addView(makeText(value, 19f, true).apply {
+                gravity = Gravity.CENTER
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+            })
+            cell.addView(makeText(label, 10f, false, Theme.textTertiary).apply {
+                gravity = Gravity.CENTER
+                letterSpacing = 0.08f
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0)
+            })
+            return cell
+        }
+
+        val statsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(26), 0, 0) }
+        }
+        statsRow.addView(statCell(WorkoutTimer.formatDuration(session.elapsedSec), "TIME"))
+        statsRow.addView(statCell("$doneCount", "EXERCISES").apply {
+            (layoutParams as LinearLayout.LayoutParams).setMargins(dp(10), 0, 0, 0)
+        })
+        statsRow.addView(statCell("$setsDone", "SETS").apply {
+            (layoutParams as LinearLayout.LayoutParams).setMargins(dp(10), 0, 0, 0)
+        })
+        root.addView(statsRow)
+
+        // Aggregate beat-last-time count: the SAME comparison the full
+        // summary's celebrate block uses (volume when both sides have
+        // weighted volume, else reps; beat = strictly greater), but
+        // computed for every simple summary, not gated on celebrate.
+        fun volReps(sets: List<SessionSet>): Pair<Double, Int> {
+            var vol = 0.0; var reps = 0
+            for (s in sets) {
+                if (!s.isDone) continue
+                val w = if (s.isBodyweight) 0.0 else (s.weight.toDoubleOrNull() ?: 0.0)
+                val r = s.reps.filter { it.isDigit() }.toIntOrNull() ?: 0
+                vol += w * r; reps += r
+            }
+            return vol to reps
+        }
+        var beatCount = 0
+        for (ex in exs) {
+            if (db.effectiveStatus(ex) != "done") continue
+            val last = db.lastPerformedForExercise(ex.name, sessionId) ?: continue
+            val (tv, tr) = volReps(db.getSets(ex.id))
+            val (pv, pr) = volReps(last.sets)
+            val useVol = tv > 0 && pv > 0
+            val beat = if (useVol) tv > pv else tr > pr
+            if (beat) beatCount++
+        }
+        if (beatCount >= 1) {
+            root.addView(makeText("↑ More than last time on $beatCount ${if (beatCount == 1) "exercise" else "exercises"}", 14f, true, Theme.success).apply {
+                gravity = Gravity.CENTER
+                (layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(16), 0, 0)
+            })
+        }
+
+        root.addView(LinearLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        })
+        root.addView(makeButton("Back to home") { if (celebrate) goHome() else finish() })
     }
 
     /** Any user interaction cancels the pending auto-return to Home. */

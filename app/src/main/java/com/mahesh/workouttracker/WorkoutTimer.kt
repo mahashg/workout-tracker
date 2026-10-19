@@ -118,6 +118,14 @@ class TimerChipView(context: Context) : LinearLayout(context) {
     // v3.12: swipe-right target (finish). Null = right swipes fall
     // through to the normal touch handling, exactly like a tap.
     var onFinishSwipe: (() -> Unit)? = null
+    // v3.18 Simple Mode: an opt-in bigger label (18sp vs the 14sp
+    // default). Only hosts that ask (the exercise card in Simple Mode)
+    // set it; the hub and full mode never do, so they stay at 14sp.
+    var bigText: Boolean = false
+        set(value) {
+            field = value
+            label.textSize = if (value) 18f else 14f
+        }
     private var touchDownX = 0f
     private var touchDownY = 0f
     private var ticking = false

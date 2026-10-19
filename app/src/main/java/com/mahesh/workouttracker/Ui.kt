@@ -680,6 +680,22 @@ object WeekManager {
             .putInt("restSetSec", setSec.coerceIn(0, 600)).putInt("restExerciseSec", exerciseSec.coerceIn(0, 900)).apply()
     }
 }
+/** v3.18 Simple Mode: one boolean in workout_prefs, key "simpleMode".
+ *  Per Mahesh's amendment the DEFAULT IS ON — a fresh install, and any
+ *  existing install that has never stored the key, opens in Simple
+ *  Mode; the Settings toggle is the only writer, and an explicit OFF
+ *  persists normally. [DEFAULT] here is the single source of truth for
+ *  the default — every reader goes through [isOn], never a literal. */
+object SimpleMode {
+    const val KEY = "simpleMode"
+    const val DEFAULT = true
+    fun isOn(context: Context): Boolean =
+        context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).getBoolean(KEY, DEFAULT)
+    fun set(context: Context, on: Boolean) {
+        context.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE).edit().putBoolean(KEY, on).apply()
+    }
+}
+
 object CalendarCompat { const val DAY = java.util.Calendar.DAY_OF_YEAR }
 
 object Beginner {

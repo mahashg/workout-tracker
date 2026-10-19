@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -36,6 +38,13 @@ import androidx.appcompat.app.AppCompatActivity
  *  it to ~0 width), the pill(s) on line 2, last-trained on line 3;
  *  cell heights are 92 (regular) / 82 (compact). */
 class PickPartsActivity : AppCompatActivity() {
+    companion object {
+        /** v3.18: MainActivity's Simple Mode hero sends the last
+         *  workout's part ids under this key (comma-separated) so
+         *  "▶ Start again" can skip the picker entirely. */
+        const val EXTRA_START_PARTS_CSV = "startPartsCsv"
+    }
+
     private lateinit var db: DbHelper
     private val selected = linkedSetOf<String>()
     private var created = false
@@ -44,11 +53,26 @@ class PickPartsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         db = DbHelper(this)
         JsonSeed.applyV3IfNeeded(this, db)
+        // v3.18 hero shortcut: a non-blank CSV of known part ids
+        // starts that workout immediately, through the SAME
+        // startSessionWithAll every picker start uses — its
+        // exclusivity blocker toasts + finishes safely if another
+        // workout is active. Blank / all-unknown CSVs fall through
+        // to the normal picker.
+        val csv = intent.getStringExtra(EXTRA_START_PARTS_CSV)
+        if (!csv.isNullOrBlank()) {
+            val ids = csv.split(',').map { it.trim() }.filter { id -> BodyParts.all.any { it.id == id } }
+            if (ids.isNotEmpty()) {
+                startSessionWithAll(ids)
+                return
+            }
+        }
         created = true
         render()
     }
 
     private fun render() {
+        val simple = SimpleMode.isOn(this)
         val wm = WeekManager.reconcile(this, db)
         val compact = isCompactScreen()
         val root = fitRoot()
@@ -62,15 +86,35 @@ class PickPartsActivity : AppCompatActivity() {
         val cellH = if (compact) 82 else 92
         // v3.12: anatomy logo size per cell (compact / regular).
         val logoDp = if (compact) 44 else 50
-        for (rowParts in BodyParts.all.chunked(2)) {
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            for (part in rowParts) {
-                row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0, logoDp), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+        if (simple) {
+            // v3.18 Simple Mode: one full-width row per part instead
+            // of the grid — a part is picked or it isn't (no pills,
+            // no pairing states, no long-press detail). The rows sit
+            // in a weight-1 ScrollView: 11 rows at ~80dp overflow
+            // fitRoot's fixed height on shorter screens, and the
+            // Start button must never be pushed off-screen.
+            val listBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            for (part in BodyParts.all) {
+                listBox.addView(simplePartRow(part, lastTrained[part.id], counts[part.id] ?: 0))
             }
-            if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
-            root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
+            val scroll = ScrollView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+                addView(listBox)
+            }
+            root.addView(scroll)
+        } else {
+            for (rowParts in BodyParts.all.chunked(2)) {
+                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                for (part in rowParts) {
+                    row.addView(partCell(part, lastTrained[part.id], counts[part.id] ?: 0, logoDp), LinearLayout.LayoutParams(0, dp(cellH), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
+                }
+                if (rowParts.size == 1) row.addView(View(this), LinearLayout.LayoutParams(0, dp(cellH), 1f))
+                root.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(cellH)).apply { setMargins(0, dp(2), 0, dp(2)) })
+            }
         }
-        root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        // Full mode keeps its weight-1 spacer; in simple mode the
+        // ScrollView above already carries the weight.
+        if (!simple) root.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
         val n = selected.size
         // v3.7: no assemble/select page any more — Start creates the
         // session IMMEDIATELY with every exercise for the picked parts
@@ -176,6 +220,103 @@ class PickPartsActivity : AppCompatActivity() {
         // the hub is no longer the start destination.
         startActivity(firstPendingCardIntent(db, sessionId))
         finish()
+    }
+
+    /** v3.18 Simple Mode picker row (mock r3, Screen 2): logo disc,
+     *  name, last-trained line, tick circle — nothing else. The text
+     *  column is the row's ONLY weighted child, sandwiched between two
+     *  fixed-size children (46dp disc, 27dp tick), and the name sits
+     *  ALONE on its line at MATCH_PARENT inside that column — no pill
+     *  or badge shares its row, so the name's width is always the full
+     *  column width (row − 28dp padding − 46dp disc − 12dp gap −
+     *  27dp tick) and can never be starved the way the pre-v3.17 grid
+     *  cells starved it. The last-trained line reuses partCell's exact
+     *  wording, plus " · ✓ this week" when the part is done this week.
+     *  Deliberately NO long-press (detail is disabled in simple mode),
+     *  NO state pills and NO compatibility dimming/highlighting. */
+    private fun simplePartRow(part: BodyParts.Part, last: String?, countThisWeek: Int): View {
+        val isSel = part.id in selected
+        val doneThisWeek = countThisWeek > 0
+        val days = last?.let { daysSince(it) }
+        val lastLine = when {
+            last == null -> "Not trained yet"
+            days != null && days == 0L -> "Last · today"
+            days != null && days == 1L -> "Last · yesterday"
+            days != null -> "Last · ${DateUtil.display(last)} · ${days}d ago"
+            else -> "Last · ${DateUtil.display(last)}"
+        }
+        val subLine = lastLine + if (doneThisWeek) " · ✓ this week" else ""
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            background = GradientDrawable().apply {
+                setColor(if (isSel) Theme.primary else Theme.surface)
+                cornerRadius = dp(18).toFloat()
+                if (!isSel) setStroke(dp(1), Theme.stroke)
+            }
+            elevation = dp(2).toFloat()
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, dp(10)) }
+            isClickable = true
+            setOnClickListener {
+                if (isSel) selected.remove(part.id) else selected.add(part.id)
+                render()
+            }
+        }
+        // Logo disc (46dp, white oval): the part's anatomy logo
+        // bitmap filling the disc, CENTER_CROP and clipped round —
+        // the same decode path the grid cells use (PartLogos), with
+        // the clip radius at half the disc so the crop is a circle.
+        // No per-part emoji exists in the model, so a missing logo
+        // falls back to a generic centred glyph.
+        val disc = FrameLayout(this).apply {
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.WHITE) }
+            layoutParams = LinearLayout.LayoutParams(dp(46), dp(46))
+        }
+        val bmp = PartLogos.bitmap(this, part.id)
+        if (bmp != null) {
+            disc.addView(ImageView(this).apply {
+                setImageBitmap(bmp); scaleType = ImageView.ScaleType.CENTER_CROP
+                roundedClip(23)
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            })
+        } else {
+            disc.addView(TextView(this).apply {
+                text = "💪"; textSize = 24f; gravity = Gravity.CENTER
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            })
+        }
+        row.addView(disc)
+        val col = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, 0, 0) }
+        }
+        val nameTv = makeText(part.name, 16.5f, true, if (isSel) Color.WHITE else Theme.textPrimary)
+        nameTv.maxLines = 1
+        nameTv.ellipsize = android.text.TextUtils.TruncateAt.END
+        (nameTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, 0, 0, 0)
+        col.addView(nameTv)
+        val subTv = makeText(subLine, 12.5f, false, when {
+            isSel -> 0xD9FFFFFF.toInt()
+            doneThisWeek -> Theme.success
+            else -> Theme.textSecondary
+        })
+        subTv.maxLines = 1
+        subTv.ellipsize = android.text.TextUtils.TruncateAt.END
+        (subTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(2), 0, 0)
+        col.addView(subTv)
+        row.addView(col)
+        row.addView(TextView(this).apply {
+            text = if (isSel) "✓" else ""
+            textSize = 15f; gravity = Gravity.CENTER
+            setTextColor(Theme.primary)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                if (isSel) setColor(Color.WHITE) else { setColor(Color.TRANSPARENT); setStroke(dp(2), Theme.stroke) }
+            }
+            layoutParams = LinearLayout.LayoutParams(dp(27), dp(27))
+        })
+        return row
     }
 
     private fun partCell(part: BodyParts.Part, last: String?, countThisWeek: Int, logoDp: Int): View {

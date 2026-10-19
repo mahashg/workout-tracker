@@ -487,15 +487,21 @@ class MovieDeckActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(18), 0, 0) }
         }
-        controls.addView(bendControl(bendSoftCircle("⏭"), "Skip") { skipCurrent() }.apply {
+        val simple = SimpleMode.isOn(this)
+        val sideDp = if (simple) 64 else 52
+        val sideSp = if (simple) 22f else 18f
+        val heroDp = if (simple) 80 else 70
+        val heroSp = if (simple) 30f else 25f
+        val ctlLabelSp = if (simple) 11.5f else 10.5f
+        controls.addView(bendControl(bendSoftCircle("⏭", sideDp, sideSp), "Skip", labelSp = ctlLabelSp) { skipCurrent() }.apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
         })
-        controls.addView(bendControl(bendHeroCircle("✓", Theme.success), "Done") { completeCurrent() }.apply {
+        controls.addView(bendControl(bendHeroCircle("✓", Theme.success, heroDp, heroSp), "Done", labelSp = ctlLabelSp) { completeCurrent() }.apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
         })
-        val pauseCircle = bendSoftCircle("⏸")
+        val pauseCircle = bendSoftCircle("⏸", sideDp, sideSp)
         counterPauseTv = pauseCircle
-        controls.addView(bendControl(pauseCircle, "Pause") { toggleCounterPause() }.apply {
+        controls.addView(bendControl(pauseCircle, "Pause", labelSp = ctlLabelSp) { toggleCounterPause() }.apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(12), 0, dp(12), 0) }
         })
         content.addView(controls)

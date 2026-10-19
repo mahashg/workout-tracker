@@ -134,6 +134,10 @@ class CardSessionActivity : AppCompatActivity() {
     }
 
     private fun render(){
+        // v3.18 Simple Mode: read once per render. Every simple-mode
+        // branch below is guarded by this flag so full mode renders
+        // exactly as v3.17 did.
+        val simple = SimpleMode.isOn(this)
         // Views from the previous render are discarded below; stop their
         // photo crossfade loops first (v3.1).
         photoLoopers.forEach { it.stop() }; photoLoopers.clear()
@@ -155,7 +159,15 @@ class CardSessionActivity : AppCompatActivity() {
             root.addView(makeText("$done done • $skipped skipped",15f,false))
             if(undoStack.isNotEmpty()) root.addView(makeButton("Undo last action"){doUndo(); render()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
             // v3.7: the sections screen left the flow — this goes to the hub.
-            root.addView(makeButton("All Exercises"){navigateToHub()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
+            // v3.18 Simple Mode: there is no hub in the simple flow, so
+            // the completion state's primary action terminates the
+            // workout instead (the card's End pill is the normal path;
+            // this state is reached only by exhausting the deck).
+            if (simple) {
+                root.addView(makeButton("Finish workout"){doFinishWorkout()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
+            } else {
+                root.addView(makeButton("All Exercises"){navigateToHub()}.apply { (layoutParams as LinearLayout.LayoutParams).apply { height = dp(48); setMargins(0, dp(4), 0, 0) } })
+            }
             Toast.makeText(this,"${sectionLabel(sectionType)} complete!",Toast.LENGTH_SHORT).show()
             return
         }
@@ -203,7 +215,9 @@ class CardSessionActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             }
             val chip = TimerChipView(this)
-            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
+            // v3.18 Simple Mode: taller chip (38dp) + the 18sp label.
+            chip.bigText = simple
+            chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(if (simple) 38 else 30))
             chip.bind(this, db, db.getSession(sessionId) ?: session) { refreshPauseDisc() }
             // v3.12: swipe right on the timer bar = finish workout.
             chip.onFinishSwipe = { confirmFinishWorkout() }
@@ -213,9 +227,13 @@ class CardSessionActivity : AppCompatActivity() {
             // v3.17: pause disc beside the timer chip — a visible
             // pause/resume control mirroring the chip's state (the
             // chip's tap/swipe gestures remain, via togglePause()).
-            val disc = bendSoftCircle(if (WorkoutTimer.isPaused(this, sessionId)) "▶" else "⏸", 38, 15f)
+            // v3.18 Simple Mode: the disc grows to a 54dp target with a
+            // 23f glyph (full mode keeps 38dp / 15f). refreshPauseDisc()
+            // re-asserts the same glyph size on every toggle.
+            val discSize = if (simple) 54 else 38
+            val disc = bendSoftCircle(if (WorkoutTimer.isPaused(this, sessionId)) "▶" else "⏸", discSize, if (simple) 23f else 15f)
             (disc.background as? GradientDrawable)?.setStroke(dp(1), Theme.stroke)
-            disc.layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply { setMargins(dp(9), 0, 0, 0) }
+            disc.layoutParams = LinearLayout.LayoutParams(dp(discSize), dp(discSize)).apply { setMargins(dp(9), 0, 0, 0) }
             disc.isClickable = true
             disc.setOnClickListener { timerChip?.togglePause() }
             if (WorkoutTimer.isPaused(this, sessionId)) disc.setTextColor(Theme.primary)
@@ -374,7 +392,8 @@ class CardSessionActivity : AppCompatActivity() {
             )
             panel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(14), 0, 0) }
             col.addView(panel)
-            if (last != null) {
+            // v3.18 Simple Mode: no Repeat-last-time shortcut.
+            if (last != null && !simple) {
                 col.addView(bendTextAction("\u21bb Repeat last time") {
                     snapshot(ex)
                     val before = db.getSets(ex.id)
@@ -418,7 +437,36 @@ class CardSessionActivity : AppCompatActivity() {
         }
         // 7. Quiet text actions: Skip (the left-swipe's exit
         // animation + apply, as the old code did) and Do later.
-        run {
+        // v3.18 Simple Mode: that row is REPLACED by two chunky pills —
+        // "⏭ Skip" (the exact same exit-animation + applySkipped path
+        // as the text action / left swipe) and "⏹ End" (the existing
+        // confirm-finish flow). "Do later" does not exist in simple
+        // mode, so laterAvailable() is never consulted here.
+        if (simple) {
+            val actions = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
+            }
+            fun chunkyPill(label: String, fill: Int, ink: Int, withStroke: Boolean): TextView = TextView(this).apply {
+                text = label; textSize = 16.5f; setTextColor(ink); gravity = Gravity.CENTER
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                background = GradientDrawable().apply {
+                    setColor(fill); cornerRadius = dp(999).toFloat()
+                    if (withStroke) setStroke(dp(1), Theme.stroke)
+                }
+                setPadding(dp(26), dp(14), dp(26), dp(14))
+                isClickable = true
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+            actions.addView(chunkyPill("⏭ Skip", Theme.surface, Theme.textPrimary, withStroke = true).apply {
+                setOnClickListener { animateExitThen(wrapRef, -1) { applySkipped() } }
+            })
+            actions.addView(chunkyPill("⏹ End", Theme.primary, Color.WHITE, withStroke = false).apply {
+                (layoutParams as LinearLayout.LayoutParams).setMargins(dp(10), 0, 0, 0)
+                setOnClickListener { confirmFinishWorkout() }
+            })
+            col.addView(actions)
+        } else run {
             val actions = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, 0) }
@@ -460,7 +508,11 @@ class CardSessionActivity : AppCompatActivity() {
         // so taps (e.g. Watch Form Video, which consumes its own touches as a child)
         // and light nudges never trigger a swipe action.
         val slop = android.view.ViewConfiguration.get(this).scaledTouchSlop.toFloat()
-        wrap.setOnTouchListener { v, ev ->
+        // v3.18 Simple Mode: swipe gestures are disabled entirely — the
+        // listener is never installed, so the card cannot be dragged
+        // and no swipe can commit. (It lived on the wrap container
+        // only, so the card children's own clicks are unaffected.)
+        if (!simple) wrap.setOnTouchListener { v, ev ->
             if (cardAnimating) return@setOnTouchListener true
             when(ev.action){
                 MotionEvent.ACTION_DOWN -> {
@@ -514,7 +566,10 @@ class CardSessionActivity : AppCompatActivity() {
         // handling. (The old btnRow — "+ Log set" button + swipe hint —
         // is gone: logging is the inline panel now, and the up-swipe
         // still opens the shared SetLogger sheet via logSetDialog().)
-        root.addView(buildStrip(ex))
+        // v3.18 Simple Mode: no strip at all — no ☰ hub circle, no
+        // thumbnails, no Finish pill; the card flows straight to the
+        // next exercise and End lives in the actions row above.
+        if (!simple) root.addView(buildStrip(ex))
     }
 
     // ---- v3.7: hub navigation, section transitions, scroller strip ----
@@ -565,6 +620,11 @@ class CardSessionActivity : AppCompatActivity() {
         val paused = WorkoutTimer.isPaused(this, sessionId)
         disc.text = if (paused) "▶" else "⏸"
         disc.setTextColor(if (paused) Theme.primary else Theme.primaryDark)
+        // v3.18: the disc's layout size is baked in at creation (54dp
+        // simple / 38dp full, matching render()); the glyph size is
+        // re-asserted here from the same SimpleMode read so creation
+        // and every pause toggle can never disagree.
+        disc.textSize = if (SimpleMode.isOn(this)) 23f else 15f
     }
 
     /** v3.12: the timer bar's swipe-right lands here — confirm, then

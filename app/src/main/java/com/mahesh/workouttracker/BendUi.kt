@@ -172,7 +172,7 @@ fun Context.bendHeroCircle(glyph: String, fill: Int, sizeDp: Int = 70, glyphSp: 
     }
 
 /** A round control + its micro label, as one tappable column. */
-fun Context.bendControl(circle: TextView, label: String, onClick: () -> Unit): LinearLayout {
+fun Context.bendControl(circle: TextView, label: String, labelSp: Float = 10.5f, onClick: () -> Unit): LinearLayout {
     val col = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
         isClickable = true
@@ -181,7 +181,7 @@ fun Context.bendControl(circle: TextView, label: String, onClick: () -> Unit): L
     circle.isClickable = false
     col.addView(circle)
     col.addView(TextView(this).apply {
-        text = label; textSize = 10.5f; setTextColor(Theme.textTertiary)
+        text = label; textSize = labelSp; setTextColor(Theme.textTertiary)
         typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
         gravity = Gravity.CENTER
         (layoutParams as? LinearLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
