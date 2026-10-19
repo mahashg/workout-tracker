@@ -38,6 +38,7 @@ class CardSessionActivity : AppCompatActivity() {
     // v3.7: hub rows open the card AT a specific exercise.
     private var startExId: Long = -1
     private var restChip: RestChipView? = null
+    private var pauseDisc: TextView? = null
     private var stripRv: androidx.recyclerview.widget.RecyclerView? = null
     private var firstResume = true
     private var downX=0f; private var downY=0f
@@ -203,12 +204,23 @@ class CardSessionActivity : AppCompatActivity() {
             }
             val chip = TimerChipView(this)
             chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
-            chip.bind(this, db, db.getSession(sessionId) ?: session) {}
+            chip.bind(this, db, db.getSession(sessionId) ?: session) { refreshPauseDisc() }
             // v3.12: swipe right on the timer bar = finish workout.
             chip.onFinishSwipe = { confirmFinishWorkout() }
             chip.startTicking()
             timerChip = chip
             chipRow.addView(chip)
+            // v3.17: pause disc beside the timer chip — a visible
+            // pause/resume control mirroring the chip's state (the
+            // chip's tap/swipe gestures remain, via togglePause()).
+            val disc = bendSoftCircle(if (WorkoutTimer.isPaused(this, sessionId)) "▶" else "⏸", 38, 15f)
+            (disc.background as? GradientDrawable)?.setStroke(dp(1), Theme.stroke)
+            disc.layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply { setMargins(dp(9), 0, 0, 0) }
+            disc.isClickable = true
+            disc.setOnClickListener { timerChip?.togglePause() }
+            if (WorkoutTimer.isPaused(this, sessionId)) disc.setTextColor(Theme.primary)
+            pauseDisc = disc
+            chipRow.addView(disc)
             val rc = RestChipView(this)
             rc.bind(this)
             rc.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) }
@@ -545,6 +557,16 @@ class CardSessionActivity : AppCompatActivity() {
         finish()
     }
 
+    /** v3.17: the header pause disc mirrors the chip's pause state
+     *  (⏸ while running, ▶ while paused). Called from the chip's
+     *  bind onToggle — the one path every pause change takes. */
+    private fun refreshPauseDisc() {
+        val disc = pauseDisc ?: return
+        val paused = WorkoutTimer.isPaused(this, sessionId)
+        disc.text = if (paused) "▶" else "⏸"
+        disc.setTextColor(if (paused) Theme.primary else Theme.primaryDark)
+    }
+
     /** v3.12: the timer bar's swipe-right lands here — confirm, then
      *  finish from the card screen (previously only the hub could
      *  finish a workout). */
@@ -744,6 +766,22 @@ class CardSessionActivity : AppCompatActivity() {
         hubBtn.setOnClickListener { navigateToHub() }
         (hubBtn.layoutParams as LinearLayout.LayoutParams).setMargins(dp(8), 0, 0, 0)
         row.addView(hubBtn)
+        // v3.17: the Finish pill lives at the strip's end, beside the
+        // ☰ list circle; it runs the card's existing confirm-finish
+        // flow — the same one the timer-bar swipe-right runs.
+        if (db.getSession(sessionId)?.completed != true) {
+            val fin = TextView(this).apply {
+                text = "⏹ Finish"; textSize = 13.5f; setTextColor(Color.WHITE)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                gravity = Gravity.CENTER
+                background = GradientDrawable().apply { setColor(Theme.primary); cornerRadius = dp(999).toFloat() }
+                setPadding(dp(16), dp(9), dp(16), dp(9))
+                isClickable = true
+                setOnClickListener { confirmFinishWorkout() }
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) }
+            }
+            row.addView(fin)
+        }
         return row
     }
 

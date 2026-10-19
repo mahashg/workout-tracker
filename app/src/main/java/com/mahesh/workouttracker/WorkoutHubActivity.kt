@@ -11,6 +11,10 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -51,8 +55,16 @@ class WorkoutHubActivity : AppCompatActivity() {
     private var countTv: TextView? = null
     private var hairline: BendHairlineView? = null
     private var recycler: RecyclerView? = null
-    private var finishBtn: android.widget.Button? = null
+    private var pauseDisc: TextView? = null
+    private var searchDisc: TextView? = null
+    private var searchRow: LinearLayout? = null
+    private var searchInput: EditText? = null
+    private var footTv: TextView? = null
+    private var searchOpen: Boolean = false
+    private var searchQuery: String = ""
     private var adapter: HubAdapter? = null
+
+    private fun isSearching(): Boolean = searchQuery.trim().isNotEmpty()
 
     private val sectionOrder = listOf("Warmup", "Main", "Stretch")
 
@@ -141,7 +153,7 @@ class WorkoutHubActivity : AppCompatActivity() {
             db.ensureSessionStarted(sessionId)
             val chip = TimerChipView(this)
             chip.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(30))
-            chip.bind(this, db, db.getSession(sessionId) ?: session) {}
+            chip.bind(this, db, db.getSession(sessionId) ?: session) { refreshPauseDisc() }
             // v3.12: swipe right on the timer bar = the Finish flow
             // (same confirm-or-finish the Finish button runs). No
             // RestTimer.attach here — the card owns rest completion;
@@ -150,12 +162,69 @@ class WorkoutHubActivity : AppCompatActivity() {
             chip.startTicking()
             timerChip = chip
             topRow.addView(chip)
+            val pausedNow = WorkoutTimer.isPaused(this, sessionId)
+            val pauseD = bendSoftCircle(if (pausedNow) "▶" else "⏸", 38, 15f)
+            (pauseD.background as? GradientDrawable)?.setStroke(dp(1), Theme.stroke)
+            if (pausedNow) pauseD.setTextColor(Theme.primary)
+            pauseD.isClickable = true
+            pauseD.setOnClickListener { timerChip?.togglePause() }
+            (pauseD.layoutParams as LinearLayout.LayoutParams).setMargins(dp(9), 0, 0, 0)
+            pauseDisc = pauseD
+            topRow.addView(pauseD)
+            val searchD = bendSoftCircle("🔍", 38, 15f)
+            searchD.isClickable = true
+            searchD.setOnClickListener { toggleSearch(!searchOpen) }
+            (searchD.layoutParams as LinearLayout.LayoutParams).setMargins(dp(8), 0, 0, 0)
+            searchDisc = searchD
+            topRow.addView(searchD)
         } else if (session.startedAt > 0) {
             topRow.addView(makeText("Time: ${WorkoutTimer.formatDuration(session.elapsedSec)}", 13f, true, Theme.textSecondary).apply {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 0) }
             })
         }
         header.addView(topRow)
+        val sRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)).apply { setMargins(0, dp(10), 0, 0) }
+            background = GradientDrawable().apply {
+                setColor(Palettes.current.sheetRow); cornerRadius = dp(999).toFloat()
+                setStroke(dp(2), Theme.primary)
+            }
+            setPadding(dp(15), 0, dp(6), 0)
+        }
+        sRow.addView(TextView(this).apply { text = "🔍"; textSize = 15f })
+        val sInput = EditText(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(8), 0, 0, 0) }
+            background = null
+            hint = "Search name or equipment"
+            textSize = 15f
+            setTextColor(Theme.textPrimary)
+            setHintTextColor(Theme.textTertiary)
+            isSingleLine = true
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    searchQuery = s?.toString() ?: ""
+                    renderAll()
+                }
+            })
+        }
+        searchInput = sInput
+        sRow.addView(sInput)
+        sRow.addView(TextView(this).apply {
+            text = "✕"; textSize = 15f; setTextColor(Theme.textTertiary); gravity = Gravity.CENTER
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setPadding(dp(10), dp(6), dp(10), dp(6))
+            isClickable = true
+            setOnClickListener {
+                if (!searchInput?.text.isNullOrEmpty()) searchInput?.setText("") else toggleSearch(false)
+            }
+        })
+        searchRow = sRow
+        header.addView(sRow)
         val rcRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
@@ -183,13 +252,30 @@ class WorkoutHubActivity : AppCompatActivity() {
             gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, dp(2)) }
         }
+        footTv = foot
         root.addView(foot)
+    }
 
-        val fb = makeButton("Finish Workout") { onFinishTap() }
-        tightButton(fb, 52, 999, primary = true)
-        (fb.layoutParams as LinearLayout.LayoutParams).apply { height = dp(52); setMargins(0, dp(6), 0, 0) }
-        finishBtn = fb
-        root.addView(fb)
+    private fun refreshPauseDisc() { // ⏸ running / ▶ paused, mirrors the chip via its bind onToggle
+        val disc = pauseDisc ?: return
+        val paused = WorkoutTimer.isPaused(this, sessionId)
+        disc.text = if (paused) "▶" else "⏸"
+        disc.setTextColor(if (paused) Theme.primary else Theme.primaryDark)
+    }
+
+    private fun toggleSearch(open: Boolean) {
+        searchOpen = open
+        searchRow?.visibility = if (open) View.VISIBLE else View.GONE
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        if (open) {
+            searchInput?.requestFocus()
+            imm.showSoftInput(searchInput, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        } else {
+            if (searchQuery.isNotEmpty()) { searchQuery = ""; searchInput?.setText("") }
+            searchInput?.clearFocus()
+            imm.hideSoftInputFromWindow(searchInput?.windowToken, 0)
+            renderAll()
+        }
     }
 
     private var hubTouchHelper: ItemTouchHelper? = null
@@ -199,6 +285,8 @@ class WorkoutHubActivity : AppCompatActivity() {
     private sealed class HubItem {
         data class Band(val type: String, val handled: Int, val total: Int, val estMin: Int) : HubItem()
         data class Row(val ex: SessionExercise, val posInSection: Int) : HubItem()
+        object Finish : HubItem()
+        data class Note(val text: String) : HubItem()
     }
 
     private fun sectionEstMin(type: String, list: List<SessionExercise>): Int = when (type) {
@@ -222,24 +310,40 @@ class WorkoutHubActivity : AppCompatActivity() {
         // fraction of the whole session (replaces the 3-segment bar).
         hairline?.setFraction(if (exs.isEmpty()) 0f else handled.toFloat() / exs.size)
 
-        val items = mutableListOf<HubItem>()
-        for (type in sectionOrder) {
-            val list = exs.filter { it.type.equals(type, true) }
-            if (list.isEmpty()) continue
-            items.add(HubItem.Band(type, list.count { db.effectiveStatus(it) != "pending" }, list.size, sectionEstMin(type, list)))
-            for ((i, ex) in list.withIndex()) items.add(HubItem.Row(ex, i + 1))
-        }
+        val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
         val nextUpId = exs.firstOrNull { db.effectiveStatus(it) == "pending" }?.id ?: -1L
-        val ad = HubAdapter(items, nextUpId)
+
+        val items = mutableListOf<HubItem>()
+        if (isSearching()) {
+            val q = searchQuery.trim().lowercase()
+            val matches = exs.filter { ex ->
+                val part = db.sessionExercisePart(ex)
+                val partHaystack = (part + " " + runCatching { BodyParts.name(part) }.getOrDefault("")).lowercase()
+                ex.name.lowercase().contains(q) || ex.equipment.lowercase().contains(q) || partHaystack.contains(q)
+            }
+            items.add(HubItem.Note(if (matches.isEmpty()) "No matches in this workout" else "${matches.size} match${if (matches.size == 1) "" else "es"} — by name and equipment"))
+            if (matches.isNotEmpty()) {
+                for (type in sectionOrder) {
+                    val list = matches.filter { it.type.equals(type, true) }
+                    if (list.isEmpty()) continue
+                    items.add(HubItem.Band(type, list.count { db.effectiveStatus(it) != "pending" }, list.size, sectionEstMin(type, list)))
+                    for ((i, ex) in list.withIndex()) items.add(HubItem.Row(ex, i + 1))
+                }
+            }
+        } else {
+            for (type in sectionOrder) {
+                val list = exs.filter { it.type.equals(type, true) }
+                if (list.isEmpty()) continue
+                items.add(HubItem.Band(type, list.count { db.effectiveStatus(it) != "pending" }, list.size, sectionEstMin(type, list)))
+                for ((i, ex) in list.withIndex()) items.add(HubItem.Row(ex, i + 1))
+            }
+            if (!session.completed) items.add(HubItem.Finish)
+        }
+        val ad = HubAdapter(items, nextUpId, allHandled)
         adapter = ad
         recycler?.adapter = ad
 
-        val allHandled = exs.isNotEmpty() && exs.all { db.effectiveStatus(it) != "pending" }
-        finishBtn?.let { fb ->
-            if (allHandled) fb.background = GradientDrawable().apply { setColor(Theme.success); cornerRadius = dp(999).toFloat() }
-            else tightButton(fb, 52, 999, primary = true) // re-applies the primary ripple background
-        }
-        if (session.completed) finishBtn?.visibility = View.GONE
+        footTv?.text = if (isSearching()) "Searching — drag and swipe are paused" else "Swipe a row left to Pass · right to bring it back"
     }
 
     private fun onFinishTap() {
@@ -294,8 +398,10 @@ class WorkoutHubActivity : AppCompatActivity() {
     // ---------- drag reorder (within a section only) ----------
 
     private inner class HubDragCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-        override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
-            if (viewHolder is BandHolder) 0 else super.getDragDirs(recyclerView, viewHolder)
+        override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            if (isSearching()) return 0
+            return if (viewHolder is BandHolder) 0 else super.getDragDirs(recyclerView, viewHolder)
+        }
         /** v3.9.1: LEFT swipe = Pass (Mahesh's request — it replaces
          *  the per-row Pass button). Swipe is offered ONLY on rows
          *  still pending — the exact set the Pass button showed for.
@@ -305,6 +411,7 @@ class WorkoutHubActivity : AppCompatActivity() {
          *  bands get 0 both ways. Drag stays handle-driven (below),
          *  so the two never fight. */
         override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            if (isSearching()) return 0
             val row = viewHolder as? RowHolder ?: return 0
             val item = adapter?.items?.getOrNull(row.bindingAdapterPosition) as? HubItem.Row ?: return 0
             return when (db.effectiveStatus(item.ex)) {
@@ -369,8 +476,13 @@ class WorkoutHubActivity : AppCompatActivity() {
 
     // ---------- adapter ----------
 
-    private inner class HubAdapter(val items: MutableList<HubItem>, val nextUpId: Long) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        override fun getItemViewType(position: Int): Int = if (items[position] is HubItem.Band) 0 else 1
+    private inner class HubAdapter(val items: MutableList<HubItem>, val nextUpId: Long, val allHandled: Boolean) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        override fun getItemViewType(position: Int): Int = when (items[position]) {
+            is HubItem.Band -> 0
+            is HubItem.Row -> 1
+            HubItem.Finish -> 2
+            is HubItem.Note -> 3
+        }
         override fun getItemCount(): Int = items.size
 
         fun moveRow(from: Int, to: Int): Boolean {
@@ -401,6 +513,26 @@ class WorkoutHubActivity : AppCompatActivity() {
                 }
                 band.addView(label)
                 return BandHolder(band, label)
+            }
+            if (viewType == 2) {
+                val container = LinearLayout(this@WorkoutHubActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(0, dp(14), 0, dp(8))
+                    layoutParams = recyclerLp(top = 0, bottom = 0)
+                }
+                val btn = makeButton("⏹ Finish workout") { onFinishTap() }
+                tightButton(btn, 52, 999, primary = true)
+                (btn.layoutParams as LinearLayout.LayoutParams).height = dp(52)
+                container.addView(btn)
+                return FinishHolder(container, btn)
+            }
+            if (viewType == 3) {
+                val tv = TextView(this@WorkoutHubActivity).apply {
+                    textSize = 12f; setTextColor(Theme.textTertiary)
+                    setPadding(dp(2), dp(10), dp(2), dp(2))
+                    layoutParams = recyclerLp(top = 0, bottom = 0)
+                }
+                return NoteHolder(tv)
             }
             // v3.13 Bend row: sheetRow fill, 18dp corners, no stroke;
             // a 44dp circular photo/body-map thumb instead of the
@@ -465,6 +597,15 @@ class WorkoutHubActivity : AppCompatActivity() {
                     h.label.text = bandLabel(item.type).uppercase()
                 }
                 is HubItem.Row -> bindRow(holder as RowHolder, item)
+                HubItem.Finish -> {
+                    val h = holder as FinishHolder
+                    if (allHandled) h.button.background = GradientDrawable().apply { setColor(Theme.success); cornerRadius = dp(999).toFloat() }
+                    else tightButton(h.button, 52, 999, primary = true) // re-applies the primary ripple background
+                }
+                is HubItem.Note -> {
+                    val h = holder as NoteHolder
+                    h.tv.text = item.text
+                }
             }
         }
 
@@ -534,6 +675,10 @@ class WorkoutHubActivity : AppCompatActivity() {
 // v3.13: BandHolder's est view was dropped with the bare-label band
 // (the holder is now just band + label).
 private class BandHolder(val band: LinearLayout, val label: TextView) : RecyclerView.ViewHolder(band)
+
+private class FinishHolder(val container: LinearLayout, val button: android.widget.Button) : RecyclerView.ViewHolder(container)
+
+private class NoteHolder(val tv: TextView) : RecyclerView.ViewHolder(tv)
 
 private class RowHolder(val row: LinearLayout) : RecyclerView.ViewHolder(row) {
     lateinit var thumb: FrameLayout
