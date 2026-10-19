@@ -152,7 +152,7 @@ class TimerChipView(context: Context) : LinearLayout(context) {
      *  gestures share it exactly. Pausing the session ALSO freezes an
      *  active rest (and resuming thaws it) — RestTimer no-ops when no
      *  rest is active/paused, so non-rest screens are unaffected. */
-    private fun togglePause() {
+    fun togglePause() {
         val s = session ?: return
         val d = db ?: return
         val fresh = d.getSession(s.id) ?: return

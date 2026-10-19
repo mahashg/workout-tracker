@@ -304,6 +304,17 @@ class DbHelper(private val appContext: Context) : SQLiteOpenHelper(appContext, "
         }
         return out
     }
+    /** v3.17: the most recent COMPLETED gym session whose session_parts
+     *  include [bodyPart]. Gym = not a circuit session (focus carries
+     *  CircuitsData.FOCUS_PREFIX) and not the Movie Movements deck
+     *  (routineName identity). "Most recent" = date DESC, id DESC —
+     *  the same ordering getSessions() uses. */
+    fun lastCompletedGymSessionForPart(bodyPart: String): SessionInfo? {
+        readableDatabase.rawQuery("SELECT s.id,s.routineId,s.routineName,s.focus,s.date,s.weekNumber,s.weekStart,s.completed,s.startedAt,s.elapsedSec,s.endedAt FROM sessions s JOIN session_parts sp ON sp.sessionId=s.id WHERE sp.bodyPart=? AND s.completed=1 AND s.focus NOT LIKE ? AND s.routineName <> ? ORDER BY s.date DESC, s.id DESC LIMIT 1", arrayOf(bodyPart, CircuitsData.FOCUS_PREFIX + "%", MovieDeck.ROUTINE_NAME)).use { c ->
+            if (c.moveToFirst()) return SessionInfo(c.getLong(0),c.getLong(1),c.getString(2)?:"",c.getString(3)?:"",c.getString(4)?:"",c.getInt(5),c.getString(6)?:"",c.getInt(7)==1, if(c.isNull(8)) 0L else c.getLong(8), if(c.isNull(9)) 0 else c.getInt(9), if(c.isNull(10)) 0L else c.getLong(10))
+        }
+        return null
+    }
     /** Completed-session count per body part inside one Sun–Sat week. */
     fun partCountsInWeek(weekStart: String): Map<String, Int> {
         val out = mutableMapOf<String, Int>()
