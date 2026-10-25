@@ -300,6 +300,14 @@ class CardSessionActivity : AppCompatActivity() {
                 })
             }
             circleBox.addView(frame)
+            // v3.19: while the two-frame loop is actually animating,
+            // a small GIF chip says so (mock form-guide r2, screen 1).
+            // One-photo exercises stay static and get no chip.
+            if (photoBmp != null && photoAsset != null && PhotoLib.secondBitmap(this, photoAsset) != null) {
+                val chip = gifChip()
+                chip.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply { setMargins(0, 0, 0, dp(12)) }
+                circleBox.addView(chip)
+            }
             circleBox.addView(BendRingView(this).apply {
                 fraction = if (sets.isEmpty()) 0f else doneSets.toFloat() / sets.size
                 strokeDp = 4f
@@ -350,6 +358,24 @@ class CardSessionActivity : AppCompatActivity() {
                 true
             }
             col.addView(watch)
+        }
+        // 4b. v3.19 Form Guide entry: a quiet text line in the Watch
+        // line's family, shown ONLY when this exercise's catalog entry
+        // carries a guide (gym equipment mains with a photo — 119 of
+        // them). Opens the read-only guide viewer; the session, rest
+        // and timer state are untouched by it. No guide data = no row,
+        // exactly as v3.18.
+        JsonSeed.guideEntryForSessionExercise(this, db, ex)?.let { guideEntry ->
+            val gl = TextView(this).apply {
+                text = "📖 How to do it"; textSize = 13f; setTextColor(Theme.primary)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                gravity = Gravity.CENTER
+                setPadding(dp(12), dp(6), dp(12), dp(6))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
+                isClickable = true
+                setOnClickListener { startActivity(FormGuideActivity.intent(this@CardSessionActivity, guideEntry.id)) }
+            }
+            col.addView(gl)
         }
         // 5. Disclosure panel: the FULL Beginner content (the old
         // `how` card, uncapped) — shown only while this exercise is

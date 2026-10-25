@@ -71,7 +71,39 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/shorts/Gkk-6q7Rq-s",
    "shortUrl": "https://www.youtube.com/shorts/Gkk-6q7Rq-s",
-   "primary": true
+   "primary": true,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Ribs down, glutes tight",
+      "dont": "Feet hip-width, glutes squeezed, ribs down",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Press straight overhead",
+      "dont": "Wrists straight over elbows as you press",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to shoulder height",
+      "dont": "Lower to shoulder height with control",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.3,
+        0.295,
+        0.64,
+        0.285
+       ],
+       "dashed": true
+      }
+     }
+    ]
+   }
   },
   {
    "id": "single-arm-kb-press",
@@ -89,7 +121,37 @@
    "shortUrl": "https://www.youtube.com/shorts/A56mufj-VuI",
    "primary": true,
    "variation": "Half-kneeling variation",
-   "easier": "DB Shoulder Press (Light)"
+   "easier": "DB Shoulder Press (Light)",
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Ribs down, glutes tight",
+      "dont": "Feet hip-width, glutes squeezed, ribs down",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.59,
+        0.28,
+        0.045
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press straight overhead",
+      "dont": "Wrists straight over elbows as you press",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Lower slowly to shoulder height",
+      "dont": "Lower to shoulder height with control",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "db-lateral-raise",
@@ -105,7 +167,39 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/shorts/n1aCZuft1xM",
    "shortUrl": "https://www.youtube.com/shorts/n1aCZuft1xM",
-   "primary": true
+   "primary": true,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Slight bend in elbows",
+      "dont": "Stand tall, slight bend in elbows that stays fixed",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Lift to shoulder height only",
+      "dont": "Lift only to shoulder height - thumbs level or slightly down",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.27,
+        0.285,
+        0.69,
+        0.285
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly, no swinging",
+      "dont": "No swinging from hips - torso completely still",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "reverse-pec-deck",
@@ -122,7 +216,55 @@
    "url": "https://www.youtube.com/watch?v=P6-N-VGCVxk",
    "shortUrl": "https://www.youtube.com/shorts/mOOu8Z3kZSc",
    "primary": true,
-   "variation": "Rear delts"
+   "variation": "Rear delts",
+   "formGuide": {
+    "feel": "Shoulders, Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Chest tall, soft elbows",
+      "dont": "Back flat on pad, chest tall",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.435,
+        0.395,
+        0.355,
+        0.465,
+        0.335,
+        0.38
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Open arms wide with control",
+      "dont": "Move from the shoulder joint only",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.4,
+        0.465,
+        0.225,
+        0.475
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Squeeze shoulder blades together",
+      "dont": "Shoulders down and back - not rolled forward",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.53,
+        0.5,
+        0.08
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "pike-push-up",
@@ -157,7 +299,47 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/results?search_query=DB+Shoulder+Press+form",
    "shortUrl": "https://www.youtube.com/shorts/NXzncwfn8tc",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 2,
+      "do": "Press dumbbells straight up",
+      "dont": "Wrists straight over elbows as you press",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.565,
+        0.13,
+        0.545,
+        0.36
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to shoulder height",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.36,
+        0.27,
+        0.64,
+        0.27
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Keep ribs down the whole time",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "cable-lateral-raise",
@@ -173,7 +355,46 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/results?search_query=Cable+Lateral+Raise+form",
    "shortUrl": "https://www.youtube.com/shorts/uNA-Pl255og",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Pulleys at hand height to start",
+      "dont": null,
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.475,
+        0.615,
+        0.06
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Lift to shoulder height only",
+      "dont": "Arm stays in line with body - slightly in front",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.225,
+        0.39,
+        0.745,
+        0.395
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly - feel the side shoulder",
+      "dont": "No swinging from hips - torso completely still",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "face-pull",
@@ -189,7 +410,56 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/results?search_query=Face+Pull+form",
    "shortUrl": "https://www.youtube.com/shorts/PBgkmXOjTqs",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders, Traps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Set pulley at face height",
+      "dont": "Stand tall facing cable, chest up",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.25,
+        0.33,
+        0.63,
+        0.315
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull rope to forehead",
+      "dont": "Elbows high - point them back and out, not down",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.315,
+        0.295,
+        0.055
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Squeeze shoulder blades at the end",
+      "dont": "Rope ends near ears - thumbs toward you at the end",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.285,
+        0.325,
+        0.185,
+        0.405,
+        0.295,
+        0.295
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "shoulder-rolls",
@@ -237,7 +507,46 @@
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DdAR8Pbpp6z/",
    "shortUrl": "https://www.youtube.com/shorts/phrfo1ZiFBk",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge with a flat back",
+      "dont": "Hinge forward, back flat, soft knees",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.475,
+        0.315,
+        0.66,
+        0.44
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Open wide like wings",
+      "dont": "Open arms wide until shoulder-blade height - no higher",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.53,
+        0.365,
+        0.785,
+        0.325
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Squeeze blades, lower slow",
+      "dont": "Squeeze shoulder blades, lower slowly",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "db-overhead-raise",
@@ -252,7 +561,38 @@
    "cues": "Stand tall and brace;Raise in front to overhead;Lower slowly",
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DdAR8Pbpp6z/",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Stand tall and brace",
+      "dont": "Stand tall, ribs down, glutes squeezed",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Raise in front to overhead",
+      "dont": "Never swing or arch your back to get them up",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.45,
+        0.12,
+        0.465,
+        0.31
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly",
+      "dont": "Lower with control to thigh level",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "around-the-world",
@@ -297,7 +637,46 @@
    "cues": "Wide grip on the stick;Slow arc over and back;Only comfortable range",
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Wide grip on the stick",
+      "dont": "Hold a stick or towel wide - wider is easier",
+      "anno": {
+       "type": "bar",
+       "points": [
+        0.375,
+        0.65,
+        0.555,
+        0.685
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Slow arc over and back",
+      "dont": "Move in a slow arc over and behind the head only as far as comfortable",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.16,
+        0.545,
+        0.7,
+        0.625
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Only comfortable range",
+      "dont": "Never force through a pinch",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "shoulder-external-rotation",
@@ -343,7 +722,38 @@
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
    "shortUrl": "https://www.youtube.com/shorts/s0jpgtWUYhQ",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Pull close, catch soft",
+      "dont": "Hinge, then pull the dumbbells up close to your body",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Drive and press",
+      "dont": "Press overhead by driving with the legs and bracing your middle",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.365,
+        0.245,
+        0.415,
+        0.415
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower in two steps",
+      "dont": "Lower to shoulders, then to the hang, under control",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "devils-press",
@@ -359,7 +769,37 @@
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
    "shortUrl": "https://www.youtube.com/shorts/g6XUq1GpYRg",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Down like a burpee",
+      "dont": "Burpee with hands on the dumbbells - weights must not roll",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.335,
+        0.83,
+        0.085
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Stand and swing overhead",
+      "dont": "As you stand, swing the dumbbells straight overhead in one motion",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Smooth, powerful rhythm",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "db-hang-clean",
@@ -374,7 +814,55 @@
    "cues": "Hinge, explode, shrug;Catch soft at shoulders;Stand tall, reset",
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DcbzbBGgyI0/",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge, explode, shrug",
+      "dont": "Start with dumbbells hanging at thigh level, slight hinge",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.54,
+        0.36,
+        0.685,
+        0.52,
+        0.645,
+        0.675
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Catch soft at shoulders",
+      "dont": "Catch at shoulder height with a soft quarter-dip",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.225,
+        0.375,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Stand tall, reset",
+      "dont": "Stand fully before the next rep",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.305,
+        0.19,
+        0.295,
+        0.62
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "db-push-press",
@@ -389,7 +877,38 @@
    "cues": "Dip and drive;Press as legs extend;Lock out tall",
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DcbzbBGgyI0/",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Dip and drive",
+      "dont": "Dip a few inches at the knees, then drive up hard",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Press as legs extend",
+      "dont": "Press the weights overhead as the legs extend",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Lock out tall",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.45,
+        0.225,
+        0.495,
+        0.38
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "db-snatch",
@@ -405,7 +924,38 @@
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DZPT_9dMBYU/",
    "shortUrl": "https://www.youtube.com/shorts/SiqQ_ePRMQQ",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge, pull close",
+      "dont": "One dumbbell between your feet, hinge with a flat back",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Punch to lockout overhead",
+      "dont": "Punch your hand through and lock it out overhead",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.5,
+        0.165,
+        0.515,
+        0.375
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower in control",
+      "dont": "Lower to the shoulder, then the floor, with control",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "db-thruster",
@@ -421,7 +971,37 @@
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DZPT_9dMBYU/",
    "shortUrl": "https://www.youtube.com/shorts/k8QsgOFLp_g",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Squat deep",
+      "dont": "Squat to full depth, chest tall",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Stand and press together",
+      "dont": "As you stand, press the weights overhead in the same motion",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Reset at the shoulders",
+      "dont": "Lower back to shoulders before the next squat",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.53,
+        0.325,
+        0.05
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "press-leg-lift",
@@ -436,7 +1016,48 @@
    "cues": "Press and hold tall;Lift one leg, then the other;Ribs stay down",
    "image": "shoulders",
    "url": "https://www.instagram.com/reel/DdDPxUJBGs3/",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Press and hold tall",
+      "dont": "Press light dumbbells overhead",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.47,
+        0.075,
+        0.42,
+        0.315
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lift one leg, then the other",
+      "dont": "While holding tall, lift one straight leg out to the front or side, alternating",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.525,
+        0.565,
+        0.625,
+        0.545,
+        0.595,
+        0.795
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Ribs stay down",
+      "dont": "Keep ribs down - the balance challenge is the point",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "wall-handstand-transition",
@@ -513,7 +1134,30 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/shorts/y06rQiKo7-Y",
    "shortUrl": "https://www.youtube.com/shorts/y06rQiKo7-Y",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hike the bell, clean to the rack softly",
+      "dont": "Clean the bell to the rack without banging your forearm",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Press tall overhead",
+      "dont": "Press straight up with ribs down and glutes tight",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Reverse with control",
+      "dont": "Lower to the rack, then hinge it down with a flat back",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "resistance-band-overhead-press",
@@ -529,7 +1173,45 @@
    "image": "shoulders",
    "url": "https://www.youtube.com/shorts/-hWRaz0Ny_o",
    "shortUrl": "https://www.youtube.com/shorts/-hWRaz0Ny_o",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Band under feet, hands at shoulders",
+      "dont": "Stand on the band, feet hip-width, core braced",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.63,
+        0.25,
+        0.04
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press tall overhead",
+      "dont": "Press straight up without arching your back",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.44,
+        0.155,
+        0.475,
+        0.325
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower with control",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "tuck-back-lever-hold",

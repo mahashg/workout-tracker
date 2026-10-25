@@ -37,7 +37,13 @@ object JsonSeed {
          *  it); [counterSec] (30–60, 0 = none) marks membership in the
          *  Movie Movements deck and carries the movement's counter. */
         val home: Boolean = false,
-        val counterSec: Int = 0
+        val counterSec: Int = 0,
+        /** v3.19: the Form Guide (cover GIF steps + Do/Don't recap),
+         *  authored for gym equipment mains with a photo only. Parsed
+         *  from the JSON and runtime-read like [shortUrl] / [hcType] —
+         *  never a DB column, so it is current the moment a new APK is
+         *  installed. Null = no guide = no guide UI anywhere. */
+        val formGuide: FormGuide? = null
     )
 
     data class PartData(val partId: String, val warmups: List<Entry>, val exercises: List<Entry>, val stretches: List<Entry>) {
@@ -69,7 +75,8 @@ object JsonSeed {
                             easier = o.optString("easier"), photo = o.optString("photo"), type = type,
                             hcType = o.optString("hcType"),
                             shortUrl = o.optString("shortUrl"),
-                            home = o.optBoolean("home", false), counterSec = o.optInt("counterSec", 0)
+                            home = o.optBoolean("home", false), counterSec = o.optInt("counterSec", 0),
+                            formGuide = FormGuide.parse(o.optJSONObject("formGuide"))
                         ))
                     }
                     return list
@@ -133,6 +140,29 @@ object JsonSeed {
         }
         return entryByName(context, se.name)?.shortUrl?.takeIf { it.isNotBlank() }
     }
+
+    /** v3.19: the catalog entry carrying a Form Guide for a Library
+     *  exercise (by sourceId, else name — the same resolution [PhotoLib]
+     *  uses), or null when the entry has no guide. */
+    fun guideEntryForExercise(context: Context, e: Exercise): Entry? {
+        val entry = entryById(context, e.sourceId) ?: entryByName(context, e.name)
+        return entry?.takeIf { it.formGuide != null }
+    }
+
+    /** v3.19: the guide entry for a session exercise (origin exercise's
+     *  sourceId, else a name match), mirroring
+     *  [shortUrlForSessionExercise]. Null = the card shows no guide row. */
+    fun guideEntryForSessionExercise(context: Context, db: DbHelper, se: SessionExercise): Entry? {
+        if (se.originExerciseId > 0) {
+            db.getExercise(se.originExerciseId)?.let { return guideEntryForExercise(context, it) }
+        }
+        return entryByName(context, se.name)?.takeIf { it.formGuide != null }
+    }
+
+    /** v3.19: the body-part id a catalog entry belongs to (the guide's
+     *  final screen shows that part's anatomy logo). */
+    fun partIdForEntry(context: Context, entryId: String): String? =
+        loadAll(context).firstNotNullOfOrNull { pd -> if (pd.all.any { it.id == entryId }) pd.partId else null }
 
     /** v3.8.1: one-time additive step for the 15 Movie deck movements,
      *  same contract as the v3.6 step (its own gate pref, insert-missing

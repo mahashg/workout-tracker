@@ -101,6 +101,10 @@ class ExerciseDetailActivity : AppCompatActivity() {
                 }
                 band.addView(iv2)
                 looper = PhotoLooper(iv2)
+                // v3.19 (mock form-guide r2): the loop gets its GIF chip.
+                val chip = gifChip()
+                chip.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.END).apply { setMargins(0, dp(10), dp(10), 0) }
+                band.addView(chip)
             }
         } else {
             band.addView(BodyMapView(this, DbHelper.parseMuscles(e.targetMuscles, e.name)).apply {
@@ -163,6 +167,32 @@ class ExerciseDetailActivity : AppCompatActivity() {
             cueTv.setLineSpacing(0f, 1.45f)
             (cueTv.layoutParams as LinearLayout.LayoutParams).setMargins(0, dp(7), 0, 0)
             col.addView(cueTv)
+        }
+
+        // ---- Form Guide (v3.19): one row into the read-only viewer,
+        // only when this entry carries a guide (gym equipment mains
+        // with a photo). The page stays view-only — the guide changes
+        // nothing either.
+        if (entry?.formGuide != null) {
+            col.addView(sectionLabel("FORM GUIDE"))
+            val steps = entry.formGuide!!.steps.size
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                background = roundedBg(Theme.surface, 16, Theme.stroke)
+                setPadding(dp(14), dp(13), dp(14), dp(13))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(9), 0, 0) }
+                isClickable = true
+                setOnClickListener { startActivity(FormGuideActivity.intent(this@ExerciseDetailActivity, entry.id)) }
+            }
+            row.addView(TextView(this).apply {
+                text = "📖 How to do it"; textSize = 14f; setTextColor(Theme.primaryDark)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            })
+            row.addView(TextView(this).apply {
+                text = "$steps steps · what to do, what not to do"; textSize = 12.5f; setTextColor(Theme.textSecondary)
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(3), 0, 0) }
+            })
+            col.addView(row)
         }
 
         // ---- Video: the links, shown ----

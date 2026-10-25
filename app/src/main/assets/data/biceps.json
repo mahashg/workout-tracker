@@ -1,136 +1,420 @@
 {
-  "bodyPart": "biceps",
-  "warmups": [],
-  "exercises": [
-    {
-      "id": "db-bicep-curl",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/db-bicep-curl.jpg",
-      "name": "DB Bicep Curl",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "biceps",
-      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
-      "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
-      "image": "biceps",
-      "url": "https://www.youtube.com/watch?v=5EQ1Nu1ODgE",
-      "shortUrl": "https://www.youtube.com/shorts/DkN1C6sLdrk",
-      "primary": true
-    },
-    {
-      "id": "db-hammer-curl",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/db-hammer-curl.jpg",
-      "name": "DB Hammer Curl",
-      "equipment": "Dumbbell",
-      "sets": 2,
-      "targetReps": "12",
-      "targetMuscles": "biceps",
-      "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
-      "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
-      "image": "biceps",
-      "url": "https://www.youtube.com/shorts/I6saX6C_G4E",
-      "shortUrl": "https://www.youtube.com/shorts/I6saX6C_G4E",
-      "primary": true
-    },
-    {
-      "id": "cable-bicep-curl",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/cable-bicep-curl.jpg",
-      "name": "Cable Bicep Curl",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "biceps",
-      "precautions": "Elbows fixed at your sides - they never drift forward;Upper arms completely still - only forearms move;Stand tall, chest up - no swinging from hips;Lower all the way to straight arms slowly",
-      "cues": "Bar at thigh height to start;Curl without swinging;Lower slowly all the way",
-      "image": "biceps",
-      "url": "https://www.youtube.com/results?search_query=Cable+Bicep+Curl+form",
-      "shortUrl": "https://www.youtube.com/shorts/y9EgFCrU7XI",
-      "primary": false
-    },
-    {
-      "id": "incline-db-curl",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/incline-db-curl.jpg",
-      "name": "Incline DB Curl",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "biceps",
-      "precautions": "Back and head rest on the incline bench the whole set;Upper arms hang vertical, slightly behind body - still;Elbows never come forward during the curl;Lower all the way until arms straighten fully",
-      "cues": "Sit back on 45-degree bench;Curl both dumbbells up;Lower slowly into full stretch",
-      "image": "biceps",
-      "url": "https://www.youtube.com/results?search_query=Incline+DB+Curl+form",
-      "shortUrl": "https://www.youtube.com/shorts/DyOGV6NyjI8",
-      "primary": false
-    },
-    {
-      "id": "machine-preacher-curl",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/machine-preacher-curl.jpg",
-      "name": "Machine Preacher Curl",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "biceps",
-      "precautions": "Upper arms flat on the pad - armpits over the pad edge;Elbows in line with the machine pivot;Sit tall - no leaning or bouncing to cheat;Lower to near-straight arms under control",
-      "cues": "Adjust seat so arms rest flat;Curl handle up smoothly;Lower slowly, feel the stretch",
-      "image": "biceps",
-      "url": "https://www.youtube.com/results?search_query=Machine+Preacher+Curl+form",
-      "shortUrl": "https://www.youtube.com/shorts/S4dDLfp3e8w",
-      "primary": false
-    },
-    {
-      "id": "bicep-curl-machine",
-      "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
-      "photo": "exercise-images/bicep-curl-machine.jpg",
-      "name": "Bicep Curl Machine",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "10-12",
-      "targetMuscles": "biceps",
-      "precautions": "Adjust the seat so your upper arms rest fully on the pad;Elbows in line with the machine's pivot point;Curl without lifting your elbows off the pad;Lower slowly to straight arms - do not rest the stack between reps",
-      "cues": "Arms flat on the pad;Curl handles up smoothly;Lower slowly to full stretch",
-      "image": "biceps",
-      "url": "https://www.youtube.com/results?search_query=Bicep+Curl+Machine+form",
-      "shortUrl": "https://www.youtube.com/shorts/7NC5kToljDw",
-      "primary": false
-    },
-    {
-      "id": "chin-ups",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "photo": "exercise-images/chin-ups.jpg",
-      "name": "Chin-Ups",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10",
-      "targetMuscles": "biceps",
-      "precautions": "Underhand grip, hands shoulder-width, bar fully secure;Start from a dead hang with shoulders engaged;Pull until your chin clears the bar - no swinging or kicking;Lower slowly all the way down",
-      "cues": "Hang tall, grip tight;Pull your elbows down to your ribs;Lower under control",
-      "image": "biceps",
-      "url": "https://www.youtube.com/shorts/VzBj5eQdPvM",
-      "shortUrl": "https://www.youtube.com/shorts/VzBj5eQdPvM",
-      "primary": false
-    }
-  ],
-  "stretches": [
-    {
-      "id": "doorway-bicep-stretch",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/doorway-bicep-stretch.jpg",
-      "name": "Doorway Bicep Stretch",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "biceps",
-      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
-      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
-      "image": "biceps",
-      "url": "https://www.youtube.com/results?search_query=doorway+bicep+stretch+hindi",
-      "primary": true,
-      "defaultWeight": "BW"
-    }
-  ]
+ "bodyPart": "biceps",
+ "warmups": [],
+ "exercises": [
+  {
+   "id": "db-bicep-curl",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/db-bicep-curl.jpg",
+   "name": "DB Bicep Curl",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "biceps",
+   "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
+   "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
+   "image": "biceps",
+   "url": "https://www.youtube.com/watch?v=5EQ1Nu1ODgE",
+   "shortUrl": "https://www.youtube.com/shorts/DkN1C6sLdrk",
+   "primary": true,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Elbows fixed at your sides",
+      "dont": "Elbows fixed at your sides - they do not move forward",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.525,
+        0.25,
+        0.53,
+        0.39
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl up without swinging",
+      "dont": "Stand tall, no swinging from hips or back",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.55,
+        0.25,
+        0.545,
+        0.41,
+        0.5,
+        0.3
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly all the way",
+      "dont": "Lower all the way to straight arms slowly",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.525,
+        0.25,
+        0.52,
+        0.47
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "db-hammer-curl",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/db-hammer-curl.jpg",
+   "name": "DB Hammer Curl",
+   "equipment": "Dumbbell",
+   "sets": 2,
+   "targetReps": "12",
+   "targetMuscles": "biceps",
+   "precautions": "Elbows fixed at your sides - they do not move forward;Upper arms completely still - only forearms curl;Stand tall, no swinging from hips or back;Lower all the way to straight arms slowly",
+   "cues": "Elbows fixed at your sides;Curl up without swinging;Lower slowly all the way",
+   "image": "biceps",
+   "url": "https://www.youtube.com/shorts/I6saX6C_G4E",
+   "shortUrl": "https://www.youtube.com/shorts/I6saX6C_G4E",
+   "primary": true,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Elbows fixed at your sides",
+      "dont": "Elbows fixed at your sides - they do not move forward",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.44,
+        0.23,
+        0.435,
+        0.39
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl up without swinging",
+      "dont": "Stand tall, no swinging from hips or back",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.435,
+        0.24,
+        0.44,
+        0.42,
+        0.435,
+        0.33
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly all the way",
+      "dont": "Lower all the way to straight arms slowly",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.44,
+        0.23,
+        0.42,
+        0.53
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "cable-bicep-curl",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/cable-bicep-curl.jpg",
+   "name": "Cable Bicep Curl",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "biceps",
+   "precautions": "Elbows fixed at your sides - they never drift forward;Upper arms completely still - only forearms move;Stand tall, chest up - no swinging from hips;Lower all the way to straight arms slowly",
+   "cues": "Bar at thigh height to start;Curl without swinging;Lower slowly all the way",
+   "image": "biceps",
+   "url": "https://www.youtube.com/results?search_query=Cable+Bicep+Curl+form",
+   "shortUrl": "https://www.youtube.com/shorts/y9EgFCrU7XI",
+   "primary": false,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Bar at thigh height to start",
+      "dont": "Elbows fixed at your sides - they never drift forward",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.535,
+        0.595,
+        0.045
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl without swinging",
+      "dont": "Stand tall, chest up - no swinging from hips",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.47,
+        0.27,
+        0.475,
+        0.44,
+        0.545,
+        0.37
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly all the way",
+      "dont": "Lower all the way to straight arms slowly",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.47,
+        0.27,
+        0.535,
+        0.6
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "incline-db-curl",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/incline-db-curl.jpg",
+   "name": "Incline DB Curl",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "biceps",
+   "precautions": "Back and head rest on the incline bench the whole set;Upper arms hang vertical, slightly behind body - still;Elbows never come forward during the curl;Lower all the way until arms straighten fully",
+   "cues": "Sit back on 45-degree bench;Curl both dumbbells up;Lower slowly into full stretch",
+   "image": "biceps",
+   "url": "https://www.youtube.com/results?search_query=Incline+DB+Curl+form",
+   "shortUrl": "https://www.youtube.com/shorts/DyOGV6NyjI8",
+   "primary": false,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Sit back on 45-degree bench",
+      "dont": "Back and head rest on the incline bench the whole set",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.5,
+        0.44,
+        0.69,
+        0.19
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl both dumbbells up",
+      "dont": "Elbows never come forward during the curl",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.68,
+        0.28,
+        0.66,
+        0.42,
+        0.64,
+        0.29
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly into full stretch",
+      "dont": "Lower all the way until arms straighten fully",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.68,
+        0.3,
+        0.69,
+        0.62
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "machine-preacher-curl",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/machine-preacher-curl.jpg",
+   "name": "Machine Preacher Curl",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "biceps",
+   "precautions": "Upper arms flat on the pad - armpits over the pad edge;Elbows in line with the machine pivot;Sit tall - no leaning or bouncing to cheat;Lower to near-straight arms under control",
+   "cues": "Adjust seat so arms rest flat;Curl handle up smoothly;Lower slowly, feel the stretch",
+   "image": "biceps",
+   "url": "https://www.youtube.com/results?search_query=Machine+Preacher+Curl+form",
+   "shortUrl": "https://www.youtube.com/shorts/S4dDLfp3e8w",
+   "primary": false,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Adjust seat so arms rest flat",
+      "dont": "Upper arms flat on the pad - armpits over the pad edge",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.56,
+        0.32,
+        0.38,
+        0.44
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl handle up smoothly",
+      "dont": "Sit tall - no leaning or bouncing to cheat",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.57,
+        0.33,
+        0.53,
+        0.43,
+        0.44,
+        0.34
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly, feel the stretch",
+      "dont": "Lower to near-straight arms under control",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "bicep-curl-machine",
+   "hcType": "EXERCISE_SEGMENT_TYPE_ARM_CURL",
+   "photo": "exercise-images/bicep-curl-machine.jpg",
+   "name": "Bicep Curl Machine",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "10-12",
+   "targetMuscles": "biceps",
+   "precautions": "Adjust the seat so your upper arms rest fully on the pad;Elbows in line with the machine's pivot point;Curl without lifting your elbows off the pad;Lower slowly to straight arms - do not rest the stack between reps",
+   "cues": "Arms flat on the pad;Curl handles up smoothly;Lower slowly to full stretch",
+   "image": "biceps",
+   "url": "https://www.youtube.com/results?search_query=Bicep+Curl+Machine+form",
+   "shortUrl": "https://www.youtube.com/shorts/7NC5kToljDw",
+   "primary": false,
+   "formGuide": {
+    "feel": "Biceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Arms flat on the pad",
+      "dont": "Adjust the seat so your upper arms rest fully on the pad",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.295,
+        0.36,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Curl handles up smoothly",
+      "dont": "Lower slowly to straight arms - do not rest the stack between reps",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.36,
+        0.28,
+        0.33,
+        0.36,
+        0.37,
+        0.2
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to full stretch",
+      "dont": "Curl without lifting your elbows off the pad",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.36,
+        0.27,
+        0.265,
+        0.1
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "chin-ups",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "photo": "exercise-images/chin-ups.jpg",
+   "name": "Chin-Ups",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10",
+   "targetMuscles": "biceps",
+   "precautions": "Underhand grip, hands shoulder-width, bar fully secure;Start from a dead hang with shoulders engaged;Pull until your chin clears the bar - no swinging or kicking;Lower slowly all the way down",
+   "cues": "Hang tall, grip tight;Pull your elbows down to your ribs;Lower under control",
+   "image": "biceps",
+   "url": "https://www.youtube.com/shorts/VzBj5eQdPvM",
+   "shortUrl": "https://www.youtube.com/shorts/VzBj5eQdPvM",
+   "primary": false
+  }
+ ],
+ "stretches": [
+  {
+   "id": "doorway-bicep-stretch",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/doorway-bicep-stretch.jpg",
+   "name": "Doorway Bicep Stretch",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "biceps",
+   "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+   "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+   "image": "biceps",
+   "url": "https://www.youtube.com/results?search_query=doorway+bicep+stretch+hindi",
+   "primary": true,
+   "defaultWeight": "BW"
+  }
+ ]
 }

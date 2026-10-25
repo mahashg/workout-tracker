@@ -1,166 +1,330 @@
 {
-  "bodyPart": "traps",
-  "warmups": [
-    {
-      "id": "scapular-mobility",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "name": "Scapular Mobility (Shoulder Blade Glides)",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "20",
-      "targetMuscles": "traps",
-      "precautions": "Seated tall, arms relaxed;Glide shoulder blades up, down, together and apart in slow circles;Keep the neck long and still;Full comfortable range, no forcing",
-      "cues": "Circle the shoulder blades;Slow full glides;Neck stays long",
-      "image": "traps",
-      "url": "https://www.instagram.com/reel/Dc6JQ0QOPu4/",
-      "primary": false
-    }
-  ],
-  "exercises": [
-    {
-      "id": "db-shrug",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/db-shrug.jpg",
-      "name": "DB Shrug",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "15",
-      "targetMuscles": "traps",
-      "precautions": "Stand tall, arms straight and still at sides;Lift shoulders straight up to ears - no rolling;Head neutral, chin level, no jutting forward;Pause at top - feel it in upper traps",
-      "cues": "Arms straight, stand tall;Lift shoulders to ears;Pause, then lower slowly",
-      "image": "traps",
-      "url": "https://www.youtube.com/watch?v=vMr-kzeElVo",
-      "shortUrl": "https://www.youtube.com/shorts/gBMyVQRLbus",
-      "primary": true
-    },
-    {
-      "id": "cable-shrug",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/cable-shrug.jpg",
-      "name": "Cable Shrug",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "traps",
-      "precautions": "Stand tall, arms straight and still in front;Head neutral, chin level - no jutting forward;Shoulders lift straight UP - never roll them;Lift through upper traps only",
-      "cues": "Grip bar low in front;Shrug shoulders to ears;Pause, then lower slowly",
-      "image": "traps",
-      "url": "https://www.youtube.com/results?search_query=Cable+Shrug+form",
-      "primary": false
-    },
-    {
-      "id": "farmers-carry",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/farmers-carry.jpg",
-      "name": "Farmer's Carry",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "40 sec",
-      "targetMuscles": "traps",
-      "precautions": "Stand tall - shoulders down and back, chest up;Arms straight at sides, weights not touching thighs;Walk heel-to-toe, steps short and even;Head level - look straight ahead, never down",
-      "cues": "Pick up heavy dumbbells;Walk tall and slow;Set down with a flat back",
-      "image": "traps",
-      "url": "https://www.youtube.com/results?search_query=Farmer's+Carry+form",
-      "shortUrl": "https://www.youtube.com/shorts/cTJLuCn4vSU",
-      "primary": false
-    },
-    {
-      "id": "kb-high-pull-light",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/kb-high-pull-light.jpg",
-      "name": "KB High Pull (Light)",
-      "equipment": "Kettlebell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "traps,shoulders",
-      "precautions": "Feet hip-width, hinge at hips, flat back;Bell starts between feet - arms straight, lats tight;Stand tall - no leaning back at the top;Elbows end high, pointing back - wrists below elbows",
-      "cues": "Hinge and grip the bell;Snap hips to stand;Pull elbows high, lower with control",
-      "image": "traps",
-      "url": "https://www.youtube.com/results?search_query=KB+High+Pull+(Light)+form",
-      "shortUrl": "https://www.youtube.com/shorts/UMJ6tKsUFw8",
-      "primary": false
-    },
-    {
-      "id": "shoulder-shrugs",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/shoulder-shrugs.jpg",
-      "name": "Shoulder Shrugs",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "12",
-      "targetMuscles": "traps",
-      "precautions": "Stand tall, arms relaxed at your sides;Lift both shoulders straight up toward your ears;Do not roll them - straight up, then straight down;Lower fully between reps so your neck stays loose",
-      "cues": "Shoulders up to ears;Pause at the top;Drop them fully, repeat",
-      "image": "traps",
-      "url": "https://www.youtube.com/results?search_query=Shoulder+Shrugs+form",
-      "primary": false,
-      "home": true,
-      "counterSec": 30
-    },
-    {
-      "id": "scapular-squeeze",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/scapular-squeeze.jpg",
-      "name": "Scapular Squeeze",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10",
-      "targetMuscles": "traps",
-      "precautions": "Stand or sit tall, arms relaxed at your sides;Squeeze your shoulder blades together and down;Hold 3 seconds without shrugging;Keep your chest open and neck relaxed",
-      "cues": "Blades together and down;Hold for 3 seconds;Release slowly, repeat",
-      "image": "traps",
-      "url": "https://www.youtube.com/results?search_query=Scapular+Squeeze+exercise+form",
-      "shortUrl": "https://www.youtube.com/shorts/ypeosmSrPOU",
-      "primary": false,
-      "home": true,
-      "counterSec": 30
-    },
-    {
-      "id": "neck-rotations",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "name": "Neck Rotations",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "traps",
-      "precautions": "Slow half or full circles - never force the range;Keep shoulders down and still;Stop if you feel dizzy;Never crank the neck backward hard",
-      "cues": "Slow gentle circles;Shoulders stay down;Breathe easy",
-      "image": "traps",
-      "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
-      "primary": false
-    },
-    {
-      "id": "neck-circles-up-dog",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "name": "Neck Circles (Upward Dog)",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "traps",
-      "precautions": "In a gentle upward dog, circle your head slowly;Keep circles small and smooth;Shoulders stay down away from your ears;Stop if dizzy",
-      "cues": "Gentle up-dog;Small slow head circles;Shoulders stay down",
-      "image": "traps",
-      "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
-      "primary": false
-    }
-  ],
-  "stretches": [
-    {
-      "id": "neck-trapezius-stretch",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/neck-trapezius-stretch.jpg",
-      "name": "Neck Trapezius Stretch",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "traps",
-      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
-      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
-      "image": "traps",
-      "url": "https://www.youtube.com/watch?v=3hw6r9zrraU",
-      "shortUrl": "https://www.youtube.com/shorts/j2x1KCUzElw",
-      "primary": true,
-      "defaultWeight": "BW"
-    }
-  ]
+ "bodyPart": "traps",
+ "warmups": [
+  {
+   "id": "scapular-mobility",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "name": "Scapular Mobility (Shoulder Blade Glides)",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "20",
+   "targetMuscles": "traps",
+   "precautions": "Seated tall, arms relaxed;Glide shoulder blades up, down, together and apart in slow circles;Keep the neck long and still;Full comfortable range, no forcing",
+   "cues": "Circle the shoulder blades;Slow full glides;Neck stays long",
+   "image": "traps",
+   "url": "https://www.instagram.com/reel/Dc6JQ0QOPu4/",
+   "primary": false
+  }
+ ],
+ "exercises": [
+  {
+   "id": "db-shrug",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/db-shrug.jpg",
+   "name": "DB Shrug",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "15",
+   "targetMuscles": "traps",
+   "precautions": "Stand tall, arms straight and still at sides;Lift shoulders straight up to ears - no rolling;Head neutral, chin level, no jutting forward;Pause at top - feel it in upper traps",
+   "cues": "Arms straight, stand tall;Lift shoulders to ears;Pause, then lower slowly",
+   "image": "traps",
+   "url": "https://www.youtube.com/watch?v=vMr-kzeElVo",
+   "shortUrl": "https://www.youtube.com/shorts/gBMyVQRLbus",
+   "primary": true,
+   "formGuide": {
+    "feel": "Traps — feel it in upper traps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Arms straight, stand tall",
+      "dont": "Stand tall, arms straight and still at sides",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.425,
+        0.24,
+        0.405,
+        0.52
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Lift shoulders to ears",
+      "dont": "Lift shoulders straight up to ears - no rolling",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.565,
+        0.2,
+        0.055
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pause, then lower slowly",
+      "dont": "Pause at top - feel it in upper traps",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "cable-shrug",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/cable-shrug.jpg",
+   "name": "Cable Shrug",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "traps",
+   "precautions": "Stand tall, arms straight and still in front;Head neutral, chin level - no jutting forward;Shoulders lift straight UP - never roll them;Lift through upper traps only",
+   "cues": "Grip bar low in front;Shrug shoulders to ears;Pause, then lower slowly",
+   "image": "traps",
+   "url": "https://www.youtube.com/results?search_query=Cable+Shrug+form",
+   "primary": false,
+   "formGuide": {
+    "feel": "Traps — lift through upper traps only",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Grip bar low in front",
+      "dont": "Stand tall, arms straight and still in front",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.545,
+        0.585,
+        0.07
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Shrug shoulders to ears",
+      "dont": "Shoulders lift straight UP - never roll them",
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.46,
+        0.34,
+        0.44,
+        0.26,
+        0.46,
+        0.2
+       ],
+       "arrow": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pause, then lower slowly",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "farmers-carry",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/farmers-carry.jpg",
+   "name": "Farmer's Carry",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "40 sec",
+   "targetMuscles": "traps",
+   "precautions": "Stand tall - shoulders down and back, chest up;Arms straight at sides, weights not touching thighs;Walk heel-to-toe, steps short and even;Head level - look straight ahead, never down",
+   "cues": "Pick up heavy dumbbells;Walk tall and slow;Set down with a flat back",
+   "image": "traps",
+   "url": "https://www.youtube.com/results?search_query=Farmer's+Carry+form",
+   "shortUrl": "https://www.youtube.com/shorts/cTJLuCn4vSU",
+   "primary": false,
+   "formGuide": {
+    "feel": "Traps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Pick up heavy dumbbells",
+      "dont": null,
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.575,
+        0.645,
+        0.045
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Walk tall and slow",
+      "dont": "Stand tall - shoulders down and back, chest up",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.555,
+        0.18,
+        0.54,
+        0.46
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Set down with a flat back",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.485,
+        0.415,
+        0.565,
+        0.46
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "kb-high-pull-light",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/kb-high-pull-light.jpg",
+   "name": "KB High Pull (Light)",
+   "equipment": "Kettlebell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "traps,shoulders",
+   "precautions": "Feet hip-width, hinge at hips, flat back;Bell starts between feet - arms straight, lats tight;Stand tall - no leaning back at the top;Elbows end high, pointing back - wrists below elbows",
+   "cues": "Hinge and grip the bell;Snap hips to stand;Pull elbows high, lower with control",
+   "image": "traps",
+   "url": "https://www.youtube.com/results?search_query=KB+High+Pull+(Light)+form",
+   "shortUrl": "https://www.youtube.com/shorts/UMJ6tKsUFw8",
+   "primary": false,
+   "formGuide": {
+    "feel": "Traps, Shoulders",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge and grip the bell",
+      "dont": "Feet hip-width, hinge at hips, flat back",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.485,
+        0.845,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Snap hips to stand",
+      "dont": "Stand tall - no leaning back at the top",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.41,
+        0.52,
+        0.57,
+        0.52
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull elbows high, lower with control",
+      "dont": "Elbows end high, pointing back - wrists below elbows",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "shoulder-shrugs",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/shoulder-shrugs.jpg",
+   "name": "Shoulder Shrugs",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "12",
+   "targetMuscles": "traps",
+   "precautions": "Stand tall, arms relaxed at your sides;Lift both shoulders straight up toward your ears;Do not roll them - straight up, then straight down;Lower fully between reps so your neck stays loose",
+   "cues": "Shoulders up to ears;Pause at the top;Drop them fully, repeat",
+   "image": "traps",
+   "url": "https://www.youtube.com/results?search_query=Shoulder+Shrugs+form",
+   "primary": false,
+   "home": true,
+   "counterSec": 30
+  },
+  {
+   "id": "scapular-squeeze",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/scapular-squeeze.jpg",
+   "name": "Scapular Squeeze",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10",
+   "targetMuscles": "traps",
+   "precautions": "Stand or sit tall, arms relaxed at your sides;Squeeze your shoulder blades together and down;Hold 3 seconds without shrugging;Keep your chest open and neck relaxed",
+   "cues": "Blades together and down;Hold for 3 seconds;Release slowly, repeat",
+   "image": "traps",
+   "url": "https://www.youtube.com/results?search_query=Scapular+Squeeze+exercise+form",
+   "shortUrl": "https://www.youtube.com/shorts/ypeosmSrPOU",
+   "primary": false,
+   "home": true,
+   "counterSec": 30
+  },
+  {
+   "id": "neck-rotations",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "name": "Neck Rotations",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "traps",
+   "precautions": "Slow half or full circles - never force the range;Keep shoulders down and still;Stop if you feel dizzy;Never crank the neck backward hard",
+   "cues": "Slow gentle circles;Shoulders stay down;Breathe easy",
+   "image": "traps",
+   "url": "https://www.instagram.com/reel/DdoYZ8ZM4Xg/",
+   "primary": false
+  },
+  {
+   "id": "neck-circles-up-dog",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "name": "Neck Circles (Upward Dog)",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "traps",
+   "precautions": "In a gentle upward dog, circle your head slowly;Keep circles small and smooth;Shoulders stay down away from your ears;Stop if dizzy",
+   "cues": "Gentle up-dog;Small slow head circles;Shoulders stay down",
+   "image": "traps",
+   "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
+   "primary": false
+  }
+ ],
+ "stretches": [
+  {
+   "id": "neck-trapezius-stretch",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/neck-trapezius-stretch.jpg",
+   "name": "Neck Trapezius Stretch",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "traps",
+   "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+   "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+   "image": "traps",
+   "url": "https://www.youtube.com/watch?v=3hw6r9zrraU",
+   "shortUrl": "https://www.youtube.com/shorts/j2x1KCUzElw",
+   "primary": true,
+   "defaultWeight": "BW"
+  }
+ ]
 }

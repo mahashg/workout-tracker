@@ -227,10 +227,12 @@ fun View.roundedClip(radiusDp: Int) {
 }
 
 /** Two-frame photo crossfade (v3.1): free-exercise-db entries ship two
- *  positions of each movement; loop them — hold ~800ms per frame, ~350ms
- *  crossfade — with two stacked CENTER_CROP ImageViews (frame 2 on top,
- *  alpha-animated). No animation/GIF library. Callers must [stop] when the
- *  screen isn't visible and before the views are discarded. */
+ *  positions of each movement; loop them — hold ~1.3s per frame, ~0.5s
+ *  crossfade (v3.19: retimed to the form-guide mock r2's GIF rhythm;
+ *  presentation only, every caller surface keeps the same loop) — with
+ *  two stacked CENTER_CROP ImageViews (frame 2 on top, alpha-animated).
+ *  No animation/GIF library. Callers must [stop] when the screen isn't
+ *  visible and before the views are discarded. */
 class PhotoLooper(private val topFrame: android.widget.ImageView) {
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private var running = false
@@ -239,14 +241,14 @@ class PhotoLooper(private val topFrame: android.widget.ImageView) {
         override fun run() {
             if (!running) return
             showingSecond = !showingSecond
-            topFrame.animate().alpha(if (showingSecond) 1f else 0f).setDuration(350).start()
-            handler.postDelayed(this, 1150)
+            topFrame.animate().alpha(if (showingSecond) 1f else 0f).setDuration(500).start()
+            handler.postDelayed(this, 1800)
         }
     }
     fun start() {
         if (running) return
         running = true
-        handler.postDelayed(tick, 800)
+        handler.postDelayed(tick, 1300)
     }
     fun stop() {
         running = false

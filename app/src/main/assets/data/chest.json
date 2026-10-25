@@ -1,399 +1,879 @@
 {
-  "bodyPart": "chest",
-  "warmups": [
-    {
-      "id": "push-up-plus",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/push-up-plus.jpg",
-      "name": "Push-Up Plus",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10",
-      "targetMuscles": "chest,shoulders",
-      "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward",
-      "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
-      "image": "chest",
-      "url": "https://www.youtube.com/watch?v=iQP1BBmwAgg",
-      "shortUrl": "https://www.youtube.com/shorts/koVLSO7yvX8",
-      "primary": true,
-      "defaultWeight": "BW",
-      "variation": "Scapula push-up"
-    },
-    {
-      "id": "light-push-ups",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/light-push-ups.jpg",
-      "name": "Light Push-ups",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward",
-      "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
-      "image": "chest",
-      "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
-      "shortUrl": "https://www.youtube.com/shorts/W0GFFzyYUWI",
-      "primary": true,
-      "defaultWeight": "BW",
-      "variation": "Easy warm-up set"
-    }
-  ],
-  "exercises": [
-    {
-      "id": "chest-press-machine",
-      "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
-      "photo": "exercise-images/chest-press-machine.jpg",
-      "name": "Chest Press Machine",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
-      "cues": "Feet flat, back on pad;Push handles forward smoothly;Lower slowly to chest stretch",
-      "image": "chest",
-      "url": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
-      "shortUrl": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
-      "primary": true,
-      "easier": "Incline Push-up"
-    },
-    {
-      "id": "incline-db-press",
-      "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
-      "photo": "exercise-images/incline-db-press.jpg",
-      "name": "Incline DB Press",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
-      "cues": "Set up tall with good posture;Move slowly and with control;Breathe out on the hard part",
-      "image": "chest",
-      "url": "https://www.youtube.com/shorts/f-q2SJAuVDc",
-      "shortUrl": "https://www.youtube.com/shorts/f-q2SJAuVDc",
-      "primary": true,
-      "easier": "Chest Press Machine (Light)"
-    },
-    {
-      "id": "kb-floor-press",
-      "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
-      "photo": "exercise-images/kb-floor-press.jpg",
-      "name": "KB Floor Press",
-      "equipment": "Kettlebell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest,triceps",
-      "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
-      "cues": "Upper arms rest lightly on floor;Press up until arms straight;Lower slowly and controlled",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=kettlebell%20floor%20press%20hindi",
-      "shortUrl": "https://www.youtube.com/shorts/Vv381eNsbwA",
-      "primary": true
-    },
-    {
-      "id": "push-ups",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/push-ups.jpg",
-      "name": "Push-ups",
-      "equipment": "Bodyweight",
-      "sets": 3,
-      "targetReps": "max-2",
-      "targetMuscles": "chest",
-      "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward;Only arms bend - torso stays rigid like a plank",
-      "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
-      "image": "chest",
-      "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
-      "shortUrl": "https://www.youtube.com/shorts/-qrpfzf_jD0",
-      "primary": true,
-      "defaultWeight": "BW",
-      "variation": "Knee/incline/decline",
-      "easier": "Incline Push-up"
-    },
-    {
-      "id": "cable-fly",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/cable-fly.jpg",
-      "name": "Cable Fly",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "chest",
-      "precautions": "Back tall, chest up - shoulders down and back;Soft bend in elbows that stays fixed the whole set;Stagger stance for balance, torso still;Hands meet in front of chest, not below it",
-      "cues": "Handles at shoulder height;Sweep hands together wide;Slowly open back to a stretch",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=Cable+Fly+form",
-      "shortUrl": "https://www.youtube.com/shorts/ow_VWkwpv7g",
-      "primary": false
-    },
-    {
-      "id": "db-chest-fly",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/db-chest-fly.jpg",
-      "name": "DB Chest Fly",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Entire back flat on bench, feet planted;Soft bend in elbows that stays fixed;Lower only until elbows level with bench - no deeper;Wrists straight over elbows, palms facing each other",
-      "cues": "Start dumbbells over chest;Open wide with control;Squeeze chest to bring them back",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=DB+Chest+Fly+form",
-      "shortUrl": "https://www.youtube.com/shorts/5ooEUsETVc8",
-      "primary": false
-    },
-    {
-      "id": "assisted-dip-chest",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/assisted-dip-chest.jpg",
-      "name": "Assisted Dip (Chest)",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest,triceps",
-      "precautions": "Torso leans slightly forward (chest dip angle);Elbows point back-out at ~45 degrees;Shoulders down away from ears the whole time;Lower only to a comfortable stretch - never force depth",
-      "cues": "Set assist, grip bars firmly;Lower with control;Press up without locking elbows",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=Assisted+Dip+(Chest)+form",
-      "shortUrl": "https://www.youtube.com/shorts/safuwXpdelM",
-      "primary": false
-    },
-    {
-      "id": "wall-push-ups",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/wall-push-ups.jpg",
-      "name": "Wall Push-Ups",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "12-15",
-      "targetMuscles": "chest",
-      "precautions": "Palms flat on the wall at shoulder height, fingers pointing up;Body in one straight line - no sagging hips;Feet far enough back that you lean in slightly;Lower until elbows bend about 90 degrees, no deeper",
-      "cues": "Hands flat, body straight;Bend elbows, lean in;Push the wall away",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=Wall+Push+Ups+form",
-      "shortUrl": "https://www.youtube.com/shorts/G2z_j7iED3g",
-      "primary": false,
-      "home": true,
-      "counterSec": 45
-    },
-    {
-      "id": "incline-push-up",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/incline-push-up.jpg",
-      "name": "Incline Push-Up",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Hands on the couch edge or a sturdy low table - it must not slide;Body straight from head to heels;Elbows about 45 degrees from your body, not flared wide;Lower your chest toward the edge, not your hips",
-      "cues": "Hands on the edge, body straight;Lower chest to the edge;Press back up tall",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=Incline+Push+Up+form",
-      "shortUrl": "https://www.youtube.com/shorts/qNiJ4HreZg0",
-      "primary": false,
-      "home": true,
-      "counterSec": 40
-    },
-    {
-      "id": "deficit-push-up",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/deficit-push-up.jpg",
-      "name": "Deficit Push-Up (on Dumbbells)",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "chest",
-      "precautions": "Grip the dumbbell handles so wrists stay straight and weights cannot roll;Body one straight line head-to-heels;Lower until your chest passes hand level for the extra range;Keep elbows about 45 degrees from your sides",
-      "cues": "Grip handles, body straight;Chest below hand level;Press the floor away",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
-      "shortUrl": "https://www.youtube.com/shorts/DCYIpwmesGU",
-      "primary": false
-    },
-    {
-      "id": "offset-push-up",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "name": "Offset Push-Up",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "6 ea",
-      "targetMuscles": "chest",
-      "precautions": "One hand on a dumbbell handle, the other flat on the floor;Keep hips square - the raised side wants to twist;Body stays one straight line;Alternate sides or finish one side, then switch",
-      "cues": "One hand raised on the dumbbell;Hips stay square;Straight line, press strong",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DZPT_9dMBYU/",
-      "shortUrl": "https://www.youtube.com/shorts/vAA2J-jeGv0",
-      "primary": false
-    },
-    {
-      "id": "tyson-push-up",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/tyson-push-up.jpg",
-      "name": "Tyson Push-Up",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "8",
-      "targetMuscles": "chest",
-      "precautions": "Hands on the dumbbells in a plank;Push back toward your heels like a pike, then rock forward into a push-up;The rock and the press are one rhythm;Keep the motion smooth - no collapsing at the bottom",
-      "cues": "Rock back to pike;Roll forward into the push-up;One smooth rhythm",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DbdTWM3xrCE/",
-      "shortUrl": "https://www.youtube.com/shorts/VLx3is7M7uM",
-      "primary": false
-    },
-    {
-      "id": "push-up-rotation",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/push-up-rotation.jpg",
-      "name": "Push-Up with Rotation",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "chest",
-      "precautions": "Do a full push-up, then rotate into a side plank and reach the top arm up;Keep the rotation smooth - feet pivot, hips stack;Alternate sides each rep;Drop to knees for the push-up if needed",
-      "cues": "Push up, rotate open;Top arm reaches tall;Alternate sides",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/Dd5UhHvomHz/",
-      "shortUrl": "https://www.youtube.com/shorts/0TE50RcWCdw",
-      "primary": false
-    },
-    {
-      "id": "elbow-clams",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "name": "Elbow Clams (Foam Roller)",
-      "equipment": "Other",
-      "sets": 1,
-      "targetReps": "60 sec",
-      "targetMuscles": "chest",
-      "precautions": "Lie back over a foam roller under your upper back, hips in a bridge;Elbows bent, open and close the forearms like clamshells;Move slowly within a comfortable chest stretch;Keep ribs from flaring hard",
-      "cues": "Bridge over the roller;Open and close the elbows slowly;Comfortable stretch only",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
-      "primary": false
-    },
-    {
-      "id": "cactus-arms",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "name": "Cactus Arms (Foam Roller)",
-      "equipment": "Other",
-      "sets": 1,
-      "targetReps": "60 sec",
-      "targetMuscles": "chest",
-      "precautions": "Lying over the foam roller, bend elbows at 90 degrees like a cactus;Let the arms open and settle with gravity;Slide them slowly up and down if comfortable;Never force the shoulders back",
-      "cues": "Elbows bent like a cactus;Let gravity open the chest;Slow small slides",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
-      "primary": false
-    },
-    {
-      "id": "arm-switches",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "name": "Arm Switches (Foam Roller)",
-      "equipment": "Other",
-      "sets": 1,
-      "targetReps": "60 sec",
-      "targetMuscles": "chest",
-      "precautions": "Lying over the foam roller, arms extended out;Alternate which arm reaches up and which reaches down, like a slow see-saw;Keep both arms heavy and relaxed;Breathe out as you switch",
-      "cues": "Arms long over the roller;Alternate reach up and down;Slow see-saw",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
-      "primary": false
-    },
-    {
-      "id": "pec-deck-fly",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/pec-deck-fly.jpg",
-      "name": "Pec Deck Fly",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "chest",
-      "precautions": "Seat set so handles start at chest height;Slight elbow bend stays fixed;Bring handles together in a wide hugging arc;Open back slowly until a gentle chest stretch",
-      "cues": "Handles at chest height;Hug in a wide arc;Open back slowly",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DcFahwuBMJh",
-      "shortUrl": "https://www.youtube.com/shorts/iZrS6nKAH6k",
-      "primary": false
-    },
-    {
-      "id": "dumbbell-pullover",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/dumbbell-pullover.jpg",
-      "name": "Dumbbell Pullover",
-      "equipment": "Dumbbell",
-      "sets": 1,
-      "targetReps": "15",
-      "targetMuscles": "chest",
-      "precautions": "Only head and shoulders supported on the bench, hips up;Lower the weight in an arc until you feel a stretch - no further;Keep a slight bend in the elbows throughout;Control the weight - never let it drop back fast",
-      "cues": "Hold one dumbbell over your chest;Lower it in an arc behind your head;Pull it back over using chest and lats",
-      "image": "chest",
-      "url": "https://www.youtube.com/shorts/csxSQFG26hY",
-      "shortUrl": "https://www.youtube.com/shorts/csxSQFG26hY",
-      "primary": false
-    },
-    {
-      "id": "resistance-band-chest-press",
-      "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
-      "photo": "exercise-images/resistance-band-chest-press.jpg",
-      "name": "Resistance Band Chest Press",
-      "equipment": "Resistance Band",
-      "sets": 1,
-      "targetReps": "10 ea",
-      "targetMuscles": "chest",
-      "precautions": "Anchor the band behind you at chest height;Keep wrists straight and elbows just below shoulder line;Press forward without shrugging;Inspect the band for nicks before every set",
-      "cues": "Step into tension, brace tall;Press one arm forward at a time;Control the return",
-      "image": "chest",
-      "url": "https://www.youtube.com/shorts/J1F0WX1f4xI",
-      "shortUrl": "https://www.youtube.com/shorts/J1F0WX1f4xI",
-      "primary": false
-    },
-    {
-      "id": "side-to-side-push-ups",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/side-to-side-push-ups.jpg",
-      "name": "Side-to-Side Push-Ups",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "5",
-      "targetMuscles": "chest",
-      "precautions": "Hands wider than usual;Body in one straight line, core braced;Shift your weight over one hand as you lower;Keep the range pain-free for your shoulders",
-      "cues": "Wide hands, straight body;Lower toward one hand;Push up and shift to the other side",
-      "image": "chest",
-      "url": "https://www.youtube.com/results?search_query=Side-to-Side+Push-Ups+form",
-      "primary": false
-    }
-  ],
-  "stretches": [
-    {
-      "id": "doorway-chest-stretch",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/doorway-chest-stretch.jpg",
-      "name": "Doorway Chest Stretch",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "chest",
-      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
-      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
-      "image": "chest",
-      "url": "https://www.youtube.com/shorts/ArixC7ODJiI",
-      "shortUrl": "https://www.youtube.com/shorts/ArixC7ODJiI",
-      "primary": true,
-      "defaultWeight": "BW"
-    },
-    {
-      "id": "heart-opener-hold",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/heart-opener-hold.jpg",
-      "name": "Heart Opener Hold (Foam Roller)",
-      "equipment": "Other",
-      "sets": 1,
-      "targetReps": "60 sec",
-      "targetMuscles": "chest",
-      "precautions": "Rest back over the foam roller under your upper back, arms open wide;Let the chest open with gravity for the full minute;Support your head if your neck tires;Breathe slowly and deeply",
-      "cues": "Rest open over the roller;Arms wide, chest open;Slow deep breaths",
-      "image": "chest",
-      "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
-      "shortUrl": "https://www.youtube.com/shorts/OOK2iKZp7Ww",
-      "primary": false
-    }
-  ]
+ "bodyPart": "chest",
+ "warmups": [
+  {
+   "id": "push-up-plus",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/push-up-plus.jpg",
+   "name": "Push-Up Plus",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10",
+   "targetMuscles": "chest,shoulders",
+   "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward",
+   "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
+   "image": "chest",
+   "url": "https://www.youtube.com/watch?v=iQP1BBmwAgg",
+   "shortUrl": "https://www.youtube.com/shorts/koVLSO7yvX8",
+   "primary": true,
+   "defaultWeight": "BW",
+   "variation": "Scapula push-up"
+  },
+  {
+   "id": "light-push-ups",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/light-push-ups.jpg",
+   "name": "Light Push-ups",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward",
+   "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
+   "image": "chest",
+   "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
+   "shortUrl": "https://www.youtube.com/shorts/W0GFFzyYUWI",
+   "primary": true,
+   "defaultWeight": "BW",
+   "variation": "Easy warm-up set"
+  }
+ ],
+ "exercises": [
+  {
+   "id": "chest-press-machine",
+   "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
+   "photo": "exercise-images/chest-press-machine.jpg",
+   "name": "Chest Press Machine",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
+   "cues": "Feet flat, back on pad;Push handles forward smoothly;Lower slowly to chest stretch",
+   "image": "chest",
+   "url": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
+   "shortUrl": "https://www.youtube.com/shorts/fQI6Fy6uqtE",
+   "primary": true,
+   "easier": "Incline Push-up",
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Feet flat, back on pad",
+      "dont": "Feet flat on the floor, planted and still",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Push handles forward smoothly",
+      "dont": "Only your arms move - shoulders stay down away from ears",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.64,
+        0.44,
+        0.705,
+        0.575
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to chest stretch",
+      "dont": null,
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.66,
+        0.46,
+        0.76,
+        0.62,
+        0.72,
+        0.55
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "incline-db-press",
+   "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
+   "photo": "exercise-images/incline-db-press.jpg",
+   "name": "Incline DB Press",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
+   "cues": "Set up tall with good posture;Move slowly and with control;Breathe out on the hard part",
+   "image": "chest",
+   "url": "https://www.youtube.com/shorts/f-q2SJAuVDc",
+   "shortUrl": "https://www.youtube.com/shorts/f-q2SJAuVDc",
+   "primary": true,
+   "easier": "Chest Press Machine (Light)",
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Set up tall with good posture",
+      "dont": "Your back stays flat on the bench (or floor), not arched hard",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.66,
+        0.38,
+        0.45,
+        0.55
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Move slowly and with control",
+      "dont": "Wrists straight, in line with your forearms",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.64,
+        0.37,
+        0.63,
+        0.14
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Breathe out on the hard part",
+      "dont": null,
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.54,
+        0.09,
+        0.06
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "kb-floor-press",
+   "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
+   "photo": "exercise-images/kb-floor-press.jpg",
+   "name": "KB Floor Press",
+   "equipment": "Kettlebell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest,triceps",
+   "precautions": "Your back stays flat on the bench (or floor), not arched hard;Feet flat on the floor, planted and still;Wrists straight, in line with your forearms;Only your arms move - shoulders stay down away from ears",
+   "cues": "Upper arms rest lightly on floor;Press up until arms straight;Lower slowly and controlled",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=kettlebell%20floor%20press%20hindi",
+   "shortUrl": "https://www.youtube.com/shorts/Vv381eNsbwA",
+   "primary": true,
+   "formGuide": {
+    "feel": "Chest, Triceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Upper arms rest lightly on floor",
+      "dont": "Your back stays flat on the bench (or floor), not arched hard",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.615,
+        0.51,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press up until arms straight",
+      "dont": "Wrists straight, in line with your forearms",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.61,
+        0.5,
+        0.63,
+        0.28
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly and controlled",
+      "dont": null,
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.63,
+        0.29,
+        0.68,
+        0.38,
+        0.62,
+        0.46
+       ],
+       "arrow": true
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "push-ups",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/push-ups.jpg",
+   "name": "Push-ups",
+   "equipment": "Bodyweight",
+   "sets": 3,
+   "targetReps": "max-2",
+   "targetMuscles": "chest",
+   "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward;Only arms bend - torso stays rigid like a plank",
+   "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
+   "image": "chest",
+   "url": "https://www.youtube.com/watch?v=ZY7sCgqsXYs",
+   "shortUrl": "https://www.youtube.com/shorts/-qrpfzf_jD0",
+   "primary": true,
+   "defaultWeight": "BW",
+   "variation": "Knee/incline/decline",
+   "easier": "Incline Push-up"
+  },
+  {
+   "id": "cable-fly",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/cable-fly.jpg",
+   "name": "Cable Fly",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "chest",
+   "precautions": "Back tall, chest up - shoulders down and back;Soft bend in elbows that stays fixed the whole set;Stagger stance for balance, torso still;Hands meet in front of chest, not below it",
+   "cues": "Handles at shoulder height;Sweep hands together wide;Slowly open back to a stretch",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=Cable+Fly+form",
+   "shortUrl": "https://www.youtube.com/shorts/ow_VWkwpv7g",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Handles at shoulder height",
+      "dont": "Back tall, chest up - shoulders down and back",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.21,
+        0.36,
+        0.74,
+        0.35
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Sweep hands together wide",
+      "dont": "Hands meet in front of chest, not below it",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.5,
+        0.52,
+        0.06
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Slowly open back to a stretch",
+      "dont": "Soft bend in elbows that stays fixed the whole set",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "db-chest-fly",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/db-chest-fly.jpg",
+   "name": "DB Chest Fly",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Entire back flat on bench, feet planted;Soft bend in elbows that stays fixed;Lower only until elbows level with bench - no deeper;Wrists straight over elbows, palms facing each other",
+   "cues": "Start dumbbells over chest;Open wide with control;Squeeze chest to bring them back",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=DB+Chest+Fly+form",
+   "shortUrl": "https://www.youtube.com/shorts/5ooEUsETVc8",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Start dumbbells over chest",
+      "dont": "Entire back flat on bench, feet planted",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.51,
+        0.3,
+        0.07
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Open wide with control",
+      "dont": "Lower only until elbows level with bench - no deeper",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.4,
+        0.53,
+        0.65,
+        0.53
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Squeeze chest to bring them back",
+      "dont": "Soft bend in elbows that stays fixed",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "assisted-dip-chest",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/assisted-dip-chest.jpg",
+   "name": "Assisted Dip (Chest)",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest,triceps",
+   "precautions": "Torso leans slightly forward (chest dip angle);Elbows point back-out at ~45 degrees;Shoulders down away from ears the whole time;Lower only to a comfortable stretch - never force depth",
+   "cues": "Set assist, grip bars firmly;Lower with control;Press up without locking elbows",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=Assisted+Dip+(Chest)+form",
+   "shortUrl": "https://www.youtube.com/shorts/safuwXpdelM",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest, Triceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Set assist, grip bars firmly",
+      "dont": "Torso leans slightly forward (chest dip angle)",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.58,
+        0.42,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower with control",
+      "dont": "Lower only to a comfortable stretch - never force depth",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.595,
+        0.295,
+        0.66,
+        0.375,
+        0.565,
+        0.42
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press up without locking elbows",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.62,
+        0.32,
+        0.55,
+        0.63
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "wall-push-ups",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/wall-push-ups.jpg",
+   "name": "Wall Push-Ups",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "12-15",
+   "targetMuscles": "chest",
+   "precautions": "Palms flat on the wall at shoulder height, fingers pointing up;Body in one straight line - no sagging hips;Feet far enough back that you lean in slightly;Lower until elbows bend about 90 degrees, no deeper",
+   "cues": "Hands flat, body straight;Bend elbows, lean in;Push the wall away",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=Wall+Push+Ups+form",
+   "shortUrl": "https://www.youtube.com/shorts/G2z_j7iED3g",
+   "primary": false,
+   "home": true,
+   "counterSec": 45
+  },
+  {
+   "id": "incline-push-up",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/incline-push-up.jpg",
+   "name": "Incline Push-Up",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Hands on the couch edge or a sturdy low table - it must not slide;Body straight from head to heels;Elbows about 45 degrees from your body, not flared wide;Lower your chest toward the edge, not your hips",
+   "cues": "Hands on the edge, body straight;Lower chest to the edge;Press back up tall",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=Incline+Push+Up+form",
+   "shortUrl": "https://www.youtube.com/shorts/qNiJ4HreZg0",
+   "primary": false,
+   "home": true,
+   "counterSec": 40
+  },
+  {
+   "id": "deficit-push-up",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/deficit-push-up.jpg",
+   "name": "Deficit Push-Up (on Dumbbells)",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "chest",
+   "precautions": "Grip the dumbbell handles so wrists stay straight and weights cannot roll;Body one straight line head-to-heels;Lower until your chest passes hand level for the extra range;Keep elbows about 45 degrees from your sides",
+   "cues": "Grip handles, body straight;Chest below hand level;Press the floor away",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/Dc54ZKZsciL/",
+   "shortUrl": "https://www.youtube.com/shorts/DCYIpwmesGU",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Grip handles, body straight",
+      "dont": "Body one straight line head-to-heels",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.5,
+        0.36,
+        0.5,
+        0.5
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Chest below hand level",
+      "dont": "Lower until your chest passes hand level for the extra range",
+      "anno": {
+       "type": "bar",
+       "points": [
+        0.44,
+        0.595,
+        0.57,
+        0.595
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Press the floor away",
+      "dont": "Keep elbows about 45 degrees from your sides",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.505,
+        0.585,
+        0.055
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "offset-push-up",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "name": "Offset Push-Up",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "6 ea",
+   "targetMuscles": "chest",
+   "precautions": "One hand on a dumbbell handle, the other flat on the floor;Keep hips square - the raised side wants to twist;Body stays one straight line;Alternate sides or finish one side, then switch",
+   "cues": "One hand raised on the dumbbell;Hips stay square;Straight line, press strong",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DZPT_9dMBYU/",
+   "shortUrl": "https://www.youtube.com/shorts/vAA2J-jeGv0",
+   "primary": false
+  },
+  {
+   "id": "tyson-push-up",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/tyson-push-up.jpg",
+   "name": "Tyson Push-Up",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "8",
+   "targetMuscles": "chest",
+   "precautions": "Hands on the dumbbells in a plank;Push back toward your heels like a pike, then rock forward into a push-up;The rock and the press are one rhythm;Keep the motion smooth - no collapsing at the bottom",
+   "cues": "Rock back to pike;Roll forward into the push-up;One smooth rhythm",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DbdTWM3xrCE/",
+   "shortUrl": "https://www.youtube.com/shorts/VLx3is7M7uM",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Rock back to pike",
+      "dont": "Push back toward your heels like a pike, then rock forward into a push-up",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.25,
+        0.6,
+        0.5,
+        0.63,
+        0.83,
+        0.69
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Roll forward into the push-up",
+      "dont": null,
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.28,
+        0.58,
+        0.34,
+        0.73,
+        0.28,
+        0.86
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "One smooth rhythm",
+      "dont": "The rock and the press are one rhythm",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "push-up-rotation",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/push-up-rotation.jpg",
+   "name": "Push-Up with Rotation",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "chest",
+   "precautions": "Do a full push-up, then rotate into a side plank and reach the top arm up;Keep the rotation smooth - feet pivot, hips stack;Alternate sides each rep;Drop to knees for the push-up if needed",
+   "cues": "Push up, rotate open;Top arm reaches tall;Alternate sides",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/Dd5UhHvomHz/",
+   "shortUrl": "https://www.youtube.com/shorts/0TE50RcWCdw",
+   "primary": false
+  },
+  {
+   "id": "elbow-clams",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "name": "Elbow Clams (Foam Roller)",
+   "equipment": "Other",
+   "sets": 1,
+   "targetReps": "60 sec",
+   "targetMuscles": "chest",
+   "precautions": "Lie back over a foam roller under your upper back, hips in a bridge;Elbows bent, open and close the forearms like clamshells;Move slowly within a comfortable chest stretch;Keep ribs from flaring hard",
+   "cues": "Bridge over the roller;Open and close the elbows slowly;Comfortable stretch only",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
+   "primary": false
+  },
+  {
+   "id": "cactus-arms",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "name": "Cactus Arms (Foam Roller)",
+   "equipment": "Other",
+   "sets": 1,
+   "targetReps": "60 sec",
+   "targetMuscles": "chest",
+   "precautions": "Lying over the foam roller, bend elbows at 90 degrees like a cactus;Let the arms open and settle with gravity;Slide them slowly up and down if comfortable;Never force the shoulders back",
+   "cues": "Elbows bent like a cactus;Let gravity open the chest;Slow small slides",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
+   "primary": false
+  },
+  {
+   "id": "arm-switches",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "name": "Arm Switches (Foam Roller)",
+   "equipment": "Other",
+   "sets": 1,
+   "targetReps": "60 sec",
+   "targetMuscles": "chest",
+   "precautions": "Lying over the foam roller, arms extended out;Alternate which arm reaches up and which reaches down, like a slow see-saw;Keep both arms heavy and relaxed;Breathe out as you switch",
+   "cues": "Arms long over the roller;Alternate reach up and down;Slow see-saw",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
+   "primary": false
+  },
+  {
+   "id": "pec-deck-fly",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/pec-deck-fly.jpg",
+   "name": "Pec Deck Fly",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "chest",
+   "precautions": "Seat set so handles start at chest height;Slight elbow bend stays fixed;Bring handles together in a wide hugging arc;Open back slowly until a gentle chest stretch",
+   "cues": "Handles at chest height;Hug in a wide arc;Open back slowly",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DcFahwuBMJh",
+   "shortUrl": "https://www.youtube.com/shorts/iZrS6nKAH6k",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Handles at chest height",
+      "dont": "Seat set so handles start at chest height",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.42,
+        0.36,
+        0.6,
+        0.36
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Hug in a wide arc",
+      "dont": "Bring handles together in a wide hugging arc",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.515,
+        0.38,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Open back slowly",
+      "dont": "Open back slowly until a gentle chest stretch",
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.3,
+        0.4,
+        0.5,
+        0.3,
+        0.71,
+        0.4
+       ],
+       "arrow": true
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "dumbbell-pullover",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/dumbbell-pullover.jpg",
+   "name": "Dumbbell Pullover",
+   "equipment": "Dumbbell",
+   "sets": 1,
+   "targetReps": "15",
+   "targetMuscles": "chest",
+   "precautions": "Only head and shoulders supported on the bench, hips up;Lower the weight in an arc until you feel a stretch - no further;Keep a slight bend in the elbows throughout;Control the weight - never let it drop back fast",
+   "cues": "Hold one dumbbell over your chest;Lower it in an arc behind your head;Pull it back over using chest and lats",
+   "image": "chest",
+   "url": "https://www.youtube.com/shorts/csxSQFG26hY",
+   "shortUrl": "https://www.youtube.com/shorts/csxSQFG26hY",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hold one dumbbell over your chest",
+      "dont": "Only head and shoulders supported on the bench, hips up",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.36,
+        0.17,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Lower it in an arc behind your head",
+      "dont": "Lower the weight in an arc until you feel a stretch - no further",
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.36,
+        0.17,
+        0.2,
+        0.35,
+        0.26,
+        0.58
+       ],
+       "arrow": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Pull it back over using chest and lats",
+      "dont": "Keep a slight bend in the elbows throughout",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "resistance-band-chest-press",
+   "hcType": "EXERCISE_SEGMENT_TYPE_BENCH_PRESS",
+   "photo": "exercise-images/resistance-band-chest-press.jpg",
+   "name": "Resistance Band Chest Press",
+   "equipment": "Resistance Band",
+   "sets": 1,
+   "targetReps": "10 ea",
+   "targetMuscles": "chest",
+   "precautions": "Anchor the band behind you at chest height;Keep wrists straight and elbows just below shoulder line;Press forward without shrugging;Inspect the band for nicks before every set",
+   "cues": "Step into tension, brace tall;Press one arm forward at a time;Control the return",
+   "image": "chest",
+   "url": "https://www.youtube.com/shorts/J1F0WX1f4xI",
+   "shortUrl": "https://www.youtube.com/shorts/J1F0WX1f4xI",
+   "primary": false,
+   "formGuide": {
+    "feel": "Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Step into tension, brace tall",
+      "dont": "Anchor the band behind you at chest height",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.34,
+        0.4,
+        0.51,
+        0.39
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Press one arm forward at a time",
+      "dont": "Keep wrists straight and elbows just below shoulder line",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.67,
+        0.37,
+        0.04
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Control the return",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "side-to-side-push-ups",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/side-to-side-push-ups.jpg",
+   "name": "Side-to-Side Push-Ups",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "5",
+   "targetMuscles": "chest",
+   "precautions": "Hands wider than usual;Body in one straight line, core braced;Shift your weight over one hand as you lower;Keep the range pain-free for your shoulders",
+   "cues": "Wide hands, straight body;Lower toward one hand;Push up and shift to the other side",
+   "image": "chest",
+   "url": "https://www.youtube.com/results?search_query=Side-to-Side+Push-Ups+form",
+   "primary": false
+  }
+ ],
+ "stretches": [
+  {
+   "id": "doorway-chest-stretch",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/doorway-chest-stretch.jpg",
+   "name": "Doorway Chest Stretch",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "chest",
+   "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+   "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+   "image": "chest",
+   "url": "https://www.youtube.com/shorts/ArixC7ODJiI",
+   "shortUrl": "https://www.youtube.com/shorts/ArixC7ODJiI",
+   "primary": true,
+   "defaultWeight": "BW"
+  },
+  {
+   "id": "heart-opener-hold",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/heart-opener-hold.jpg",
+   "name": "Heart Opener Hold (Foam Roller)",
+   "equipment": "Other",
+   "sets": 1,
+   "targetReps": "60 sec",
+   "targetMuscles": "chest",
+   "precautions": "Rest back over the foam roller under your upper back, arms open wide;Let the chest open with gravity for the full minute;Support your head if your neck tires;Breathe slowly and deeply",
+   "cues": "Rest open over the roller;Arms wide, chest open;Slow deep breaths",
+   "image": "chest",
+   "url": "https://www.instagram.com/reel/DbtwtmUhffo/",
+   "shortUrl": "https://www.youtube.com/shorts/OOK2iKZp7Ww",
+   "primary": false
+  }
+ ]
 }

@@ -1,154 +1,449 @@
 {
-  "bodyPart": "triceps",
-  "warmups": [],
-  "exercises": [
-    {
-      "id": "cable-triceps-pushdown",
-      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
-      "photo": "exercise-images/cable-triceps-pushdown.jpg",
-      "name": "Cable Triceps Pushdown",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "triceps",
-      "precautions": "Elbows tucked at your sides and completely still;Upper arms vertical - only forearms move down;Stand tall, shoulders down away from ears;Wrist straight, grip firm",
-      "cues": "Elbows tucked at your sides;Push down until arms straight;Control the way back up",
-      "image": "triceps",
-      "url": "https://www.youtube.com/shorts/DxPIwrcRcKA",
-      "shortUrl": "https://www.youtube.com/shorts/DxPIwrcRcKA",
-      "primary": true
-    },
-    {
-      "id": "db-overhead-triceps-extension",
-      "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_TWO_ARM",
-      "photo": "exercise-images/db-overhead-triceps-extension.jpg",
-      "name": "DB Overhead Triceps Extension",
-      "equipment": "Dumbbell",
-      "sets": 2,
-      "targetReps": "10",
-      "targetMuscles": "triceps",
-      "precautions": "Keep your upper arm still and vertical, close to your head;Elbow pointing forward, in line with your body;Only your forearm moves - upper arm does not swing;Stand tall, ribs down, no leaning back",
-      "cues": "Elbows pointing forward, still;Lower weight behind head slowly;Straighten arms without flaring elbows",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=dumbbell%20overhead%20triceps%20extension%20hindi",
-      "shortUrl": "https://www.youtube.com/shorts/GTVxSixh8lA",
-      "primary": true
-    },
-    {
-      "id": "diamond-push-up",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/diamond-push-up.jpg",
-      "name": "Diamond Push-up",
-      "equipment": "Bodyweight",
-      "sets": 2,
-      "targetReps": "10",
-      "targetMuscles": "triceps,chest",
-      "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward;Only arms bend - torso stays rigid like a plank",
-      "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
-      "image": "triceps",
-      "url": "https://www.youtube.com/watch?v=QCUUyCsTMxQ",
-      "shortUrl": "https://www.youtube.com/shorts/PPTj-MW2tcs",
-      "primary": true,
-      "defaultWeight": "BW",
-      "easier": "Wall Push-up"
-    },
-    {
-      "id": "bench-dip",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/bench-dip.jpg",
-      "name": "Bench Dip",
-      "equipment": "Bodyweight",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "triceps",
-      "precautions": "Hands on bench edge behind you, fingers forward;Back close to the bench - hips slide straight down;Elbows point straight back, not out to sides;Lower only until upper arms feel a stretch - stop if shoulders pinch",
-      "cues": "Sit on bench, hands at hips;Walk feet out a little;Dip down and press up slowly",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=Bench+Dip+form",
-      "shortUrl": "https://www.youtube.com/shorts/5kDp3V6JWZU",
-      "primary": false
-    },
-    {
-      "id": "db-triceps-kickback",
-      "hcType": "EXERCISE_SEGMENT_TYPE_SINGLE_ARM_TRICEPS_EXTENSION",
-      "photo": "exercise-images/db-triceps-kickback.jpg",
-      "name": "DB Triceps Kickback",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "triceps",
-      "precautions": "Hinge forward with a flat back, free hand supported;Upper arm horizontal, tucked tight to your side - it never moves;Elbow locked in place - only forearm swings back;Wrist straight, no twisting at the end",
-      "cues": "Upper arm parallel to floor;Kick dumbbell straight back;Squeeze triceps, lower slowly",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=DB+Triceps+Kickback+form",
-      "shortUrl": "https://www.youtube.com/shorts/2JUSjX_gpkk",
-      "primary": false
-    },
-    {
-      "id": "db-skull-crusher",
-      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
-      "photo": "exercise-images/db-skull-crusher.jpg",
-      "name": "DB Skull Crusher",
-      "equipment": "Dumbbell",
-      "sets": 3,
-      "targetReps": "10",
-      "targetMuscles": "triceps",
-      "precautions": "Lying on bench, arms straight up over shoulders;Upper arms completely still and vertical - only forearms bend;Elbows point at ceiling, close together - no flaring;Lower dumbbells beside ears (not to forehead)",
-      "cues": "Press dumbbells up over chest;Bend elbows to lower by ears;Straighten arms without moving elbows",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=DB+Skull+Crusher+form",
-      "shortUrl": "https://www.youtube.com/shorts/iuYB_fLp26Q",
-      "primary": false
-    },
-    {
-      "id": "seated-dip-machine",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/seated-dip-machine.jpg",
-      "name": "Seated Dip Machine",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "10-12",
-      "targetMuscles": "triceps,chest",
-      "precautions": "Adjust the seat so the dip handles are level with your chest;Keep shoulders down away from your ears the whole set;Torso stays still and upright - only your arms press;Press until arms are nearly straight - do not slam elbows locked",
-      "cues": "Shoulders down, chest tall;Press handles down smoothly;Control the way back up",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=Seated+Dip+Machine+form",
-      "shortUrl": "https://www.youtube.com/shorts/M-ZBzqha-xs",
-      "primary": false
-    },
-    {
-      "id": "triceps-extension-machine",
-      "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
-      "photo": "exercise-images/triceps-extension-machine.jpg",
-      "name": "Triceps Extension Machine",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "10-12",
-      "targetMuscles": "triceps",
-      "precautions": "Back stays against the pad the whole set;Elbows pinned in place - only your forearms move;Press the handles forward until arms are nearly straight - do not lock out hard;Return slowly - do not let the stack slam",
-      "cues": "Elbows pinned, back on pad;Press forward to straight arms;Lower slowly with control",
-      "image": "triceps",
-      "url": "https://www.youtube.com/results?search_query=Triceps+Extension+Machine+form",
-      "shortUrl": "https://www.youtube.com/shorts/KqUa_PH0-gc",
-      "primary": false
-    }
-  ],
-  "stretches": [
-    {
-      "id": "overhead-triceps-stretch",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/overhead-triceps-stretch.jpg",
-      "name": "Overhead Triceps Stretch",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "triceps",
-      "precautions": "Keep your upper arm still and vertical, close to your head;Elbow pointing forward, in line with your body;Only your forearm moves - upper arm does not swing",
-      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
-      "image": "triceps",
-      "url": "https://www.youtube.com/watch?v=Uvk1Y8O1_yM",
-      "primary": true,
-      "defaultWeight": "BW"
-    }
-  ]
+ "bodyPart": "triceps",
+ "warmups": [],
+ "exercises": [
+  {
+   "id": "cable-triceps-pushdown",
+   "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
+   "photo": "exercise-images/cable-triceps-pushdown.jpg",
+   "name": "Cable Triceps Pushdown",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "triceps",
+   "precautions": "Elbows tucked at your sides and completely still;Upper arms vertical - only forearms move down;Stand tall, shoulders down away from ears;Wrist straight, grip firm",
+   "cues": "Elbows tucked at your sides;Push down until arms straight;Control the way back up",
+   "image": "triceps",
+   "url": "https://www.youtube.com/shorts/DxPIwrcRcKA",
+   "shortUrl": "https://www.youtube.com/shorts/DxPIwrcRcKA",
+   "primary": true,
+   "formGuide": {
+    "feel": "Triceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Elbows tucked at your sides",
+      "dont": "Elbows tucked at your sides and completely still",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.515,
+        0.35,
+        0.04
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Push down until arms straight",
+      "dont": "Upper arms vertical - only forearms move down",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.5,
+        0.24,
+        0.51,
+        0.57
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Control the way back up",
+      "dont": null,
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.505,
+        0.24,
+        0.515,
+        0.36,
+        0.58,
+        0.33
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "db-overhead-triceps-extension",
+   "hcType": "EXERCISE_SEGMENT_TYPE_DUMBBELL_TRICEPS_EXTENSION_TWO_ARM",
+   "photo": "exercise-images/db-overhead-triceps-extension.jpg",
+   "name": "DB Overhead Triceps Extension",
+   "equipment": "Dumbbell",
+   "sets": 2,
+   "targetReps": "10",
+   "targetMuscles": "triceps",
+   "precautions": "Keep your upper arm still and vertical, close to your head;Elbow pointing forward, in line with your body;Only your forearm moves - upper arm does not swing;Stand tall, ribs down, no leaning back",
+   "cues": "Elbows pointing forward, still;Lower weight behind head slowly;Straighten arms without flaring elbows",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=dumbbell%20overhead%20triceps%20extension%20hindi",
+   "shortUrl": "https://www.youtube.com/shorts/GTVxSixh8lA",
+   "primary": true,
+   "formGuide": {
+    "feel": "Triceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Elbows pointing forward, still",
+      "dont": "Elbow pointing forward, in line with your body",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.505,
+        0.08,
+        0.505,
+        0.25
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Lower weight behind head slowly",
+      "dont": "Keep your upper arm still and vertical, close to your head",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.44,
+        0.23,
+        0.425,
+        0.165,
+        0.5,
+        0.19
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Straighten arms without flaring elbows",
+      "dont": "Only your forearm moves - upper arm does not swing",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.5,
+        0.085,
+        0.035
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "diamond-push-up",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/diamond-push-up.jpg",
+   "name": "Diamond Push-up",
+   "equipment": "Bodyweight",
+   "sets": 2,
+   "targetReps": "10",
+   "targetMuscles": "triceps,chest",
+   "precautions": "Body in one straight line head-to-heels - hips not sagging or piked (unless Pike);Hands under shoulders, fingers spread;Head neutral - look at floor, not forward;Only arms bend - torso stays rigid like a plank",
+   "cues": "Body in one straight line;Hands under shoulders;Lower with control, press up",
+   "image": "triceps",
+   "url": "https://www.youtube.com/watch?v=QCUUyCsTMxQ",
+   "shortUrl": "https://www.youtube.com/shorts/PPTj-MW2tcs",
+   "primary": true,
+   "defaultWeight": "BW",
+   "easier": "Wall Push-up"
+  },
+  {
+   "id": "bench-dip",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/bench-dip.jpg",
+   "name": "Bench Dip",
+   "equipment": "Bodyweight",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "triceps",
+   "precautions": "Hands on bench edge behind you, fingers forward;Back close to the bench - hips slide straight down;Elbows point straight back, not out to sides;Lower only until upper arms feel a stretch - stop if shoulders pinch",
+   "cues": "Sit on bench, hands at hips;Walk feet out a little;Dip down and press up slowly",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=Bench+Dip+form",
+   "shortUrl": "https://www.youtube.com/shorts/5kDp3V6JWZU",
+   "primary": false
+  },
+  {
+   "id": "db-triceps-kickback",
+   "hcType": "EXERCISE_SEGMENT_TYPE_SINGLE_ARM_TRICEPS_EXTENSION",
+   "photo": "exercise-images/db-triceps-kickback.jpg",
+   "name": "DB Triceps Kickback",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "triceps",
+   "precautions": "Hinge forward with a flat back, free hand supported;Upper arm horizontal, tucked tight to your side - it never moves;Elbow locked in place - only forearm swings back;Wrist straight, no twisting at the end",
+   "cues": "Upper arm parallel to floor;Kick dumbbell straight back;Squeeze triceps, lower slowly",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=DB+Triceps+Kickback+form",
+   "shortUrl": "https://www.youtube.com/shorts/2JUSjX_gpkk",
+   "primary": false,
+   "formGuide": {
+    "feel": "Triceps",
+    "steps": [
+     {
+      "photo": 2,
+      "do": "Upper arm parallel to floor",
+      "dont": "Upper arm horizontal, tucked tight to your side - it never moves",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.58,
+        0.3,
+        0.42,
+        0.36
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Kick dumbbell straight back",
+      "dont": "Elbow locked in place - only forearm swings back",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.53,
+        0.17,
+        0.36,
+        0.13,
+        0.2,
+        0.11
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Squeeze triceps, lower slowly",
+      "dont": null,
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.58,
+        0.3,
+        0.42,
+        0.36,
+        0.41,
+        0.47
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "db-skull-crusher",
+   "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
+   "photo": "exercise-images/db-skull-crusher.jpg",
+   "name": "DB Skull Crusher",
+   "equipment": "Dumbbell",
+   "sets": 3,
+   "targetReps": "10",
+   "targetMuscles": "triceps",
+   "precautions": "Lying on bench, arms straight up over shoulders;Upper arms completely still and vertical - only forearms bend;Elbows point at ceiling, close together - no flaring;Lower dumbbells beside ears (not to forehead)",
+   "cues": "Press dumbbells up over chest;Bend elbows to lower by ears;Straighten arms without moving elbows",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=DB+Skull+Crusher+form",
+   "shortUrl": "https://www.youtube.com/shorts/iuYB_fLp26Q",
+   "primary": false,
+   "formGuide": {
+    "feel": "Triceps",
+    "steps": [
+     {
+      "photo": 2,
+      "do": "Press dumbbells up over chest",
+      "dont": "Lying on bench, arms straight up over shoulders",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.59,
+        0.39,
+        0.66,
+        0.16
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Bend elbows to lower by ears",
+      "dont": "Lower dumbbells beside ears (not to forehead)",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.57,
+        0.3,
+        0.545,
+        0.19,
+        0.67,
+        0.28
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Straighten arms without moving elbows",
+      "dont": "Upper arms completely still and vertical - only forearms bend",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.66,
+        0.15,
+        0.05
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "seated-dip-machine",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/seated-dip-machine.jpg",
+   "name": "Seated Dip Machine",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "10-12",
+   "targetMuscles": "triceps,chest",
+   "precautions": "Adjust the seat so the dip handles are level with your chest;Keep shoulders down away from your ears the whole set;Torso stays still and upright - only your arms press;Press until arms are nearly straight - do not slam elbows locked",
+   "cues": "Shoulders down, chest tall;Press handles down smoothly;Control the way back up",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=Seated+Dip+Machine+form",
+   "shortUrl": "https://www.youtube.com/shorts/M-ZBzqha-xs",
+   "primary": false,
+   "formGuide": {
+    "feel": "Triceps, Chest",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Shoulders down, chest tall",
+      "dont": "Keep shoulders down away from your ears the whole set",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.43,
+        0.235,
+        0.59,
+        0.235
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press handles down smoothly",
+      "dont": "Press until arms are nearly straight - do not slam elbows locked",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.565,
+        0.28,
+        0.565,
+        0.42,
+        0.55,
+        0.58
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Control the way back up",
+      "dont": "Torso stays still and upright - only your arms press",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.58,
+        0.27,
+        0.6,
+        0.36,
+        0.545,
+        0.41
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "triceps-extension-machine",
+   "hcType": "EXERCISE_SEGMENT_TYPE_DOUBLE_ARM_TRICEPS_EXTENSION",
+   "photo": "exercise-images/triceps-extension-machine.jpg",
+   "name": "Triceps Extension Machine",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "10-12",
+   "targetMuscles": "triceps",
+   "precautions": "Back stays against the pad the whole set;Elbows pinned in place - only your forearms move;Press the handles forward until arms are nearly straight - do not lock out hard;Return slowly - do not let the stack slam",
+   "cues": "Elbows pinned, back on pad;Press forward to straight arms;Lower slowly with control",
+   "image": "triceps",
+   "url": "https://www.youtube.com/results?search_query=Triceps+Extension+Machine+form",
+   "shortUrl": "https://www.youtube.com/shorts/KqUa_PH0-gc",
+   "primary": false,
+   "formGuide": {
+    "feel": "Triceps",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Elbows pinned, back on pad",
+      "dont": "Elbows pinned in place - only your forearms move",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.25,
+        0.51,
+        0.06
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Press forward to straight arms",
+      "dont": "Press the handles forward until arms are nearly straight - do not lock out hard",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.27,
+        0.52,
+        0.19,
+        0.29
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly with control",
+      "dont": "Return slowly - do not let the stack slam",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.36,
+        0.44,
+        0.25,
+        0.51,
+        0.32,
+        0.3
+       ]
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "stretches": [
+  {
+   "id": "overhead-triceps-stretch",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/overhead-triceps-stretch.jpg",
+   "name": "Overhead Triceps Stretch",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "triceps",
+   "precautions": "Keep your upper arm still and vertical, close to your head;Elbow pointing forward, in line with your body;Only your forearm moves - upper arm does not swing",
+   "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+   "image": "triceps",
+   "url": "https://www.youtube.com/watch?v=Uvk1Y8O1_yM",
+   "primary": true,
+   "defaultWeight": "BW"
+  }
+ ]
 }

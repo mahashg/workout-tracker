@@ -70,7 +70,45 @@
    "url": "https://www.youtube.com/shorts/na6vMsxorI0",
    "shortUrl": "https://www.youtube.com/shorts/na6vMsxorI0",
    "primary": true,
-   "easier": "Seated Cable Row (Light)"
+   "easier": "Seated Cable Row (Light)",
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Chest tall, slight lean back",
+      "dont": "Sit tall, chest up, slight lean back (not rocking)",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.71,
+        0.42,
+        0.65,
+        0.68
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull bar to upper chest",
+      "dont": "Pull to upper chest - elbows go down and back",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.64,
+        0.53,
+        0.06
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Control the bar all the way up",
+      "dont": "Control all the way up to a full stretch",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "seated-cable-row",
@@ -86,7 +124,53 @@
    "image": "back",
    "url": "https://www.youtube.com/shorts/TaVfW4LVmrw",
    "shortUrl": "https://www.youtube.com/shorts/TaVfW4LVmrw",
-   "primary": true
+   "primary": true,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Flat back, chest tall",
+      "dont": "Flat back - hinge at hips, spine long and neutral",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.28,
+        0.38,
+        0.36,
+        0.54
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull to belly, squeeze shoulder blades",
+      "dont": "Elbows track close to body, squeeze shoulder blades",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.34,
+        0.55,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly, arms straight",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.3,
+        0.4,
+        0.46,
+        0.43
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "single-arm-kb-row",
@@ -101,7 +185,53 @@
    "cues": "Flat back, chest tall;Pull to belly, squeeze shoulder blades;Lower slowly, arms straight",
    "image": "back",
    "url": "https://www.youtube.com/results?search_query=single+arm+kettlebell+row+hindi",
-   "primary": true
+   "primary": true,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Flat back, chest tall",
+      "dont": "Flat back - hinge at hips, spine long and neutral",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.4,
+        0.3,
+        0.6,
+        0.38
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull to belly, squeeze shoulder blades",
+      "dont": "Elbows track close to body, squeeze shoulder blades",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.51,
+        0.51,
+        0.06
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly, arms straight",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.57,
+        0.36,
+        0.53,
+        0.72
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "inverted-row",
@@ -135,7 +265,53 @@
    "image": "back",
    "url": "https://www.youtube.com/results?search_query=Chest-Supported+DB+Row+form",
    "shortUrl": "https://www.youtube.com/shorts/2ByilQ4NaAs",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Lie chest-down on incline bench",
+      "dont": "Chest fully on the incline bench pad - stay planted",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.68,
+        0.28,
+        0.4,
+        0.43
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Row dumbbells to hips",
+      "dont": "Elbows track close - squeeze shoulder blades at top",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.57,
+        0.53,
+        0.07
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to straight arms",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.65,
+        0.36,
+        0.61,
+        0.66
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "straight-arm-pulldown",
@@ -151,7 +327,49 @@
    "image": "back",
    "url": "https://www.youtube.com/results?search_query=Straight-Arm+Pulldown+form",
    "shortUrl": "https://www.youtube.com/shorts/6JgrjQs4xwA",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back — lats do the work",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Grip bar high, arms straight",
+      "dont": "Arms straight with a soft elbow bend that never changes",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.38,
+        0.3,
+        0.57,
+        0.27
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Pull down to thighs",
+      "dont": "Pull bar to thighs in an arc - ribs down",
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.55,
+        0.28,
+        0.52,
+        0.45,
+        0.41,
+        0.57
+       ],
+       "arrow": true
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Slowly return to stretch overhead",
+      "dont": null,
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "back-extension",
@@ -183,7 +401,48 @@
    "image": "back",
    "url": "https://www.youtube.com/results?search_query=Mid+Row+Machine+form",
    "shortUrl": "https://www.youtube.com/shorts/azN0upTD8Go",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Chest on the pad",
+      "dont": "Chest stays against the pad the whole set",
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Drive elbows back, squeeze blades",
+      "dont": "Pull by driving your elbows back - squeeze your shoulder blades",
+      "anno": {
+       "type": "polyline",
+       "points": [
+        0.18,
+        0.48,
+        0.19,
+        0.61,
+        0.29,
+        0.46
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Return slowly to a stretch",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.24,
+        0.42,
+        0.52,
+        0.52
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "back-extension-machine",
@@ -199,7 +458,37 @@
    "image": "back",
    "url": "https://www.youtube.com/results?search_query=Back+Extension+Machine+form",
    "shortUrl": "https://www.youtube.com/shorts/mD_mKrQSNJs",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back, Glutes",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Back flat on the pad",
+      "dont": "Back flat against the pad the whole set",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.625,
+        0.38,
+        0.035
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Push back to a straight line",
+      "dont": "Stop when your body is one straight line - do not over-arch",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Return slowly with control",
+      "dont": "Keep feet on the footrests and return slowly",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "alternate-arm-rows",
@@ -215,7 +504,46 @@
    "image": "back",
    "url": "https://www.instagram.com/reel/DdAR8Pbpp6z/",
    "shortUrl": "https://www.youtube.com/shorts/f-oxZ7EKPYc",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge, brace",
+      "dont": "Hinged position, back flat and still",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Row one side, then the other",
+      "dont": "Row one dumbbell to your hip while the other arm hangs",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.54,
+        0.525,
+        0.055
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Keep hips square",
+      "dont": "Alternate without twisting your torso",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.44,
+        0.56,
+        0.63,
+        0.56
+       ],
+       "dashed": true
+      }
+     }
+    ]
+   }
   },
   {
    "id": "supine-knee-drops",
@@ -247,7 +575,45 @@
    "image": "back",
    "url": "https://www.instagram.com/reel/DeTuvQdCkD9/",
    "shortUrl": "https://www.youtube.com/shorts/R7NZRxo890U",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Hinge, back flat",
+      "dont": "Hinge to about 45 degrees, back flat, knees soft",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.38,
+        0.32,
+        0.62,
+        0.4
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Row to hips together",
+      "dont": "Row both dumbbells to your hips together",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.56,
+        0.52,
+        0.07
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Squeeze and lower slow",
+      "dont": "Lower slowly - no torso bouncing",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "renegade-row",
@@ -263,7 +629,38 @@
    "image": "back",
    "url": "https://www.instagram.com/reel/DcOkTncv5ts/",
    "shortUrl": "https://www.youtube.com/shorts/_0MBf2FSy0E",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Wide plank on the weights",
+      "dont": "Plank with hands gripping the dumbbells, feet wide",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.4,
+        0.55,
+        0.61,
+        0.62
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Row to hip, hips still",
+      "dont": "Row one dumbbell to your hip without rotating your body",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Alternate with control",
+      "dont": "Set the weight down before rowing the other side",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "body-waves",
@@ -369,7 +766,46 @@
    "image": "back",
    "url": "https://www.instagram.com/reel/DYyaag4Bh17",
    "shortUrl": "https://www.youtube.com/shorts/ZntWjaXroFU",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Flat back, knee on bench",
+      "dont": "Back flat and parallel to the floor",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.36,
+        0.35,
+        0.62,
+        0.38
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Row to the hip",
+      "dont": "Row the dumbbell to your hip, elbow close",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Full stretch at the bottom",
+      "dont": "Lower fully without letting the shoulder roll forward",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.43,
+        0.42,
+        0.47,
+        0.75
+       ]
+      }
+     }
+    ]
+   }
   },
   {
    "id": "pull-ups",
@@ -415,7 +851,37 @@
    "image": "back",
    "url": "https://www.youtube.com/shorts/qkirwOJmLSY",
    "shortUrl": "https://www.youtube.com/shorts/qkirwOJmLSY",
-   "primary": false
+   "primary": false,
+   "formGuide": {
+    "feel": "Back",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Brace tall, arms forward",
+      "dont": "Anchor the band at chest height and step back to tension",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.51,
+        0.65,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Pull your elbows back",
+      "dont": "Pull your elbows straight back, shoulder blades squeezing",
+      "anno": null
+     },
+     {
+      "photo": 1,
+      "do": "Squeeze, then return slowly",
+      "dont": "Keep your torso still - no rocking",
+      "anno": null
+     }
+    ]
+   }
   },
   {
    "id": "tuck-front-lever-hold",

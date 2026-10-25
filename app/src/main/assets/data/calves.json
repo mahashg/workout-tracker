@@ -1,186 +1,311 @@
 {
-  "bodyPart": "calves",
-  "warmups": [
-    {
-      "id": "kneeling-ankle-mobility",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/kneeling-ankle-mobility.jpg",
-      "name": "Kneeling Ankle Mobility",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10 ea",
-      "targetMuscles": "calves",
-      "precautions": "Half-kneeling, front foot flat a few inches from a wall or block;Drive the front knee forward over your toes, heel glued down;Rock in and out slowly;Stop if the ankle pinches at the front",
-      "cues": "Half kneel, heel down;Drive knee over toes;Rock slowly",
-      "image": "calves",
-      "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
-      "primary": false
-    }
-  ],
-  "exercises": [
-    {
-      "id": "standing-calf-raise-machine",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/standing-calf-raise-machine.jpg",
-      "name": "Standing Calf Raise Machine",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "calves",
-      "precautions": "Balls of feet on step edge, heels lower than toes;Legs straight but knees never locked hard;Rise straight up - no bouncing at the bottom;Body tall - shoulders under pads, no leaning",
-      "cues": "Shoulders under pads, feet at edge;Rise onto toes high;Lower heels below step, slowly",
-      "image": "calves",
-      "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raise+Machine+form",
-      "primary": false
-    },
-    {
-      "id": "seated-calf-raise",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/seated-calf-raise.jpg",
-      "name": "Seated Calf Raise",
-      "equipment": "Machine",
-      "sets": 3,
-      "targetReps": "12",
-      "targetMuscles": "calves",
-      "precautions": "Balls of feet on platform, pad rests on lower thighs;Knees bent ~90 degrees and still throughout;Rise straight up on toes - no rocking;Full stretch at bottom - pause before rising",
-      "cues": "Sit tall, pad on thighs;Raise heels as high as you can;Lower slowly to full stretch",
-      "image": "calves",
-      "url": "https://www.youtube.com/results?search_query=Seated+Calf+Raise+form",
-      "primary": false
-    },
-    {
-      "id": "single-leg-calf-raise",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/single-leg-calf-raise.jpg",
-      "name": "Single-Leg Calf Raise",
-      "equipment": "Bodyweight",
-      "sets": 3,
-      "targetReps": "12 ea",
-      "targetMuscles": "calves",
-      "precautions": "Ball of one foot on step edge, hold rail for balance;Standing leg straight, knee soft - not locked;Rise straight up - hips level, no leaning away;Lower heel below step slowly, no bounce",
-      "cues": "One foot on step, hold support;Rise onto toes tall;Lower slowly, repeat, switch",
-      "image": "calves",
-      "url": "https://www.youtube.com/results?search_query=Single-Leg+Calf+Raise+form",
-      "shortUrl": "https://www.youtube.com/shorts/wZfr_svtSr0",
-      "primary": false,
-      "home": true,
-      "counterSec": 40
-    },
-    {
-      "id": "standing-calf-raises",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/standing-calf-raises.jpg",
-      "name": "Standing Calf Raises",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "15-20",
-      "targetMuscles": "calves",
-      "precautions": "Hold a chair back or wall lightly for balance;Feet hip-width, toes pointing forward;Rise straight up - do not roll your ankles outward;Lower slowly until your heels touch the floor",
-      "cues": "Hold support, stand tall;Rise onto your toes;Lower slowly, repeat",
-      "image": "calves",
-      "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raises+form",
-      "shortUrl": "https://www.youtube.com/shorts/a-OQ3nfWbUI",
-      "primary": false,
-      "home": true,
-      "counterSec": 45
-    },
-    {
-      "id": "pogo-jumps",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "photo": "exercise-images/pogo-jumps.jpg",
-      "name": "Pogo Jumps",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "calves",
-      "precautions": "Small springy hops on the balls of your feet;Knees stay nearly straight - the bounce comes from the ankles;Stay tall and light;Keep hops low, rhythm steady",
-      "cues": "Bounce from the ankles;Small, quick, light;Stay tall",
-      "image": "calves",
-      "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
-      "shortUrl": "https://www.youtube.com/shorts/s_qM8NDHp1k",
-      "primary": false
-    },
-    {
-      "id": "deep-squat-heel-raises",
-      "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
-      "photo": "exercise-images/deep-squat-heel-raises.jpg",
-      "name": "Deep Squat Heel Raises",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "20",
-      "targetMuscles": "calves",
-      "precautions": "Hold a block or support and sit into your deepest squat;Raise both heels, then lower them, without standing up;Stay in the squat the whole set;Use support generously - balance is not the exercise",
-      "cues": "Stay deep in the squat;Heels rise and lower;Hold support as needed",
-      "image": "calves",
-      "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
-      "primary": false
-    },
-    {
-      "id": "down-dog-calf-walk",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/down-dog-calf-walk.jpg",
-      "name": "Downward Dog Calf Walk",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "calves",
-      "precautions": "In downward dog, bend one knee and press the other heel toward the floor;Alternate like pedalling;Keep hips high and back long;Never force the straight heel down",
-      "cues": "Hips high in down dog;Pedal the heels alternately;Back stays long",
-      "image": "calves",
-      "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
-      "shortUrl": "https://www.youtube.com/shorts/RJv9ZFyXQYY",
-      "primary": false
-    },
-    {
-      "id": "jump-rope",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "photo": "exercise-images/jump-rope.jpg",
-      "name": "Jump Rope",
-      "equipment": "Jump Rope",
-      "sets": 1,
-      "targetReps": "2 min",
-      "targetMuscles": "calves",
-      "precautions": "Land on the balls of your feet, soft and quiet;Keep jumps low - just enough for the rope to pass;Turn the rope with your wrists, shoulders relaxed;Rest the moment your form gets sloppy",
-      "cues": "Light bounces, rope skims the floor;Steady rhythm, breathe easy;Stay tall and relaxed",
-      "image": "calves",
-      "url": "https://www.youtube.com/shorts/5Fp_lEsN9oY",
-      "shortUrl": "https://www.youtube.com/shorts/5Fp_lEsN9oY",
-      "primary": false
-    },
-    {
-      "id": "ankle-rolls",
-      "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
-      "photo": "exercise-images/ankle-rolls.jpg",
-      "name": "Ankle Rolls",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "10 ea",
-      "targetMuscles": "calves",
-      "precautions": "Stand tall, holding support if you need it;Roll the ankle in a full, slow circle;Keep the movement smooth and pain-free;Do both directions on both sides",
-      "cues": "Lift one foot slightly;Circle the ankle slowly;Reverse direction, switch sides",
-      "image": "calves",
-      "url": "https://www.instagram.com/reel/DZAugbkotEh/",
-      "shortUrl": "https://www.youtube.com/shorts/RhlN3c2hWn4",
-      "primary": false
-    }
-  ],
-  "stretches": [
-    {
-      "id": "standing-calf-stretch",
-      "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
-      "photo": "exercise-images/standing-calf-stretch.jpg",
-      "name": "Standing Calf Stretch",
-      "equipment": "Bodyweight",
-      "sets": 1,
-      "targetReps": "30 sec",
-      "targetMuscles": "calves",
-      "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
-      "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
-      "image": "calves",
-      "url": "https://www.youtube.com/watch?v=zeTV7lvAWyg",
-      "shortUrl": "https://www.youtube.com/shorts/59-A2COfLLo",
-      "primary": true,
-      "defaultWeight": "BW"
-    }
-  ]
+ "bodyPart": "calves",
+ "warmups": [
+  {
+   "id": "kneeling-ankle-mobility",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/kneeling-ankle-mobility.jpg",
+   "name": "Kneeling Ankle Mobility",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10 ea",
+   "targetMuscles": "calves",
+   "precautions": "Half-kneeling, front foot flat a few inches from a wall or block;Drive the front knee forward over your toes, heel glued down;Rock in and out slowly;Stop if the ankle pinches at the front",
+   "cues": "Half kneel, heel down;Drive knee over toes;Rock slowly",
+   "image": "calves",
+   "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
+   "primary": false
+  }
+ ],
+ "exercises": [
+  {
+   "id": "standing-calf-raise-machine",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/standing-calf-raise-machine.jpg",
+   "name": "Standing Calf Raise Machine",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "calves",
+   "precautions": "Balls of feet on step edge, heels lower than toes;Legs straight but knees never locked hard;Rise straight up - no bouncing at the bottom;Body tall - shoulders under pads, no leaning",
+   "cues": "Shoulders under pads, feet at edge;Rise onto toes high;Lower heels below step, slowly",
+   "image": "calves",
+   "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raise+Machine+form",
+   "primary": false,
+   "formGuide": {
+    "feel": "Calves",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Shoulders under pads, feet at edge",
+      "dont": "Body tall - shoulders under pads, no leaning",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.49,
+        0.315,
+        0.085
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Rise onto toes high",
+      "dont": "Rise straight up - no bouncing at the bottom",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.525,
+        0.67,
+        0.05
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower heels below step, slowly",
+      "dont": "Balls of feet on step edge, heels lower than toes",
+      "anno": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "seated-calf-raise",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/seated-calf-raise.jpg",
+   "name": "Seated Calf Raise",
+   "equipment": "Machine",
+   "sets": 3,
+   "targetReps": "12",
+   "targetMuscles": "calves",
+   "precautions": "Balls of feet on platform, pad rests on lower thighs;Knees bent ~90 degrees and still throughout;Rise straight up on toes - no rocking;Full stretch at bottom - pause before rising",
+   "cues": "Sit tall, pad on thighs;Raise heels as high as you can;Lower slowly to full stretch",
+   "image": "calves",
+   "url": "https://www.youtube.com/results?search_query=Seated+Calf+Raise+form",
+   "primary": false,
+   "formGuide": {
+    "feel": "Calves",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Sit tall, pad on thighs",
+      "dont": "Balls of feet on platform, pad rests on lower thighs",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.4,
+        0.475,
+        0.055
+       ]
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Raise heels as high as you can",
+      "dont": "Rise straight up on toes - no rocking",
+      "anno": {
+       "type": "circle",
+       "points": [
+        0.355,
+        0.755,
+        0.045
+       ]
+      }
+     },
+     {
+      "photo": 1,
+      "do": "Lower slowly to full stretch",
+      "dont": "Full stretch at bottom - pause before rising",
+      "anno": {
+       "type": "arc",
+       "points": [
+        0.385,
+        0.72,
+        0.4,
+        0.77,
+        0.38,
+        0.815
+       ],
+       "arrow": true
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "single-leg-calf-raise",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/single-leg-calf-raise.jpg",
+   "name": "Single-Leg Calf Raise",
+   "equipment": "Bodyweight",
+   "sets": 3,
+   "targetReps": "12 ea",
+   "targetMuscles": "calves",
+   "precautions": "Ball of one foot on step edge, hold rail for balance;Standing leg straight, knee soft - not locked;Rise straight up - hips level, no leaning away;Lower heel below step slowly, no bounce",
+   "cues": "One foot on step, hold support;Rise onto toes tall;Lower slowly, repeat, switch",
+   "image": "calves",
+   "url": "https://www.youtube.com/results?search_query=Single-Leg+Calf+Raise+form",
+   "shortUrl": "https://www.youtube.com/shorts/wZfr_svtSr0",
+   "primary": false,
+   "home": true,
+   "counterSec": 40
+  },
+  {
+   "id": "standing-calf-raises",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/standing-calf-raises.jpg",
+   "name": "Standing Calf Raises",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "15-20",
+   "targetMuscles": "calves",
+   "precautions": "Hold a chair back or wall lightly for balance;Feet hip-width, toes pointing forward;Rise straight up - do not roll your ankles outward;Lower slowly until your heels touch the floor",
+   "cues": "Hold support, stand tall;Rise onto your toes;Lower slowly, repeat",
+   "image": "calves",
+   "url": "https://www.youtube.com/results?search_query=Standing+Calf+Raises+form",
+   "shortUrl": "https://www.youtube.com/shorts/a-OQ3nfWbUI",
+   "primary": false,
+   "home": true,
+   "counterSec": 45
+  },
+  {
+   "id": "pogo-jumps",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "photo": "exercise-images/pogo-jumps.jpg",
+   "name": "Pogo Jumps",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "calves",
+   "precautions": "Small springy hops on the balls of your feet;Knees stay nearly straight - the bounce comes from the ankles;Stay tall and light;Keep hops low, rhythm steady",
+   "cues": "Bounce from the ankles;Small, quick, light;Stay tall",
+   "image": "calves",
+   "url": "https://www.instagram.com/reel/DaLPpRmTK9Z/",
+   "shortUrl": "https://www.youtube.com/shorts/s_qM8NDHp1k",
+   "primary": false
+  },
+  {
+   "id": "deep-squat-heel-raises",
+   "hcType": "EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING",
+   "photo": "exercise-images/deep-squat-heel-raises.jpg",
+   "name": "Deep Squat Heel Raises",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "20",
+   "targetMuscles": "calves",
+   "precautions": "Hold a block or support and sit into your deepest squat;Raise both heels, then lower them, without standing up;Stay in the squat the whole set;Use support generously - balance is not the exercise",
+   "cues": "Stay deep in the squat;Heels rise and lower;Hold support as needed",
+   "image": "calves",
+   "url": "https://www.instagram.com/reel/DcFU9XCRLNP/",
+   "primary": false
+  },
+  {
+   "id": "down-dog-calf-walk",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/down-dog-calf-walk.jpg",
+   "name": "Downward Dog Calf Walk",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "calves",
+   "precautions": "In downward dog, bend one knee and press the other heel toward the floor;Alternate like pedalling;Keep hips high and back long;Never force the straight heel down",
+   "cues": "Hips high in down dog;Pedal the heels alternately;Back stays long",
+   "image": "calves",
+   "url": "https://www.instagram.com/reel/DWg7aX7T--8/",
+   "shortUrl": "https://www.youtube.com/shorts/RJv9ZFyXQYY",
+   "primary": false
+  },
+  {
+   "id": "jump-rope",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "photo": "exercise-images/jump-rope.jpg",
+   "name": "Jump Rope",
+   "equipment": "Jump Rope",
+   "sets": 1,
+   "targetReps": "2 min",
+   "targetMuscles": "calves",
+   "precautions": "Land on the balls of your feet, soft and quiet;Keep jumps low - just enough for the rope to pass;Turn the rope with your wrists, shoulders relaxed;Rest the moment your form gets sloppy",
+   "cues": "Light bounces, rope skims the floor;Steady rhythm, breathe easy;Stay tall and relaxed",
+   "image": "calves",
+   "url": "https://www.youtube.com/shorts/5Fp_lEsN9oY",
+   "shortUrl": "https://www.youtube.com/shorts/5Fp_lEsN9oY",
+   "primary": false,
+   "formGuide": {
+    "feel": "Calves",
+    "steps": [
+     {
+      "photo": 1,
+      "do": "Light bounces, rope skims the floor",
+      "dont": "Land on the balls of your feet, soft and quiet",
+      "anno": {
+       "type": "line",
+       "points": [
+        0.4,
+        0.905,
+        0.55,
+        0.905
+       ],
+       "dashed": true
+      }
+     },
+     {
+      "photo": 2,
+      "do": "Steady rhythm, breathe easy",
+      "dont": null,
+      "anno": null
+     },
+     {
+      "photo": 2,
+      "do": "Stay tall and relaxed",
+      "dont": null,
+      "anno": {
+       "type": "line",
+       "points": [
+        0.475,
+        0.22,
+        0.475,
+        0.53
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "ankle-rolls",
+   "hcType": "EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT",
+   "photo": "exercise-images/ankle-rolls.jpg",
+   "name": "Ankle Rolls",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "10 ea",
+   "targetMuscles": "calves",
+   "precautions": "Stand tall, holding support if you need it;Roll the ankle in a full, slow circle;Keep the movement smooth and pain-free;Do both directions on both sides",
+   "cues": "Lift one foot slightly;Circle the ankle slowly;Reverse direction, switch sides",
+   "image": "calves",
+   "url": "https://www.instagram.com/reel/DZAugbkotEh/",
+   "shortUrl": "https://www.youtube.com/shorts/RhlN3c2hWn4",
+   "primary": false
+  }
+ ],
+ "stretches": [
+  {
+   "id": "standing-calf-stretch",
+   "hcType": "EXERCISE_SEGMENT_TYPE_STRETCHING",
+   "photo": "exercise-images/standing-calf-stretch.jpg",
+   "name": "Standing Calf Stretch",
+   "equipment": "Bodyweight",
+   "sets": 1,
+   "targetReps": "30 sec",
+   "targetMuscles": "calves",
+   "precautions": "Move gently until you feel a mild stretch - never force;Breathe slowly and relax into it - no bouncing;Keep posture tall and supported where you can",
+   "cues": "Move gently to a mild stretch;Breathe slowly, never force it",
+   "image": "calves",
+   "url": "https://www.youtube.com/watch?v=zeTV7lvAWyg",
+   "shortUrl": "https://www.youtube.com/shorts/59-A2COfLLo",
+   "primary": true,
+   "defaultWeight": "BW"
+  }
+ ]
 }
