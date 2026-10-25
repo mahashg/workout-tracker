@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.Gravity
 import android.view.View
@@ -18,22 +19,27 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * v3.19 Form Guide viewer (approved mock form-guide-mock-r2, screens
- * 2–5). Opened from the gym exercise card's "📖 How to do it" line and
- * the Library detail's FORM GUIDE row — nowhere else (no Movie deck,
- * no Circuits). Strictly read-only: it touches no session, set, rest
- * or timer state, so opening and closing it mid-workout returns to the
- * card exactly as it was (the card's own onPause/onResume lifecycle
- * handles its loopers and chips, as with any other screen on top).
+ * Form Guide viewer (v3.19, approved mock form-guide-mock-r2;
+ * v3.20 interaction pass, approved mock form-guide-mock-r3). Opened
+ * from the gym exercise card's "📖 How to do it" line and the Library
+ * detail's FORM GUIDE row — nowhere else (no Movie deck, no
+ * Circuits). Strictly read-only: it touches no session, set, rest or
+ * timer state itself. (v3.20: the CARD auto-pauses the workout around
+ * the trip — see WorkoutTimer.autoPause — the guide stays oblivious.)
  *
  * Pages: 0 = cover (the two-photo GIF loop + what's-inside strips +
- * Start steps), 1..N = one stored cue per screen (photo, STEP chip,
- * ✓ caption, yellow annotation, the step's own ✗ don't strip when a
- * precaution clearly belongs to it, dots, Back/Next), N+1 = final
+ * Start steps), 1..N = one stored cue per screen, N+1 = final
  * (body-part logo + "You should feel it here" + the full Do / Don't
- * recap from the entry's cues and precautions). The viewer renders
- * identically in Simple and full mode (mock: the reading surface keeps
- * the chunky Simple-Mode control sizes in both).
+ * recap from the entry's cues and precautions).
+ *
+ * v3.20 navigation: step pages move by horizontal SWIPE only (no
+ * Back/Next buttons; the final screen keeps its single "✓ Got it").
+ * A step page is a header band ABOVE the photo — "STEP n OF N" chip
+ * (left) + ✕ (right), then the ✓ caption in bold on the page surface —
+ * so the photo carries ONLY the yellow annotation, never text. Under
+ * the photo: the step's ✗ don't strip (when a precaution clearly
+ * belongs to it), the progress dots, and a quiet "‹ Swipe ›" hint.
+ * The viewer renders identically in Simple and full mode.
  *
  * Photo/annotation alignment: the photo container is sized to the
  * bitmap's own aspect ratio and the image fills it (FIT_XY with a
@@ -56,7 +62,51 @@ class FormGuideActivity : AppCompatActivity() {
         entry = e
         guide = e.formGuide
         partId = JsonSeed.partIdForEntry(this, id) ?: ""
+        // v3.20: rotation mid-guide keeps the current page.
+        page = savedInstanceState?.getInt("fg_page", 0) ?: 0
         render()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("fg_page", page)
+    }
+
+    // ---- v3.20: swipe navigation between step pages ----
+    // Watched at dispatch level so the gesture works anywhere on the
+    // step body (caption band, photo, strips) without consuming taps
+    // or fighting the ScrollView's vertical scrolling: a page turn
+    // needs >= 48dp horizontal travel, clearly horizontal
+    // (|dx| >= 1.6 x |dy|), measured down-to-up.
+    private var swipeDownX = 0f
+    private var swipeDownY = 0f
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        when (ev.actionMasked) {
+            android.view.MotionEvent.ACTION_DOWN -> { swipeDownX = ev.x; swipeDownY = ev.y }
+            android.view.MotionEvent.ACTION_UP -> {
+                val dx = ev.x - swipeDownX
+                val dy = ev.y - swipeDownY
+                if (kotlin.math.abs(dx) >= dp(48) && kotlin.math.abs(dx) >= 1.6f * kotlin.math.abs(dy)) {
+                    onSwipeTurn(if (dx < 0) -1 else 1)
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    /** dir -1 = swiped left (next), +1 = swiped right (previous).
+     *  The cover is not a step (its Start button leads in); step 1
+     *  swiping right does nothing; the final page swiping left does
+     *  nothing — ✓ Got it and ✕ are its exits. */
+    private fun onSwipeTurn(dir: Int) {
+        val g = guide ?: return
+        if (page == 0) return
+        if (dir < 0) {
+            if (page <= g.steps.size) { page++; render() }
+        } else {
+            if (page > 1) { page--; render() }
+        }
     }
 
     override fun onResume() { super.onResume(); if (page == 0) looper?.start() }
@@ -91,7 +141,6 @@ class FormGuideActivity : AppCompatActivity() {
             page <= g.steps.size -> renderStep(col, e, g, page - 1)
             else -> renderFinal(col, e, g)
         }
-        if (page > 0) root.addView(navRow(g))
     }
 
     // ---------- shared pieces ----------
@@ -133,12 +182,45 @@ class FormGuideActivity : AppCompatActivity() {
         setLineSpacing(0f, 1.3f)
     }
 
-    private fun stepChip(label: String): TextView = TextView(this).apply {
-        text = label; textSize = 11f; setTextColor(Color.WHITE)
-        typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-        background = roundedBg(0x8C000000.toInt(), 999)
-        setPadding(dp(9), dp(4), dp(9), dp(4))
-        layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) }
+    /** v3.20 header band (mock r3): the step chip on the page surface
+     *  at the left, the ✕ close disc at the right — a weighted spacer
+     *  between them is the row's only weighted child, so neither the
+     *  chip nor the disc can be starved. [chipLabel] null (the final
+     *  screen) leaves just the ✕. */
+    private fun headerRow(chipLabel: String?): LinearLayout {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(6), 0, 0) }
+        }
+        if (chipLabel != null) {
+            row.addView(TextView(this).apply {
+                text = chipLabel; textSize = 11f; setTextColor(Theme.primaryDark)
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                background = roundedBg(Theme.surfaceVariant, 999)
+                setPadding(dp(10), dp(5), dp(10), dp(5))
+            })
+        }
+        row.addView(View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
+        })
+        val x = bendSoftCircle("✕", 34, 15f)
+        x.isClickable = true
+        x.setOnClickListener { finish() }
+        row.addView(x)
+        return row
+    }
+
+    /** v3.20: the step's ✓ Do caption — bold ~18sp on the page surface
+     *  ABOVE the photo (mock r3), green tick, never overlaid. */
+    private fun stepCaption(doText: String): TextView {
+        val sb = SpannableStringBuilder("✓ $doText")
+        sb.setSpan(ForegroundColorSpan(Color.parseColor("#1D7A35")), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        sb.setSpan(StyleSpan(Typeface.BOLD), 0, sb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return TextView(this).apply {
+            text = sb; textSize = 18f; setTextColor(Theme.textPrimary)
+            setLineSpacing(0f, 1.3f)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, 0) }
+        }
     }
 
     private fun strip(text: SpannableStringBuilder, bg: String, stroke: String, ink: String): TextView = TextView(this).apply {
@@ -163,35 +245,6 @@ class FormGuideActivity : AppCompatActivity() {
         isClickable = true
         setOnClickListener { onClick() }
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(12), 0, 0) }
-    }
-
-    private fun navRow(g: FormGuide): LinearLayout {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(10), 0, 0) }
-        }
-        fun pill(label: String, primary: Boolean, onClick: () -> Unit): TextView = TextView(this).apply {
-            text = label; textSize = 16f; gravity = Gravity.CENTER
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-            if (primary) { setTextColor(Color.WHITE); background = roundedBg(Theme.primary, 999) }
-            else { setTextColor(Theme.primaryDark); background = roundedBg(Theme.surfaceVariant, 999) }
-            setPadding(0, dp(14), 0, dp(14))
-            isClickable = true
-            setOnClickListener { onClick() }
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        val isFinal = page > g.steps.size
-        row.addView(pill("‹ Back", false) { page--; render() })
-        if (isFinal) {
-            row.addView(pill("✓ Got it", true) { finish() }.apply {
-                (layoutParams as LinearLayout.LayoutParams).setMargins(dp(10), 0, 0, 0)
-            })
-        } else {
-            row.addView(pill("Next ›", true) { page++; render() }.apply {
-                (layoutParams as LinearLayout.LayoutParams).setMargins(dp(10), 0, 0, 0)
-            })
-        }
-        return row
     }
 
     private fun dots(count: Int, current: Int): LinearLayout {
@@ -239,11 +292,12 @@ class FormGuideActivity : AppCompatActivity() {
         val bmp1 = PhotoLib.bitmap(this, e.photo) ?: run { finish(); return }
         val bmp2 = PhotoLib.secondBitmap(this, e.photo)
         val base = if (step.photo == 2 && bmp2 != null) bmp2 else bmp1
+        // v3.20 (mock r3): header band first — chip + ✕, then the ✓
+        // caption on the surface — and the photo below carries ONLY
+        // the yellow annotation. No text touches the photo.
+        col.addView(headerRow("STEP ${idx + 1} OF ${g.steps.size}"))
+        col.addView(stepCaption(step.doText))
         col.addView(photoFrame(base, null, animate = false) { frame ->
-            frame.addView(stepChip("STEP ${idx + 1} OF ${g.steps.size}"))
-            val cap = captionText("✓ ${step.doText}")
-            cap.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP).apply { setMargins(dp(12), dp(40), dp(12), 0) }
-            frame.addView(cap)
             if (step.anno != null) {
                 frame.addView(AnnoView(this, step.anno).apply {
                     layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
@@ -254,9 +308,18 @@ class FormGuideActivity : AppCompatActivity() {
             col.addView(strip(SpannableStringBuilder("✗  ${step.dont}"), "#FDECEA", "#F3C1BC", "#7A1F1A"))
         }
         col.addView(dots(g.steps.size, idx))
+        col.addView(TextView(this).apply {
+            text = "‹  Swipe  ›"; textSize = 13.5f; setTextColor(Theme.primary); gravity = Gravity.CENTER
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(8), 0, 0) }
+        })
     }
 
     private fun renderFinal(col: LinearLayout, e: JsonSeed.Entry, g: FormGuide) {
+        // v3.20: the final screen's header row carries just the ✕
+        // (mock r3 shows the row here too); its one button, "✓ Got
+        // it", closes the guide from the bottom of the recap.
+        col.addView(headerRow(null))
         // Muscle card: fixed 104dp logo + the text column as the row's
         // ONLY weighted child (geometry audit: nothing can starve it).
         val card = LinearLayout(this).apply {
@@ -304,6 +367,8 @@ class FormGuideActivity : AppCompatActivity() {
         dd.addView(ddColumn("✓  DO", cues(), "#EAF7EC", "#BFE3C5", "#14532D", first = true, sideBySide = sideBySide))
         dd.addView(ddColumn("✗  DON'T", precautions(), "#FDECEA", "#F3C1BC", "#7A1F1A", first = false, sideBySide = sideBySide))
         col.addView(dd)
+        // v3.20: the ONLY button on the step pages (mock r3).
+        col.addView(bigCta("✓ Got it") { finish() })
     }
 
     private fun ddColumn(title: String, items: List<String>, bg: String, stroke: String, ink: String, first: Boolean, sideBySide: Boolean): LinearLayout {

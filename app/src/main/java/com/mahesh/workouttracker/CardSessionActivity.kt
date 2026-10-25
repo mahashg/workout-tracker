@@ -98,7 +98,13 @@ class CardSessionActivity : AppCompatActivity() {
 
     override fun onPause() { super.onPause(); timerChip?.stopTicking(); timerChip?.foldNow(); photoLoopers.forEach { it.stop() }; cancelInterstitial(); RestTimer.persistNow() }
     override fun onResume() {
-        super.onResume(); photoLoopers.forEach { it.start() }
+        super.onResume()
+        // v3.20: settle an auto-pause (Video / Form Guide trip) BEFORE
+        // rendering, so the chip and disc come back showing the resumed
+        // state. autoResume() only acts when its own persisted flag is
+        // set, so a manual pause is never undone here.
+        if (::db.isInitialized && sessionId > 0) WorkoutTimer.autoResume(this, db, sessionId)
+        photoLoopers.forEach { it.start() }
         // v3.7: returning to the card (e.g. back from the form video)
         // re-renders so the scroller strip and counts reflect any
         // status changes. The first resume is onCreate's own render.
@@ -350,10 +356,14 @@ class CardSessionActivity : AppCompatActivity() {
             // one was verified for it and falls back to the long video;
             // a long-press always opens the full video.
             watch.setOnClickListener {
+                // v3.20: leaving for the video auto-pauses the workout
+                // (elapsed + rest); onResume settles it via the flag.
+                db.getSession(sessionId)?.let { WorkoutTimer.autoPause(this@CardSessionActivity, db, it) }
                 val short = JsonSeed.shortUrlForSessionExercise(this@CardSessionActivity, db, ex)
                 openUrl(this@CardSessionActivity, short ?: ex.youtubeUrl)
             }
             watch.setOnLongClickListener {
+                db.getSession(sessionId)?.let { WorkoutTimer.autoPause(this@CardSessionActivity, db, it) }
                 openUrl(this@CardSessionActivity, ex.youtubeUrl)
                 true
             }
@@ -362,9 +372,10 @@ class CardSessionActivity : AppCompatActivity() {
         // 4b. v3.19 Form Guide entry: a quiet text line in the Watch
         // line's family, shown ONLY when this exercise's catalog entry
         // carries a guide (gym equipment mains with a photo — 119 of
-        // them). Opens the read-only guide viewer; the session, rest
-        // and timer state are untouched by it. No guide data = no row,
-        // exactly as v3.18.
+        // them). Opens the read-only guide viewer. v3.20: the tap first
+        // auto-pauses the workout timers (see the click handler) — the
+        // guide itself still holds no session state. No guide data = no
+        // row, exactly as v3.18.
         JsonSeed.guideEntryForSessionExercise(this, db, ex)?.let { guideEntry ->
             val gl = TextView(this).apply {
                 text = "📖 How to do it"; textSize = 13f; setTextColor(Theme.primary)
@@ -373,7 +384,13 @@ class CardSessionActivity : AppCompatActivity() {
                 setPadding(dp(12), dp(6), dp(12), dp(6))
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(2), 0, 0) }
                 isClickable = true
-                setOnClickListener { startActivity(FormGuideActivity.intent(this@CardSessionActivity, guideEntry.id)) }
+                setOnClickListener {
+                    // v3.20: same auto-pause as the Video line — the
+                    // guide can hold the user for a while, and the
+                    // workout clock (and any rest) waits for them.
+                    db.getSession(sessionId)?.let { WorkoutTimer.autoPause(this@CardSessionActivity, db, it) }
+                    startActivity(FormGuideActivity.intent(this@CardSessionActivity, guideEntry.id))
+                }
             }
             col.addView(gl)
         }

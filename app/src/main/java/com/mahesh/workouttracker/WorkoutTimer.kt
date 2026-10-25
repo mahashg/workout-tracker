@@ -90,18 +90,61 @@ object WorkoutTimer {
             .putLong(resumeKey(session.id), System.currentTimeMillis()).apply()
     }
 
+    // ---- v3.20: auto-pause around Video / Form Guide (card only) ----
+    // Tapping ▶ Video or 📖 How to do it on the gym card pauses the
+    // elapsed timer and any running rest; returning to the card resumes
+    // them — but ONLY the pause this mechanism made. The debt is a
+    // persisted per-session flag (survives rotation / process death
+    // while the user is away), and autoPause() is a strict no-op when
+    // the workout is already paused, so a MANUAL pause is never
+    // overridden or auto-resumed.
+    private fun autoPauseKey(sessionId: Long) = "timer_autopause_$sessionId"
+
+    fun isAutoPaused(context: Context, sessionId: Long): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(autoPauseKey(sessionId), false)
+
+    /** Pause elapsed + rest for a trip off the card. No-op when the
+     *  session is finished, already (manually) paused, or already
+     *  auto-paused. RestTimer.pauseRest() itself no-ops when no rest
+     *  is active or the rest is already frozen. */
+    fun autoPause(context: Context, db: DbHelper, session: SessionInfo) {
+        if (session.completed || session.startedAt <= 0) return
+        if (isPaused(context, session.id)) return
+        if (isAutoPaused(context, session.id)) return
+        pause(context, db, session)
+        RestTimer.pauseRest()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(autoPauseKey(session.id), true).apply()
+    }
+
+    /** Settle an auto-pause on return to the card: clears the flag
+     *  first, then resumes elapsed + rest ONLY when the flag was set
+     *  and the session is still live. A finished/discarded session
+     *  just loses the flag — nothing is resurrected. */
+    fun autoResume(context: Context, db: DbHelper, sessionId: Long) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(autoPauseKey(sessionId), false)) return
+        prefs.edit().remove(autoPauseKey(sessionId)).apply()
+        val s = db.getSession(sessionId) ?: return
+        if (s.completed) return
+        resume(context, s)
+        RestTimer.resumeRest()
+    }
+
     /** Finalize on Finish Workout: fold, stamp endedAt, stop the clock. */
     fun finish(context: Context, db: DbHelper, session: SessionInfo): Int {
         val live = liveElapsedSec(context, session)
         db.updateSessionTimer(session.id, live, System.currentTimeMillis())
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .remove(pausedKey(session.id)).remove(resumeKey(session.id)).apply()
+            .remove(pausedKey(session.id)).remove(resumeKey(session.id))
+            .remove(autoPauseKey(session.id)).apply()
         return live
     }
 
     fun clear(context: Context, sessionId: Long) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .remove(pausedKey(sessionId)).remove(resumeKey(sessionId)).apply()
+            .remove(pausedKey(sessionId)).remove(resumeKey(sessionId))
+            .remove(autoPauseKey(sessionId)).apply()
     }
 }
 
