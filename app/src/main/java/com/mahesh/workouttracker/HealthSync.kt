@@ -205,14 +205,14 @@ object HealthSync {
         // relabel the record as a gym-style part list.
         val title = if (session.routineName == MovieDeck.ROUTINE_NAME) MovieDeck.ROUTINE_NAME
             else if (parts.isNotEmpty()) parts.joinToString(" + ") { BodyParts.name(it) } else session.routineName
-        // Notes: "Week N · Workout Tracker" plus the per-exercise heaviest
+        // Notes: "Week N · Gym Saathi" plus the per-exercise heaviest
         // set — ExerciseSegment in connect-client 1.1.0 has no weight
         // field, so this is where the weights live (see class doc).
         val weightNotes = segs.filter { it.heaviest != null }.joinToString(" · ") { s ->
             val w = s.heaviest!!
             "${s.name} ${if (w % 1.0 == 0.0) w.toInt().toString() else w.toString()} $unit"
         }
-        val notes = "Week ${session.weekNumber} · Workout Tracker" + if (weightNotes.isNotEmpty()) " · $weightNotes" else ""
+        val notes = "Week ${session.weekNumber} · Gym Saathi" + if (weightNotes.isNotEmpty()) " · $weightNotes" else ""
         val version = if (session.endedAt > 0) session.endedAt else 1L
 
         fun buildRecord(segments: List<ExerciseSegment>) = ExerciseSessionRecord(

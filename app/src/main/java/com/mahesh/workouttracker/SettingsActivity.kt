@@ -281,7 +281,7 @@ class SettingsActivity : AppCompatActivity() {
         root.addView(tiles)
 
         // About: version + the week rule, allowed to wrap fully.
-        val about = caption("Workout Tracker · Version 3.19\nWeek counter advances only after a week with 1+ completed workout.")
+        val about = caption("Gym Saathi · Version 3.19\nWeek counter advances only after a week with 1+ completed workout.")
         (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
         root.addView(about)
         // v3.12: attribution for the anatomy body-part logos.
@@ -392,7 +392,7 @@ class SettingsActivity : AppCompatActivity() {
                 text = "›"; textSize = 22f; setTextColor(Theme.textTertiary); gravity = Gravity.CENTER
             }
             root.addView(iconCard("⚙️", IconTints.LILAC, "Advanced", "Theme, backup and data tools", chev) { advancedOpen = true; render() })
-            val footer = caption("Workout Tracker · 3.19")
+            val footer = caption("Gym Saathi · 3.19")
             footer.gravity = Gravity.CENTER
             (footer.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
             root.addView(footer)
@@ -451,7 +451,7 @@ class SettingsActivity : AppCompatActivity() {
         root.addView(tiles)
 
         // About: version + the week rule, allowed to wrap fully.
-        val about = caption("Workout Tracker · Version 3.19\nWeek counter advances only after a week with 1+ completed workout.")
+        val about = caption("Gym Saathi · Version 3.19\nWeek counter advances only after a week with 1+ completed workout.")
         (about.layoutParams as LinearLayout.LayoutParams).setMargins(dp(2), dp(10), dp(2), 0)
         root.addView(about)
         // v3.12: attribution for the anatomy body-part logos.
